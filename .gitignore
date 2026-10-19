@@ -1,0 +1,27 @@
+build
+dist / media
+node_modules
+.pnpm-store/
+.DS_Store
+.env
+.next
+next-env.d.ts
+.vercel
+
+# Payload default media upload directory
+public/media/
+
+public/robots.txt
+public/sitemap*.xml
+*.db
+*.sqlite
+test.env
+*.tsbuildinfo
+
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
