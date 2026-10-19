@@ -1,29 +1,48 @@
 import Link from 'next/link'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { formatPrice } from '@/lib/shared'
+import { ProductsBrowser, type BrowserProduct, type BrowserCategory } from '@/components/ProductsBrowser'
+import { buildProductMessage, buildWhatsAppUrl } from '@/lib/shared'
+import { findVisibleCategories } from '@/lib/shared'
+import type { Metadata } from 'next'
+import type { Category } from '@/payload-types'
+import { getServerSideURL } from '@/utilities/getURL'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
-export default async function ProductsPage() {
+export const metadata: Metadata = {
+  title: 'Products',
+  alternates: { canonical: '/products' },
+}
+
+export default async function ProductsPage({ searchParams }: { searchParams: Promise<{ category?: string; q?: string; sort?: string }> }) {
+  const params = await searchParams
   const payload = await getPayload({ config })
-  const [{ docs: products }, settings] = await Promise.all([
-    payload.find({ collection: 'products', where: { and: [{ status: { equals: 'published' } }, { _status: { equals: 'published' } }] }, sort: 'title', depth: 0, limit: 100 }),
-    payload.findGlobal({ slug: 'site-settings', depth: 0 }),
+  const [{ docs: rawProducts }, categories, settings] = await Promise.all([
+    payload.find({ collection: 'products', where: { and: [{ status: { equals: 'published' } }, { _status: { equals: 'published' } }] }, sort: 'sortOrder,title', depth: 2, limit: 100 }),
+    findVisibleCategories(payload),
+    payload.findGlobal({ slug: 'site-settings', depth: 1 }),
   ])
-
-  return <main className="mx-auto min-h-screen max-w-5xl px-6 py-16 sm:py-24">
-    <Link className="text-sm text-neutral-500 underline-offset-4 hover:underline" href="/">{settings.brandName}</Link>
-    <h1 className="mt-8 text-4xl font-medium tracking-tight text-neutral-950">Products</h1>
-    <p className="mt-3 max-w-xl text-neutral-600">Explore the products in this catalogue.</p>
-    {products.length ? <ul className="mt-10 grid gap-px border border-neutral-200 bg-neutral-200 sm:grid-cols-2">
-      {products.map((product) => <li className="bg-white" key={product.id}>
-        <Link className="block min-h-36 p-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px]" href={`/products/${product.slug}`}>
-          <h2 className="text-lg font-medium text-neutral-950">{product.title}</h2>
-          {product.shortDescription && <p className="mt-2 text-sm leading-6 text-neutral-600">{product.shortDescription}</p>}
-          <p className="mt-4 text-sm text-neutral-700">{formatPrice(product.price, product.priceMode)}</p>
-        </Link>
-      </li>)}
-    </ul> : <p className="mt-10 border border-neutral-200 p-6 text-sm text-neutral-600">No published products are available yet.</p>}
+  const browserCategories: BrowserCategory[] = (categories as Category[]).filter((c) => c.slug).map((c) => ({ slug: c.slug, name: c.name }))
+  const visibleSlugs = new Set(browserCategories.map((c) => c.slug))
+  const products: BrowserProduct[] = rawProducts.filter((p) => process.env.NODE_ENV !== 'production' || !p.isDemo).map((p) => {
+    const category = typeof p.category === 'object' && p.category ? { slug: p.category.slug, name: p.category.name } : null
+    const message = buildProductMessage(p, { baseURL: getServerSideURL() }, settings)
+    const whatsappURL = buildWhatsAppUrl({ message, number: settings.whatsappNumber })
+    return {
+      id: p.id, slug: p.slug || '', title: p.title, shortDescription: p.shortDescription, seasonalTags: p.seasonalTags,
+      isDemo: p.isDemo,
+      price: p.price, currency: p.currency, priceMode: p.priceMode, featured: p.featured, publishedAt: p.publishedAt,
+      badges: p.badges, availability: p.availability, category: category && visibleSlugs.has(category.slug || '') ? category : null,
+      images: (p.images || []).map((entry) => ({ alt: entry.alt, image: typeof entry.image === 'object' && entry.image ? { url: entry.image.url, width: entry.image.width, height: entry.image.height } : undefined })),
+      whatsappURL,
+    }
+  })
+  const category = params.category && visibleSlugs.has(params.category) ? params.category : ''
+  const sort = ['featured', 'newest', 'price-asc', 'price-desc', 'name-asc'].includes(params.sort || '') ? params.sort as 'featured' | 'newest' | 'price-asc' | 'price-desc' | 'name-asc' : 'featured'
+  return <main className="products-page">
+    <header className="products-heading"><Link href="/" className="products-brand">{settings.brandName}</Link><h1>Products</h1><p>Explore the catalogue and ask us about anything that catches your eye.</p></header>
+    {!settings.whatsappNumber && process.env.NODE_ENV !== 'production' && <p className="connect-dev-warning">Add a valid business WhatsApp number in Site Settings to enable enquiry links.</p>}
+    <ProductsBrowser products={products} categories={browserCategories} initialCategory={category} initialQuery={params.q || ''} initialSort={sort} />
   </main>
 }

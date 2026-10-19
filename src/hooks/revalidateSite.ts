@@ -8,6 +8,12 @@ async function revalidatePublicSite() {
   const { revalidatePath, revalidateTag } = await import('next/cache')
   revalidateTag('site-content', 'max')
   revalidatePath('/')
+  revalidatePath('/products')
+  revalidatePath('/products/[slug]', 'page')
+  revalidatePath('/categories/[slug]', 'page')
+  revalidatePath('/painting-kits')
+  revalidatePath('/custom')
+  revalidatePath('/location')
 }
 
 export const revalidateSite: CollectionAfterChangeHook = async ({ doc, req }) => {

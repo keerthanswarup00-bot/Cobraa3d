@@ -15,7 +15,7 @@ export interface LoginOptions {
  */
 export async function login({
   page,
-  serverURL = 'http://127.0.0.1:3100',
+  serverURL = `http://127.0.0.1:${process.env.PLAYWRIGHT_PORT || '3100'}`,
   user,
 }: LoginOptions): Promise<void> {
   await page.goto(`${serverURL}/admin/login`)

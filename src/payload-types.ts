@@ -173,6 +173,15 @@ export interface Product {
    */
   generateSlug?: boolean | null;
   slug?: string | null;
+  status?: ('draft' | 'published') | null;
+  /**
+   * Development demonstration record. Never use as confirmed stock or pricing.
+   */
+  isDemo?: boolean | null;
+  /**
+   * Choose a visible catalogue category.
+   */
+  category?: (number | null) | Category;
   /**
    * A short summary for product cards. Keep it under 240 characters.
    */
@@ -193,10 +202,6 @@ export interface Product {
     [k: string]: unknown;
   } | null;
   /**
-   * Choose a visible catalogue category.
-   */
-  category?: (number | null) | Category;
-  /**
    * Add useful alt text for every photo. The first photo is used as the main image.
    */
   images?:
@@ -213,7 +218,6 @@ export interface Product {
   originalPrice?: number | null;
   currency: string;
   priceMode?: ('ask' | 'show') | null;
-  availability?: ('in_stock' | 'made_to_order' | 'out_of_stock' | 'coming_soon') | null;
   includedItems?:
     | {
         item: string;
@@ -230,10 +234,16 @@ export interface Product {
   dimensions?: string | null;
   material?: string | null;
   ageGroup?: string | null;
-  personalisable?: boolean | null;
-  personalisationNotes?: string | null;
   careNotes?: string | null;
   productionNote?: string | null;
+  layerPhotos?: (number | Media)[] | null;
+  /**
+   * Optional GLB preview. Export a GLB/glTF from your CAD tool or slicer (if supported), then upload it. Some slicers do not export 3D scene files.
+   */
+  model3d?: (number | null) | Media;
+  availability?: ('in_stock' | 'made_to_order' | 'out_of_stock' | 'coming_soon') | null;
+  personalisable?: boolean | null;
+  personalisationNotes?: string | null;
   badges?: ('new' | 'bestseller' | 'festive' | 'customisable')[] | null;
   featured?: boolean | null;
   seasonalTags?:
@@ -244,11 +254,6 @@ export interface Product {
     | null;
   relatedProducts?: (number | Product)[] | null;
   /**
-   * Optional GLB. Export a GLB/glTF from your CAD or slicer tool, then upload it here.
-   */
-  model3d?: (number | null) | Media;
-  layerPhotos?: (number | Media)[] | null;
-  /**
    * Optional message. Tokens: {{title}}, {{price}}, {{url}}, {{imageUrl}}.
    */
   whatsappMessageOverride?: string | null;
@@ -256,7 +261,6 @@ export interface Product {
   seoDescription?: string | null;
   publishedAt?: string | null;
   sortOrder?: number | null;
-  status?: ('draft' | 'published') | null;
   meta?: {
     title?: string | null;
     description?: string | null;
@@ -843,9 +847,11 @@ export interface ProductsSelect<T extends boolean = true> {
   title?: T;
   generateSlug?: T;
   slug?: T;
+  status?: T;
+  isDemo?: T;
+  category?: T;
   shortDescription?: T;
   description?: T;
-  category?: T;
   images?:
     | T
     | {
@@ -857,7 +863,6 @@ export interface ProductsSelect<T extends boolean = true> {
   originalPrice?: T;
   currency?: T;
   priceMode?: T;
-  availability?: T;
   includedItems?:
     | T
     | {
@@ -874,10 +879,13 @@ export interface ProductsSelect<T extends boolean = true> {
   dimensions?: T;
   material?: T;
   ageGroup?: T;
-  personalisable?: T;
-  personalisationNotes?: T;
   careNotes?: T;
   productionNote?: T;
+  layerPhotos?: T;
+  model3d?: T;
+  availability?: T;
+  personalisable?: T;
+  personalisationNotes?: T;
   badges?: T;
   featured?: T;
   seasonalTags?:
@@ -887,14 +895,11 @@ export interface ProductsSelect<T extends boolean = true> {
         id?: T;
       };
   relatedProducts?: T;
-  model3d?: T;
-  layerPhotos?: T;
   whatsappMessageOverride?: T;
   seoTitle?: T;
   seoDescription?: T;
   publishedAt?: T;
   sortOrder?: T;
-  status?: T;
   meta?:
     | T
     | {
@@ -1294,6 +1299,45 @@ export interface SiteSetting {
     secondaryCtaLabel?: string | null;
     featuredProducts?: (number | Product)[] | null;
   };
+  brandStory?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  studioPhotos?: (number | Media)[] | null;
+  connectCopy?: {
+    catalogueHeading?: string | null;
+    catalogueDescription?: string | null;
+    paintingHeading?: string | null;
+    kidsKitDescription?: string | null;
+    adultsKitDescription?: string | null;
+    customHeading?: string | null;
+    customPrompt?: string | null;
+    customNote?: string | null;
+    bulkHeading?: string | null;
+    bulkDescription?: string | null;
+    howHeading?: string | null;
+    howStepOneTitle?: string | null;
+    howStepOneDescription?: string | null;
+    howStepTwoTitle?: string | null;
+    howStepTwoDescription?: string | null;
+    howStepThreeTitle?: string | null;
+    howStepThreeDescription?: string | null;
+    printBedHeading?: string | null;
+    locationHeading?: string | null;
+    closingHeading?: string | null;
+    closingCtaLabel?: string | null;
+  };
   whatsappNumber?: string | null;
   phone?: string | null;
   email?: string | null;
@@ -1311,24 +1355,6 @@ export interface SiteSetting {
   address?: string | null;
   showFullAddress?: boolean | null;
   openingHours?: string | null;
-  parentUrl?: string | null;
-  firstInHoskoteClaimEnabled?: boolean | null;
-  brandStory?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  studioPhotos?: (number | Media)[] | null;
   messageTemplates?: {
     product?: string | null;
     custom?: string | null;
@@ -1341,7 +1367,6 @@ export interface SiteSetting {
     description?: string | null;
   };
   ogImage?: (number | null) | Media;
-  analyticsId?: string | null;
   experience?: {
     /**
      * Reveal the hero as if a print is in progress.
@@ -1414,6 +1439,9 @@ export interface SiteSetting {
     maxCharacters?: number | null;
     startingFromNote?: string | null;
   };
+  parentUrl?: string | null;
+  firstInHoskoteClaimEnabled?: boolean | null;
+  analyticsId?: string | null;
   productEnquiryCtaLabel?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -1473,6 +1501,33 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         secondaryCtaLabel?: T;
         featuredProducts?: T;
       };
+  brandStory?: T;
+  studioPhotos?: T;
+  connectCopy?:
+    | T
+    | {
+        catalogueHeading?: T;
+        catalogueDescription?: T;
+        paintingHeading?: T;
+        kidsKitDescription?: T;
+        adultsKitDescription?: T;
+        customHeading?: T;
+        customPrompt?: T;
+        customNote?: T;
+        bulkHeading?: T;
+        bulkDescription?: T;
+        howHeading?: T;
+        howStepOneTitle?: T;
+        howStepOneDescription?: T;
+        howStepTwoTitle?: T;
+        howStepTwoDescription?: T;
+        howStepThreeTitle?: T;
+        howStepThreeDescription?: T;
+        printBedHeading?: T;
+        locationHeading?: T;
+        closingHeading?: T;
+        closingCtaLabel?: T;
+      };
   whatsappNumber?: T;
   phone?: T;
   email?: T;
@@ -1490,10 +1545,6 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   address?: T;
   showFullAddress?: T;
   openingHours?: T;
-  parentUrl?: T;
-  firstInHoskoteClaimEnabled?: T;
-  brandStory?: T;
-  studioPhotos?: T;
   messageTemplates?:
     | T
     | {
@@ -1510,7 +1561,6 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         description?: T;
       };
   ogImage?: T;
-  analyticsId?: T;
   experience?:
     | T
     | {
@@ -1556,6 +1606,9 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         maxCharacters?: T;
         startingFromNote?: T;
       };
+  parentUrl?: T;
+  firstInHoskoteClaimEnabled?: T;
+  analyticsId?: T;
   productEnquiryCtaLabel?: T;
   updatedAt?: T;
   createdAt?: T;

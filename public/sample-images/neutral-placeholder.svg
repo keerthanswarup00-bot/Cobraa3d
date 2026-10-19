@@ -2,5 +2,5 @@
   <title id="title">Sample placeholder</title><desc id="desc">Neutral placeholder image; replace before launch</desc>
   <rect width="1200" height="900" fill="#f6f5f1"/><path d="M0 680Q260 470 540 680T1200 590V900H0Z" fill="#e7e5e0"/>
   <g fill="none" stroke="#777" stroke-width="3" opacity=".28"><path d="M105 490c120-220 300-300 510-230s300 215 490 115"/><path d="M95 535c145-220 315-275 520-205s280 200 480 110"/><path d="M70 580c165-205 340-255 540-180s270 180 465 100"/></g>
-  <text x="600" y="780" text-anchor="middle" fill="#777" font-family="Arial,sans-serif" font-size="32" letter-spacing="5">SAMPLE · REPLACE BEFORE LAUNCH</text>
+  <text x="600" y="780" text-anchor="middle" fill="#777" font-family="Arial,sans-serif" font-size="32" letter-spacing="5">NOT A PRODUCT PHOTO</text>
 </svg>

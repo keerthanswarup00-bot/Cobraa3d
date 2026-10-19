@@ -1,33 +1,91 @@
-import Link from 'next/link'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { buildProductMessage, buildWhatsAppUrl, formatPrice } from '@/lib/shared'
-
-export const dynamic = 'force-dynamic'
+import { ProductDetail } from '@/components/ProductDetail'
+import type { Product } from '@/payload-types'
+import { getServerSideURL } from '@/utilities/getURL'
 
 export const revalidate = 60
 
-export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
+async function loadProduct(slug: string) {
   const payload = await getPayload({ config })
   const [result, settings] = await Promise.all([
-    payload.find({ collection: 'products', where: { and: [{ slug: { equals: slug } }, { status: { equals: 'published' } }, { _status: { equals: 'published' } }] }, limit: 1, depth: 1 }),
-    payload.findGlobal({ slug: 'site-settings', depth: 1 }),
+    payload.find({ collection: 'products', where: { and: [{ slug: { equals: slug } }, { status: { equals: 'published' } }, { _status: { equals: 'published' } }] }, limit: 1, depth: 2 }),
+    payload.findGlobal({ slug: 'site-settings', depth: 2 }),
   ])
   const product = result.docs[0]
-  if (!product) notFound()
-  const message = buildProductMessage(product, { baseURL: process.env.NEXT_PUBLIC_SERVER_URL }, settings)
-  const enquiryURL = buildWhatsAppUrl({ message, number: settings.whatsappNumber })
+  return { product: product && (process.env.NODE_ENV !== 'production' || !product.isDemo) ? product : undefined, settings }
+}
 
-  return <main className="mx-auto min-h-screen max-w-4xl px-6 py-12 sm:py-20">
-    <Link className="inline-flex min-h-11 items-center text-sm text-neutral-500 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2" href="/products">← Products</Link>
-    <article className="mt-10 max-w-2xl">
-      <p className="font-mono text-xs uppercase tracking-[0.18em] text-neutral-500">{settings.brandName}</p>
-      <h1 className="mt-4 text-4xl font-medium tracking-tight text-neutral-950 sm:text-6xl">{product.title}</h1>
-      {product.shortDescription && <p className="mt-5 text-lg leading-8 text-neutral-600">{product.shortDescription}</p>}
-      <p className="mt-8 text-base text-neutral-900">{formatPrice(product.price, product.priceMode)}</p>
-      {enquiryURL && <a className="mt-8 inline-flex min-h-11 items-center rounded bg-neutral-950 px-5 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-950" href={enquiryURL} rel="noreferrer" target="_blank">{settings.productEnquiryCtaLabel}</a>}
-    </article>
-  </main>
+function textFromLexical(value: unknown): string {
+  if (!value || typeof value !== 'object') return ''
+  const item = value as { text?: string; children?: unknown[] }
+  return [item.text || '', ...(item.children || []).map(textFromLexical)].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
+}
+
+function urlForMedia(image: Product['images'] extends (infer _T)[] | null | undefined ? unknown : unknown) {
+  if (!image || typeof image !== 'object') return undefined
+  const media = image as { url?: string | null; alt?: string | null }
+  return media.url ? { url: media.url, alt: media.alt || '' } : undefined
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const { product } = await loadProduct(slug)
+  if (!product) return { title: 'Product not found' }
+  const mainImage = product.images?.[0]?.image
+  const media = typeof mainImage === 'object' && mainImage ? mainImage : null
+  const canonical = `/products/${product.slug}`
+  const title = product.seoTitle || product.meta?.title || product.title
+  const description = product.seoDescription || product.meta?.description || product.shortDescription || undefined
+  return {
+    title, description, alternates: { canonical }, robots: product.isDemo ? { index: false, follow: false } : undefined,
+    openGraph: { title, description, url: canonical, images: media?.url ? [{ url: media.url, alt: product.images?.[0]?.alt || product.title }] : undefined },
+  }
+}
+
+export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const { product, settings } = await loadProduct(slug)
+  if (!product) notFound()
+  const payload = await getPayload({ config })
+  let relatedProducts: Product[] = []
+  const manual = (product.relatedProducts || []).filter((item): item is Product => typeof item === 'object' && !!item && item.status === 'published' && item._status === 'published' && (process.env.NODE_ENV !== 'production' || !item.isDemo))
+  if (manual.length) relatedProducts = manual.slice(0, 6)
+  else if (typeof product.category === 'object' && product.category) {
+    const related = await payload.find({ collection: 'products', where: { and: [{ category: { equals: product.category.id } }, { id: { not_equals: product.id } }, { status: { equals: 'published' } }, { _status: { equals: 'published' } }] }, limit: 6, depth: 2, sort: 'sortOrder,title' })
+    relatedProducts = related.docs
+  }
+  const siteURL = getServerSideURL()
+  const photos = (product.images || []).map((row) => ({ ...urlForMedia(row.image), alt: row.alt || product.title })).filter((item): item is { url: string; alt: string } => Boolean(item.url))
+  const related = relatedProducts.map((item) => {
+    const image = item.images?.[0]?.image
+    const media = typeof image === 'object' && image ? image : undefined
+    return { slug: item.slug || '', title: item.title, image: media?.url ? { url: media.url, alt: item.images?.[0]?.alt || item.title } : undefined }
+  })
+  const productData = {
+    title: product.title, slug: product.slug || slug, shortDescription: product.shortDescription,
+    descriptionText: textFromLexical(product.description?.root), price: product.price, originalPrice: product.originalPrice,
+    currency: product.currency, priceMode: product.priceMode, availability: product.availability, images: photos,
+    includedItems: product.includedItems?.map((item) => item.item), colourOptions: product.colourOptions?.map(({ name, hex }) => ({ name, hex })),
+    dimensions: product.dimensions, material: product.material, ageGroup: product.ageGroup, personalisable: product.personalisable,
+    personalisationNotes: product.personalisationNotes, careNotes: product.careNotes, productionNote: product.productionNote,
+    badges: product.badges, whatsappMessageOverride: product.whatsappMessageOverride, isDemo: product.isDemo,
+  }
+  const hasStructuredOffer = product.priceMode === 'show' && typeof product.price === 'number' && Boolean(product.availability)
+  const schema = product.isDemo ? null : {
+    '@context': 'https://schema.org', '@type': 'Product', name: product.title, description: product.seoDescription || product.shortDescription || undefined,
+    image: photos.map((photo) => photo.url), sku: undefined,
+    ...(hasStructuredOffer ? { offers: { '@type': 'Offer', priceCurrency: product.currency || 'INR', price: product.price, availability: product.availability === 'in_stock' ? 'https://schema.org/InStock' : product.availability === 'out_of_stock' ? 'https://schema.org/OutOfStock' : 'https://schema.org/PreOrder', url: `${siteURL}/products/${product.slug}` } } : {}),
+  }
+  const breadcrumb = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: siteURL }, { '@type': 'ListItem', position: 2, name: 'Products', item: `${siteURL}/products` },
+    { '@type': 'ListItem', position: 3, name: product.title, item: `${siteURL}/products/${product.slug}` },
+  ] }
+  return <>
+    {schema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, '\\u003c') }} />}
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb).replace(/</g, '\\u003c') }} />
+    <ProductDetail product={productData} brandName={settings.brandName} whatsappNumber={settings.whatsappNumber} productTemplate={settings.messageTemplates?.product} siteURL={siteURL} ctaLabel={settings.productEnquiryCtaLabel || 'Ask on WhatsApp'} related={related} />
+  </>
 }

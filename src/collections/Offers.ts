@@ -7,6 +7,7 @@ export const Offers: CollectionConfig = {
   access: { create: editorAccess, delete: editorAccess, read: () => true, update: editorAccess },
   admin: { useAsTitle: 'title' },
   fields: [
+    { name: 'statusSummary', type: 'ui', admin: { components: { Field: '@/components/OfferStatusSummary#OfferStatusSummary' } } },
     { name: 'title', type: 'text', required: true }, { name: 'description', type: 'textarea' },
     { name: 'discountText', type: 'text' }, { name: 'applicableProducts', type: 'relationship', relationTo: 'products', hasMany: true },
     { name: 'startsAt', type: 'date' }, { name: 'endsAt', type: 'date' }, { name: 'terms', type: 'richText' },

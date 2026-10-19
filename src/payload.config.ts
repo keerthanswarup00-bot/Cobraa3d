@@ -41,6 +41,24 @@ const storagePlugins: Plugin[] = cloudStorageConfigured ? [s3Storage({
 })] : []
 
 export default buildConfig({
+  endpoints: [{
+    path: '/festive-mode', method: 'post',
+    handler: async (req) => {
+      if ((req.user as { role?: string } | null)?.role !== 'admin') return Response.json({ error: 'Admin access required.' }, { status: 403 })
+      let requested: unknown
+      try { requested = req.json ? (await req.json()).active : undefined } catch { return Response.json({ error: 'Send an active boolean.' }, { status: 400 }) }
+      if (typeof requested !== 'boolean') return Response.json({ error: 'Send an active boolean.' }, { status: 400 })
+      const [offers, announcements] = await Promise.all([
+        req.payload.find({ collection: 'offers', where: { style: { equals: 'festive' } }, limit: 100, depth: 0, overrideAccess: true }),
+        req.payload.find({ collection: 'announcements', where: { type: { equals: 'festive' } }, limit: 100, depth: 0, overrideAccess: true }),
+      ])
+      await Promise.all([
+        ...offers.docs.map((offer) => req.payload.update({ collection: 'offers', id: offer.id, data: { active: requested }, overrideAccess: true })),
+        ...announcements.docs.map((announcement) => req.payload.update({ collection: 'announcements', id: announcement.id, data: { active: requested }, overrideAccess: true })),
+      ])
+      return Response.json({ active: requested, updated: offers.docs.length + announcements.docs.length })
+    },
+  }],
   admin: {
     components: {
       beforeDashboard: ['@/components/BeforeDashboard'],

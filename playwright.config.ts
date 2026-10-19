@@ -9,6 +9,8 @@ import 'dotenv/config'
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
+const port = process.env.PLAYWRIGHT_PORT || '3100'
+
 export default defineConfig({
   testDir: './tests/e2e',
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -21,7 +23,7 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    baseURL: 'http://127.0.0.1:3100',
+    baseURL: `http://127.0.0.1:${port}`,
     launchOptions: { executablePath: '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser' },
     /* Base URL to use in actions like `await page.goto('/')`. */
 
@@ -36,7 +38,7 @@ export default defineConfig({
   ],
   webServer: {
     reuseExistingServer: true,
-    command: 'pnpm dev --hostname 127.0.0.1 --port 3100',
-    url: 'http://127.0.0.1:3100',
+    command: `./node_modules/.bin/next dev --hostname 127.0.0.1 --port ${port}`,
+    url: `http://127.0.0.1:${port}`,
   },
 })

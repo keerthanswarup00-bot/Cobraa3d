@@ -12,7 +12,7 @@ export const Categories: CollectionConfig = {
       if (req.user) return true
       const { docs } = await req.payload.find({
         collection: 'products',
-        where: { and: [{ status: { equals: 'published' } }, { _status: { equals: 'published' } }] },
+        where: { and: [{ status: { equals: 'published' } }, { _status: { equals: 'published' } }, ...(process.env.NODE_ENV === 'production' ? [{ isDemo: { not_equals: true } }] : [])] },
         limit: 1000,
         depth: 0,
         overrideAccess: true,

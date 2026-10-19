@@ -10,6 +10,7 @@ export type ProductMessageInput = {
   whatsappMessageOverride?: string | null
   ageGroup?: string | null
   personalisable?: boolean | null
+  isDemo?: boolean | null
   badges?: string[] | null
   images?: Array<{ alt?: string | null; image?: { url?: string | null } | string | number | null }> | null
 }
@@ -22,8 +23,15 @@ export function buildWhatsAppUrl({ message, number }: { message: string; number?
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`
 }
 
+export function buildCustomerReplyUrl(input: { phone?: string | null; name?: string | null; productTitle?: string | null }): string | null {
+  if (!input.phone) return null
+  const subject = input.productTitle ? ` about ${input.productTitle}` : ' about your enquiry'
+  return buildWhatsAppUrl({ number: input.phone, message: `Hi ${input.name?.trim() || 'there'}, thanks for your enquiry${subject}. How can we help?` })
+}
+
 function displayPrice(product: ProductMessageInput): string {
-  return formatPrice(product.price, product.priceMode, product.currency || 'INR')
+  const price = formatPrice(product.price, product.priceMode, product.currency || 'INR')
+  return product.isDemo ? `${price} (sample price for local testing only)` : price
 }
 
 export function formatPrice(price?: number | null, priceMode?: string | null, currency = 'INR'): string {
@@ -119,6 +127,13 @@ export function buildNameplateMessage(
   ].filter(Boolean)
   const template = settings.nameplateMessageTemplate || 'Hi, I would like to enquire about a custom nameplate.\n{{details}}'
   return buildWhatsAppUrl({ number: settings.whatsappNumber, message: template.replaceAll('{{details}}', details.join('\n')) })
+}
+
+const calmSuppressedEffects = new Set(['heroPrintReveal', 'contourField', 'scrollGauge', 'filamentSpool', 'filamentProgress', 'paintPlaygroundMotion', 'layerWipe'])
+export function isExperienceEnabled(experience: Record<string, boolean | null | undefined> | null | undefined, effect: string): boolean {
+  if (!experience || experience[effect] === false) return false
+  if (experience.calmMode && calmSuppressedEffects.has(effect)) return false
+  return true
 }
 
 export async function findVisibleCategories(payload: Payload) {

@@ -53,3 +53,13 @@ Payload's official Website Template supplied the App Router admin shell, draft v
 Products, categories, offers, announcements, enquiries, Print Bed posts, media, and user roles are managed in Payload. Site-wide business details, contact links, copy, experience toggles, vCard fields, and nameplate options are managed in the Site Settings global. Public category access is restricted to visible categories that have at least one published product.
 
 The local seed is sample content only. Before launch, the owner must supply the real WhatsApp number, studio contact details and links, address/map URL, approved product/category copy and imagery, vCard fields, and any verified prices or product specifications. Never publish unverified prices, claims, ratings, availability, or stock. No production Vercel/Neon/storage project credentials are included in the repository; configure those in the deployment environment.
+
+## Local catalogue demo records
+
+The development-only seed upserts five clearly marked local demo records into the existing Payload `products` collection and matching categories: Personalised Nameplate, Decorative LED Lamp, Custom Phone Stand, Kids Colouring Kit, and Custom 3D Creation. It is intentionally disabled by default and refuses to run in production:
+
+```sh
+ALLOW_DEMO_SEED=true pnpm seed
+```
+
+Use a local SQLite database (`DATABASE_URL=file:./cobraa3d.db`) for the seed. Records carry `isDemo: true`; they have no price or confirmed availability and use distinct temporary SVG illustrations. The listing/detail UI marks them as temporary, and public production reads exclude them. The seed refuses to overwrite a non-demo product whose slug matches one of these demos. Replace or delete only records with `isDemo` checked before launch. The seed also removes the six exact `SAMPLE Product NN — replace before launch` and `SAMPLE Category NN — replace before launch` records made by the previous local sample script; it does not touch other products or categories.

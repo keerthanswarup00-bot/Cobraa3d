@@ -9,5 +9,6 @@ export const Announcements: CollectionConfig = {
     { name: 'type', type: 'select', defaultValue: 'info', options: ['info', 'festive', 'alert'].map((value) => ({ label: value, value })) },
     { name: 'startsAt', type: 'date' }, { name: 'endsAt', type: 'date' }, { name: 'dismissible', type: 'checkbox', defaultValue: true },
     { name: 'priority', type: 'number', defaultValue: 0 }, { name: 'active', type: 'checkbox', defaultValue: false },
+    { name: 'announcementPreview', type: 'ui', admin: { components: { Field: '@/components/AnnouncementPreview#AnnouncementPreview' } } },
   ], hooks: { afterChange: [revalidateSite], afterDelete: [revalidateDeletedSiteContent] },
 }

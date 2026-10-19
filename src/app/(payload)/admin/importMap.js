@@ -12,6 +12,9 @@ import { MetaTitleComponent as MetaTitleComponent_a8a977ebc872c5d5ea7ee689724c08
 import { MetaDescriptionComponent as MetaDescriptionComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { MetaImageComponent as MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { PreviewComponent as PreviewComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
+import { OfferStatusSummary as OfferStatusSummary_c959c901491657fdc38e1e11feb31a20 } from '@/components/OfferStatusSummary'
+import { AnnouncementPreview as AnnouncementPreview_6d370bdd91b16883d32c1fb7fa985082 } from '@/components/AnnouncementPreview'
+import { EnquiryReplyLink as EnquiryReplyLink_7dd7b12eeafc59af6ac9756c7ba1a864 } from '@/components/EnquiryReplyLink'
 import { ExportListMenuItem as ExportListMenuItem_cdf7e044479f899a31f804427d568b36 } from '@payloadcms/plugin-import-export/rsc'
 import { ImportListMenuItem as ImportListMenuItem_cdf7e044479f899a31f804427d568b36 } from '@payloadcms/plugin-import-export/rsc'
 import { InlineToolbarFeatureClient as InlineToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
@@ -33,6 +36,9 @@ import { ExportSaveButton as ExportSaveButton_cdf7e044479f899a31f804427d568b36 }
 import { ImportPreview as ImportPreview_cdf7e044479f899a31f804427d568b36 } from '@payloadcms/plugin-import-export/rsc'
 import { ImportSaveButton as ImportSaveButton_cdf7e044479f899a31f804427d568b36 } from '@payloadcms/plugin-import-export/rsc'
 import { FolderTypeField as FolderTypeField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
+import { SettingsLinkTests as SettingsLinkTests_7205646b80d280bebdee4b4c5a3b1ebc } from '@/components/SettingsLinkTests'
+import { MessageTemplatePreview as MessageTemplatePreview_42ed5fdecfb168a76f0a8490991a0376 } from '@/components/MessageTemplatePreview'
+import { default as default_1a7510af427896d367a49dbf838d2de6 } from '@/components/BeforeDashboard'
 import { ImportExportProvider as ImportExportProvider_cdf7e044479f899a31f804427d568b36 } from '@payloadcms/plugin-import-export/rsc'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
@@ -52,6 +58,9 @@ export const importMap = {
   "@payloadcms/plugin-seo/client#MetaDescriptionComponent": MetaDescriptionComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "@payloadcms/plugin-seo/client#MetaImageComponent": MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "@payloadcms/plugin-seo/client#PreviewComponent": PreviewComponent_a8a977ebc872c5d5ea7ee689724c0860,
+  "@/components/OfferStatusSummary#OfferStatusSummary": OfferStatusSummary_c959c901491657fdc38e1e11feb31a20,
+  "@/components/AnnouncementPreview#AnnouncementPreview": AnnouncementPreview_6d370bdd91b16883d32c1fb7fa985082,
+  "@/components/EnquiryReplyLink#EnquiryReplyLink": EnquiryReplyLink_7dd7b12eeafc59af6ac9756c7ba1a864,
   "@payloadcms/plugin-import-export/rsc#ExportListMenuItem": ExportListMenuItem_cdf7e044479f899a31f804427d568b36,
   "@payloadcms/plugin-import-export/rsc#ImportListMenuItem": ImportListMenuItem_cdf7e044479f899a31f804427d568b36,
   "@payloadcms/richtext-lexical/client#InlineToolbarFeatureClient": InlineToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
@@ -73,6 +82,9 @@ export const importMap = {
   "@payloadcms/plugin-import-export/rsc#ImportPreview": ImportPreview_cdf7e044479f899a31f804427d568b36,
   "@payloadcms/plugin-import-export/rsc#ImportSaveButton": ImportSaveButton_cdf7e044479f899a31f804427d568b36,
   "@payloadcms/next/client#FolderTypeField": FolderTypeField_2b8867833a34864a02ddf429b0728a40,
+  "@/components/SettingsLinkTests#SettingsLinkTests": SettingsLinkTests_7205646b80d280bebdee4b4c5a3b1ebc,
+  "@/components/MessageTemplatePreview#MessageTemplatePreview": MessageTemplatePreview_42ed5fdecfb168a76f0a8490991a0376,
+  "@/components/BeforeDashboard#default": default_1a7510af427896d367a49dbf838d2de6,
   "@payloadcms/plugin-import-export/rsc#ImportExportProvider": ImportExportProvider_cdf7e044479f899a31f804427d568b36,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

@@ -20,7 +20,7 @@ test.describe('Admin Panel', () => {
 
   test('can navigate to dashboard', async () => {
     await page.goto('/admin')
-    await expect(page).toHaveURL('http://127.0.0.1:3100/admin')
+    await expect(page).toHaveURL(`http://127.0.0.1:${process.env.PLAYWRIGHT_PORT || '3100'}/admin`)
     const dashboardArtifact = page.locator('span[title="Dashboard"]').first()
     await expect(dashboardArtifact).toBeVisible()
   })
@@ -49,7 +49,7 @@ test.describe('Admin Panel', () => {
     await expect(page).toHaveURL(/\/admin\/collections\/products\/[a-zA-Z0-9-_]+/)
 
     await page.goto('/products')
-    const productLink = page.getByRole('link', { name: /SAMPLE Walking Skeleton Product/ })
+    const productLink = page.getByRole('link', { name: sampleProductTitle, exact: true })
     const productHref = await productLink.getAttribute('href')
     expect(productHref).toBe('/products/sample-walking-skeleton-product')
     await page.goto(productHref!)
