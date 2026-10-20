@@ -1,6 +1,7 @@
 import * as migration_20261020_084901_init from './20261020_084901_init';
 import * as migration_20261020_151800_private_enquiry_files from './20261020_151800_private_enquiry_files';
 import * as migration_20261020_164200_request_rate_limits from './20261020_164200_request_rate_limits';
+import * as migration_20261020_164300_products_page_settings from './20261020_164300_products_page_settings';
 
 export const migrations = [
   {
@@ -17,5 +18,10 @@ export const migrations = [
     up: migration_20261020_164200_request_rate_limits.up,
     down: migration_20261020_164200_request_rate_limits.down,
     name: '20261020_164200_request_rate_limits'
+  },
+  {
+    up: migration_20261020_164300_products_page_settings.up,
+    down: migration_20261020_164300_products_page_settings.down,
+    name: '20261020_164300_products_page_settings'
   },
 ];

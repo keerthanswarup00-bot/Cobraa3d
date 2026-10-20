@@ -1433,6 +1433,40 @@ export interface SiteSetting {
     closingHeading?: string | null;
     closingCtaLabel?: string | null;
   };
+  /**
+   * Headline, filters and product sheet copy shown on the /products catalogue.
+   */
+  productsPage?: {
+    eyebrow?: string | null;
+    heading?: string | null;
+    headingAccent?: string | null;
+    searchPlaceholder?: string | null;
+    /**
+     * Button that opens the filters drawer on phones.
+     */
+    filtersLabel?: string | null;
+    maxPriceLabel?: string | null;
+    /**
+     * Heading above the product tag checkboxes. Tags come from each product’s seasonal tags.
+     */
+    goodForLabel?: string | null;
+    resetLabel?: string | null;
+    emptyTitle?: string | null;
+    emptyBody?: string | null;
+    emptyAction?: string | null;
+    noteLabel?: string | null;
+    notePlaceholder?: string | null;
+    orderLabel?: string | null;
+    /**
+     * Closing line added to the WhatsApp order message.
+     */
+    orderFooter?: string | null;
+    finePrint?: string | null;
+    /**
+     * Products shown per page in the catalogue grid.
+     */
+    perPage?: number | null;
+  };
   whatsappNumber?: string | null;
   phone?: string | null;
   email?: string | null;
@@ -1599,6 +1633,27 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         locationHeading?: T;
         closingHeading?: T;
         closingCtaLabel?: T;
+      };
+  productsPage?:
+    | T
+    | {
+        eyebrow?: T;
+        heading?: T;
+        headingAccent?: T;
+        searchPlaceholder?: T;
+        filtersLabel?: T;
+        maxPriceLabel?: T;
+        goodForLabel?: T;
+        resetLabel?: T;
+        emptyTitle?: T;
+        emptyBody?: T;
+        emptyAction?: T;
+        noteLabel?: T;
+        notePlaceholder?: T;
+        orderLabel?: T;
+        orderFooter?: T;
+        finePrint?: T;
+        perPage?: T;
       };
   whatsappNumber?: T;
   phone?: T;
