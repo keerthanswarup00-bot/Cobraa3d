@@ -9,6 +9,7 @@ import localFont from 'next/font/local'
 import { cn } from '@/utilities/ui'
 import { getServerSideURL } from '@/utilities/getURL'
 import { SiteNavigation } from '@/components/SiteNavigation'
+import { PrintLoader } from '@/components/PrintLoader'
 import { buildWhatsAppUrl } from '@/lib/shared'
 import './globals.css'
 import '@/components/home/home-c3.css'
@@ -21,15 +22,23 @@ import { AccentScript } from '@/components/home/AccentScript'
 import { Splash } from '@/components/Splash/Splash'
 import { TrackClicks } from '@/components/analytics/TrackClicks'
 
+// Runs before first paint: skip the loader for repeat visits in a session.
+const loaderGate = "try{if(sessionStorage.getItem('cobraa-loader')==='done')document.documentElement.dataset.loader='skip'}catch(e){}"
+
 export default async function RootLayout({ children, modal }: { children: React.ReactNode; modal?: React.ReactNode }) {
   const payload = await getPayload({ config })
   const settings = await getSiteSettings(0)
   const whatsappURL = buildWhatsAppUrl({ number: settings.whatsappNumber, message: 'Hi Cobraa 3D, I found your connect page and would like to know more about your products.' })
   return <html className={cn(GeistSans.variable, GeistMono.variable, instrumentSerif.variable)} lang="en" suppressHydrationWarning>
-    <head><link href="/favicon.svg" rel="icon" type="image/svg+xml" /></head>
+    <head>
+      <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
+      <script dangerouslySetInnerHTML={{ __html: loaderGate }} />
+      <noscript><style>{'.print-loader{display:none}'}</style></noscript>
+    </head>
     <body>
       <AccentScript />
       <Splash />
+      <PrintLoader brandName={settings.brandName || 'Cobraa 3D'} />
       <SiteNavigation brandName={settings.brandName || 'Cobraa 3D'} whatsappURL={whatsappURL} />
       {children}
       {modal}
