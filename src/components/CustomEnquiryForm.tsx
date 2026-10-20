@@ -41,10 +41,11 @@ export function CustomEnquiryForm({ whatsappNumber, source, note, messageTemplat
     const nextErrors: Record<string, string> = {}
     if (!parsed.success) for (const [key, messages] of Object.entries(parsed.error.flatten().fieldErrors)) if (messages?.[0]) nextErrors[key] = messages[0]
     if (files.length > 2) nextErrors.files = 'Attach no more than two files.'
+    if (files.reduce((total, file) => total + file.size, 0) > 4 * 1024 * 1024) nextErrors.files = 'Attachments must total 4 MB or less.'
     for (const file of files) {
       const ext = file.name.split('.').pop()?.toLowerCase()
       if (!(['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type) || ext === 'stl' || ext === '3mf')) nextErrors.files = 'Attach a JPEG, PNG, WebP, GIF, STL or 3MF file.'
-      if (file.size > 4 * 1024 * 1024) nextErrors.files = 'Each file must be 4 MB or smaller.'
+      if (file.size > 2 * 1024 * 1024) nextErrors.files = 'Each file must be 2 MB or smaller.'
     }
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return
@@ -76,7 +77,7 @@ export function CustomEnquiryForm({ whatsappNumber, source, note, messageTemplat
         <label>Occasion (optional)<input value={values.occasion} onChange={(e) => update('occasion', e.target.value)} /></label>
         <label>Colour (optional)<input value={values.colour} onChange={(e) => update('colour', e.target.value)} /></label>
         <label>Budget (optional)<input value={values.budget} onChange={(e) => update('budget', e.target.value)} /></label>
-        <label className="form-wide">Reference image or STL / 3MF (optional)<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,.stl,.3mf" multiple onChange={(e) => setFiles(Array.from(e.target.files || []))} /><small>Up to 2 files, 4 MB each.</small>{errors.files && <small>{errors.files}</small>}</label>
+        <label className="form-wide">Reference image or STL / 3MF (optional)<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,.stl,.3mf" multiple onChange={(e) => setFiles(Array.from(e.target.files || []))} /><small>Up to 2 files, 2 MB each (4 MB total).</small>{errors.files && <small>{errors.files}</small>}</label>
       </div>
       <p className="form-note">{note || 'We’ll review the idea and confirm feasibility, material and cost with you.'}</p>
       <button className="form-submit" disabled={status === 'sending'}>{status === 'sending' ? 'Sending…' : 'Send enquiry'}</button>

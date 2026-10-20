@@ -17,7 +17,7 @@ Set a long random `PAYLOAD_SECRET` in `.env`, then start the app:
 pnpm dev
 ```
 
-Open [http://localhost:3000/admin](http://localhost:3000/admin), create the first admin account, and add the studio WhatsApp number under Site Settings. The local database is SQLite at `cobraa3d.db`. Create products under `/admin`; publish a product to show it under `/products`.
+Provision the first administrator from the project environment with `BOOTSTRAP_ADMIN_EMAIL=... BOOTSTRAP_ADMIN_PASSWORD=... pnpm admin:create` (the password must be at least 12 characters). Then open [http://localhost:3000/admin](http://localhost:3000/admin) and add the studio WhatsApp number under Site Settings. Public signup is disabled, and the bootstrap command refuses to run after any user exists. The local database is SQLite at `cobraa3d.db`. Create products under `/admin`; publish a product to show it under `/products`.
 
 To load clearly marked sample content into the local database, run:
 
@@ -44,7 +44,7 @@ pnpm build
 2. Provision a Postgres database with Neon or Supabase. Set `DATABASE_URL` to its Postgres connection string; production automatically selects Payload's Postgres adapter, while local development stays on SQLite.
 3. Create an S3-compatible bucket (Cloudflare R2, AWS S3, or another compatible provider). Set `S3_BUCKET`, `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, and `S3_SECRET_ACCESS_KEY`. Without these settings, Payload stores uploads in `public/media` locally.
 4. Set `PAYLOAD_SECRET`, `PREVIEW_SECRET`, `CRON_SECRET`, and `NEXT_PUBLIC_SERVER_URL` in Vercel. Use the production domain for `NEXT_PUBLIC_SERVER_URL` and do not include a trailing slash.
-5. Deploy. Create the first admin account at `/admin` and complete Site Settings before publishing products.
+5. Before first deploy, set `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` in a secure environment and run `pnpm admin:create` once. Then deploy and complete Site Settings before publishing products. Do not expose or commit the bootstrap password.
 
 ## Foundation notes
 
@@ -63,14 +63,3 @@ ALLOW_DEMO_SEED=true pnpm seed
 ```
 
 Use a local SQLite database (`DATABASE_URL=file:./cobraa3d.db`) for the seed. Records carry `isDemo: true`; they have no price or confirmed availability and use distinct temporary SVG illustrations. The listing/detail UI marks them as temporary, and public production reads exclude them. The seed refuses to overwrite a non-demo product whose slug matches one of these demos. Replace or delete only records with `isDemo` checked before launch. The seed also removes the six exact `SAMPLE Product NN — replace before launch` and `SAMPLE Category NN — replace before launch` records made by the previous local sample script; it does not touch other products or categories.
-
-## Deploying
-See [docs/DEPLOY.md](docs/DEPLOY.md) and [docs/ADD-PRODUCTS.md](docs/ADD-PRODUCTS.md).
-
-Scripts: , , .
-
-
-## Deploying
-See [docs/DEPLOY.md](docs/DEPLOY.md) and [docs/ADD-PRODUCTS.md](docs/ADD-PRODUCTS.md).
-
-Scripts: `migrate:create`, `migrate`, `vercel-build`.

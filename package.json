@@ -12,6 +12,7 @@
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
     "seed": "cross-env NODE_OPTIONS=--no-deprecation node --import=tsx/esm src/seed.ts",
+    "admin:create": "cross-env NODE_OPTIONS=--no-deprecation node --import=tsx/esm scripts/create-admin.ts",
     "generate:contours": "node scripts/generate-contours.mjs",
     "ii": "cross-env NODE_OPTIONS=--no-deprecation pnpm --ignore-workspace install",
     "lint": "cross-env NODE_OPTIONS=--no-deprecation eslint .",

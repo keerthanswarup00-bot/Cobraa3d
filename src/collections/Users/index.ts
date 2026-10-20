@@ -7,11 +7,7 @@ export const Users: CollectionConfig = {
   slug: 'users',
   access: {
     admin: adminOnly,
-    create: async ({ req }) => {
-      if (adminOnly({ req } as Parameters<typeof adminOnly>[0])) return true
-      const users = await req.payload.find({ collection: 'users', limit: 1, depth: 0, overrideAccess: true })
-      return users.totalDocs === 0
-    },
+    create: adminOnly,
     delete: adminOnly,
     read: adminOnly,
     update: adminOnly,
@@ -36,13 +32,6 @@ export const Users: CollectionConfig = {
     },
   ],
   hooks: {
-    beforeChange: [async ({ data, req, operation }) => {
-      if (operation === 'create') {
-        const existing = await req.payload.find({ collection: 'users', limit: 1, depth: 0 })
-        if (existing.totalDocs === 0) data.role = 'admin'
-      }
-      return data
-    }],
     afterChange: [revalidateSite],
     afterDelete: [revalidateDeletedSiteContent],
   },

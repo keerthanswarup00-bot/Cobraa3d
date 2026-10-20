@@ -73,6 +73,7 @@ export interface Config {
     announcements: Announcement;
     enquiries: Enquiry;
     'enquiry-files': EnquiryFile;
+    'request-rate-limits': RequestRateLimit;
     'print-bed': PrintBed;
     media: Media;
     users: User;
@@ -100,6 +101,7 @@ export interface Config {
     announcements: AnnouncementsSelect<false> | AnnouncementsSelect<true>;
     enquiries: EnquiriesSelect<false> | EnquiriesSelect<true>;
     'enquiry-files': EnquiryFilesSelect<false> | EnquiryFilesSelect<true>;
+    'request-rate-limits': RequestRateLimitsSelect<false> | RequestRateLimitsSelect<true>;
     'print-bed': PrintBedSelect<false> | PrintBedSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -169,9 +171,17 @@ export interface UserAuthOperations {
 export interface Product {
   id: number;
   /**
-   * Product name customers will see. Example: Desk nameplate.
+   * Product name customers will see.
    */
   title: string;
+  /**
+   * The description shown on product cards. Keep it under 240 characters.
+   */
+  shortDescription?: string | null;
+  /**
+   * Enter the price in INR. Leave blank to show “Ask for price”.
+   */
+  price?: number | null;
   /**
    * When enabled, the slug will auto-generate from the title field on save and autosave.
    */
@@ -186,10 +196,6 @@ export interface Product {
    * Choose a visible catalogue category.
    */
   category?: (number | null) | Category;
-  /**
-   * A short summary for product cards. Keep it under 240 characters.
-   */
-  shortDescription?: string | null;
   description?: {
     root: {
       type: string;
@@ -215,10 +221,6 @@ export interface Product {
         id?: string | null;
       }[]
     | null;
-  /**
-   * Optional. Leave blank to show “Ask for price”.
-   */
-  price?: number | null;
   originalPrice?: number | null;
   currency: string;
   priceMode?: ('ask' | 'show') | null;
@@ -507,6 +509,16 @@ export interface EnquiryFile {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "request-rate-limits".
+ */
+export interface RequestRateLimit {
+  id: number;
+  key: string;
+  windowStart: number;
+  count: number;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -812,6 +824,10 @@ export interface PayloadLockedDocument {
         value: number | EnquiryFile;
       } | null)
     | ({
+        relationTo: 'request-rate-limits';
+        value: number | RequestRateLimit;
+      } | null)
+    | ({
         relationTo: 'print-bed';
         value: number | PrintBed;
       } | null)
@@ -887,12 +903,13 @@ export interface PayloadMigration {
  */
 export interface ProductsSelect<T extends boolean = true> {
   title?: T;
+  shortDescription?: T;
+  price?: T;
   generateSlug?: T;
   slug?: T;
   status?: T;
   isDemo?: T;
   category?: T;
-  shortDescription?: T;
   description?: T;
   images?:
     | T
@@ -901,7 +918,6 @@ export interface ProductsSelect<T extends boolean = true> {
         alt?: T;
         id?: T;
       };
-  price?: T;
   originalPrice?: T;
   currency?: T;
   priceMode?: T;
@@ -1042,6 +1058,15 @@ export interface EnquiryFilesSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "request-rate-limits_select".
+ */
+export interface RequestRateLimitsSelect<T extends boolean = true> {
+  key?: T;
+  windowStart?: T;
+  count?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1699,6 +1724,7 @@ export interface TaskCreateCollectionExport {
       | 'announcements'
       | 'enquiries'
       | 'enquiry-files'
+      | 'request-rate-limits'
       | 'print-bed'
       | 'media'
       | 'users'

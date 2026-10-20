@@ -16,7 +16,7 @@ export const EnquiryFiles: CollectionConfig = {
     read: editorAccess,
     update: editorAccess,
   },
-  admin: { useAsTitle: 'alt', group: 'Enquiries' },
+  admin: { useAsTitle: 'alt', group: 'Customers' },
   fields: [{ name: 'alt', type: 'text', required: true }],
   upload: {
     staticDir: path.resolve(dirname, '../../private/enquiry-files'),

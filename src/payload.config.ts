@@ -17,6 +17,7 @@ import { Enquiries } from './collections/Enquiries'
 import { PrintBed } from './collections/PrintBed'
 import { Media } from './collections/Media'
 import { EnquiryFiles } from './collections/EnquiryFiles'
+import { RequestRateLimits } from './collections/RequestRateLimits'
 import { Products } from './collections/Products'
 import { Users } from './collections/Users'
 import { WhatsappClicks } from './collections/WhatsappClicks'
@@ -45,7 +46,6 @@ if (cloudStorageConfigured && env.S3_PRIVATE_BUCKET) {
   storagePlugins.push(s3Storage({
     collections: { 'enquiry-files': { signedDownloads: true } },
     bucket: env.S3_PRIVATE_BUCKET,
-    acl: 'private',
     config: {
       endpoint: env.S3_ENDPOINT,
       region: env.S3_REGION || 'auto',
@@ -95,16 +95,20 @@ export default buildConfig({
     { ...Categories, admin: { ...Categories.admin, group: 'Catalogue' } },
     { ...Offers, admin: { ...Offers.admin, group: 'Promotions' } },
     { ...Announcements, admin: { ...Announcements.admin, group: 'Promotions' } },
-    { ...Enquiries, admin: { ...Enquiries.admin, group: 'Enquiries' } },
+    { ...Enquiries, admin: { ...Enquiries.admin, group: 'Customers' } },
     EnquiryFiles,
-    { ...PrintBed, admin: { ...PrintBed.admin, group: 'Site' } },
-    { ...Media, admin: { ...Media.admin, group: 'Site' } },
+    RequestRateLimits,
+    { ...PrintBed, admin: { ...PrintBed.admin, group: 'Content' } },
+    { ...Media, admin: { ...Media.admin, group: 'Content' } },
     { ...Users, admin: { ...Users.admin, group: 'Team' } },
     WhatsappClicks,
   ],
   cors: [process.env.NEXT_PUBLIC_SITE_URL, 'http://localhost:3000'].filter((v): v is string => Boolean(v)),
   csrf: [process.env.NEXT_PUBLIC_SITE_URL, 'http://localhost:3000'].filter((v): v is string => Boolean(v)),
-  globals: [SiteSettings, LegalPages],
+  globals: [
+    { ...SiteSettings, admin: { ...SiteSettings.admin, group: 'Website' } },
+    { ...LegalPages, admin: { ...LegalPages.admin, group: 'Website' } },
+  ],
   plugins: [
     ...storagePlugins,
     seoPlugin({ collections: ['products'], uploadsCollection: 'media' }),

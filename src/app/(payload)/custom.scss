@@ -1,27 +1,2 @@
-.cobraa-admin-logo { color: #080808; font: 700 16px/1 system-ui, sans-serif; letter-spacing: .12em; white-space: nowrap; }
-.cobraa-admin-logo i { color: #a78026; font-style: normal; letter-spacing: .02em; }
-.cobraa-dashboard { max-width: 1100px; padding: 24px 20px 56px; color: #080808; font-family: system-ui, sans-serif; }
-.cobraa-dashboard h1 { margin: 4px 0 8px; font-size: clamp(30px, 5vw, 42px); letter-spacing: -.04em; }
-.cobraa-dashboard h2 { font-size: 18px; margin: 28px 0 12px; }
-.cobraa-dashboard p { color: #666; }
-.cobraa-eyebrow { font-size: 11px; letter-spacing: .16em; }
-.cobraa-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
-.cobraa-card { display: flex; min-height: 116px; flex-direction: column; justify-content: space-between; padding: 16px; border: 1px solid #e7e5e0; border-radius: 6px; color: inherit; text-decoration: none; }
-.cobraa-card strong { font-size: 28px; }
-.cobraa-card small { color: #777; }
-.cobraa-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.cobraa-actions a { display: inline-flex; min-height: 44px; align-items: center; padding: 0 14px; border: 1px solid #e7e5e0; border-radius: 5px; color: inherit; text-decoration: none; }
-.cobraa-copy { min-height: 44px; padding: 0 14px; border: 1px solid #080808; border-radius: 5px; background: #080808; color: #fff; font: inherit; cursor: pointer; }
-.cobraa-actions a:hover, .cobraa-card:hover { border-color: #a78026; }
-.cobraa-share { padding: 16px; background: #f6f5f1; border-radius: 6px; }
-.cobraa-share code { display: block; overflow-wrap: anywhere; margin: 12px 0; }
-.cobraa-dashboard a:focus-visible { outline: 2px solid #a78026; outline-offset: 3px; }
-.cobraa-qr-tool { display: grid; justify-items: start; gap: 10px; margin-top: 18px; }
-.cobraa-qr-tool label { font-weight: 600; }
-.cobraa-qr-tool select { min-height: 44px; padding: 0 12px; border: 1px solid #e7e5e0; border-radius: 5px; background: white; color: #080808; }
-.cobraa-qr-image { width: 192px; height: 192px; padding: 8px; border: 1px solid #e7e5e0; background: white; }
-.cobraa-checklist { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px; padding: 0; list-style: none; }
-.cobraa-checklist li { display: flex; align-items: center; gap: 8px; padding: 12px; border: 1px solid #e7e5e0; border-radius: 5px; }
-.cobraa-checklist li strong { margin-left: auto; color: #666; font-size: 12px; }
-.cobraa-vcard-preview { max-width: 100%; overflow: auto; padding: 12px; background: #f6f5f1; white-space: pre-wrap; }
-@media (max-width: 480px) { .cobraa-dashboard { padding: 16px 12px 40px; } .cobraa-cards { grid-template-columns: 1fr 1fr; gap: 8px; } .cobraa-card { padding: 12px; } }
+@import '@payloadcms/ui/scss';
+@import '../../components/BeforeDashboard/index.scss';

@@ -15,5 +15,5 @@ export function FestiveModeButton({ enabled }: { enabled: boolean }) {
     } catch (e) { setError(e instanceof Error ? e.message : 'Could not update festive mode.') }
     finally { setBusy(false) }
   }
-  return <div><button className="cobraa-copy" type="button" onClick={toggle} disabled={busy}>{busy ? 'Saving…' : active ? 'End festive mode' : 'Start festive mode'}</button><p aria-live="polite">{error || (active ? 'At least one festive offer or announcement is active.' : 'Festive offers and announcements are inactive.')}</p></div>
+  return <div className="cobraa-festive-control"><div className="cobraa-festive-actions"><span className={`cobraa-status ${active ? 'is-active' : ''}`} aria-live="polite"><i />{active ? 'Active' : 'Inactive'}</span><button className="cobraa-copy" type="button" onClick={toggle} disabled={busy}>{busy ? 'Saving…' : active ? 'End festive mode' : 'Start festive mode'}</button></div><p aria-live="polite">{error || (active ? 'At least one festive offer or announcement is active.' : 'Festive offers and announcements are inactive.')}</p></div>
 }

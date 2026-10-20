@@ -1,24 +1,120 @@
-@import '@payloadcms/ui/scss';
+/* Payload follows the system color scheme. Keep the admin readable and consistent with the studio's light dashboard. */
+html[data-theme='dark'] {
+  color-scheme: light;
+  --theme-bg: #f7f7f5;
+  --theme-text: #20211f;
+  --theme-input-bg: #fff;
+  --theme-border-color: #e6e6e1;
+  --theme-elevation-0: #fff;
+  --theme-elevation-50: #fafaf8;
+  --theme-elevation-100: #f7f7f5;
+  --theme-elevation-150: #f0f0ec;
+  --theme-elevation-200: #e6e6e1;
+  --theme-elevation-300: #d8d8d2;
+  --theme-elevation-400: #b7b8b1;
+  --theme-elevation-500: #92948d;
+  --theme-elevation-600: #6b6d67;
+  --theme-elevation-700: #41433e;
+  --theme-elevation-800: #20211f;
+  --theme-elevation-900: #171815;
+  --theme-elevation-950: #11120f;
+  --theme-elevation-1000: #080907;
+}
 
-.dashboard .before-dashboard {
-  margin-bottom: base(1.5);
+.cobraa-admin-logo { color: #20211f; font: 700 15px/1 system-ui, sans-serif; letter-spacing: .12em; white-space: nowrap; }
+.cobraa-admin-logo i { color: #d97732; font-style: normal; letter-spacing: .02em; }
+.cobraa-dashboard {
+  --c-text: #20211f;
+  --c-muted: #6b6d67;
+  --c-border: #e6e6e1;
+  --c-accent: #d97732;
+  width: min(100%, 1240px);
+  padding: 28px clamp(16px, 3vw, 36px) 56px;
+  color: var(--c-text);
+  font-family: var(--font-body, system-ui, sans-serif);
+}
+.cobraa-dashboard h1, .cobraa-dashboard h2, .cobraa-dashboard p { color: inherit; }
+.cobraa-dashboard p { color: var(--c-muted); }
+.cobraa-welcome { margin-bottom: 30px; }
+.cobraa-dashboard h1 { margin: 5px 0 6px; font-size: clamp(28px, 3vw, 32px); line-height: 1.15; letter-spacing: -.035em; font-weight: 650; }
+.cobraa-dashboard h2 { margin: 0; font-size: 17px; line-height: 1.35; font-weight: 620; letter-spacing: -.01em; }
+.cobraa-dashboard p { margin: 6px 0 0; font-size: 13px; line-height: 1.55; }
+.cobraa-eyebrow { color: #777970 !important; font-size: 10px !important; font-weight: 650; letter-spacing: .14em; }
+.cobraa-section-heading { display: flex; align-items: end; justify-content: space-between; margin: 0 0 12px; }
+.cobraa-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.cobraa-card { display: grid; grid-template-columns: 1fr auto; align-content: start; min-height: 138px; padding: 15px 16px 13px; border: 1px solid var(--c-border); border-radius: 8px; background: #fff; color: var(--c-text); text-decoration: none; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.cobraa-card:hover { border-color: #d5a17e; box-shadow: 0 4px 14px #20211f0a; transform: translateY(-1px); }
+.cobraa-card-icon { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 7px; background: #f7f3ef; color: #a85621; }
+.cobraa-card.is-warning .cobraa-card-icon { background: #fcf3e7; color: #99600d; }
+.cobraa-card-label { grid-column: 1 / -1; margin-top: 11px; color: var(--c-muted); font-size: 12px; line-height: 1.4; }
+.cobraa-card strong { grid-column: 1; grid-row: 3; margin-top: 2px; font-size: 26px; line-height: 1.15; font-weight: 650; letter-spacing: -.035em; }
+.cobraa-card small { grid-column: 2; grid-row: 3; display: flex; align-items: center; gap: 5px; align-self: end; color: #777970; font-size: 10px; }
+.cobraa-dashboard > section { margin-top: 25px; }
+.cobraa-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.cobraa-actions a, .cobraa-actions button { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: 8px; padding: 0 13px; border: 1px solid var(--c-border); border-radius: 6px; background: #fff; color: #30312e; text-decoration: none; font: inherit; font-size: 12px; font-weight: 550; cursor: pointer; transition: background .15s ease, border-color .15s ease; }
+.cobraa-actions a:hover, .cobraa-actions button:hover { border-color: #c8c9c2; background: #fafaf8; }
+.cobraa-actions a.is-primary, .cobraa-actions .cobraa-copy { border-color: #20211f; background: #20211f; color: #fff; }
+.cobraa-actions a.is-primary:hover, .cobraa-actions .cobraa-copy:hover { border-color: #40413d; background: #40413d; }
+.cobraa-actions .cobraa-copy:disabled { opacity: .6; cursor: wait; }
+.cobraa-dashboard a:focus-visible, .cobraa-dashboard button:focus-visible, .cobraa-dashboard select:focus-visible, .cobraa-dashboard summary:focus-visible { outline: 3px solid #d97732; outline-offset: 3px; }
+.cobraa-dashboard-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin-top: 25px; }
+.cobraa-panel { min-width: 0; padding: 18px; border: 1px solid var(--c-border); border-radius: 8px; background: #fff; }
+.cobraa-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cobraa-panel-heading .cobraa-eyebrow { margin: 0 0 4px; }
+.cobraa-panel > p { margin: 10px 0 14px; }
+.cobraa-status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 20px; background: #f0f0ec; color: #62645d; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.cobraa-status i { width: 7px; height: 7px; border-radius: 50%; background: #969890; }
+.cobraa-status.is-active { background: #eaf5ef; color: #236c4d; }
+.cobraa-status.is-active i { background: #25845b; }
+.cobraa-panel .cobraa-copy { min-height: 38px; padding: 0 12px; border-radius: 6px; font: inherit; font-size: 12px; font-weight: 550; cursor: pointer; }
+.cobraa-festive-actions { display: flex; align-items: center; gap: 10px; }
+.cobraa-panel [aria-live] { min-height: 18px; font-size: 12px; }
+.cobraa-checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 12px; margin: 13px 0 0; padding: 0; list-style: none; }
+.cobraa-checklist li { display: grid; grid-template-columns: 16px minmax(0, 1fr); align-items: start; gap: 5px 7px; color: #444640; font-size: 11px; line-height: 1.4; }
+.cobraa-checklist li > span { color: #a56e28; font-weight: 700; }
+.cobraa-checklist li > span.is-ready { color: #25845b; }
+.cobraa-checklist li strong { grid-column: 2; color: var(--c-muted); font-size: 10px; font-weight: 500; }
+.cobraa-share { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 20px; padding: 18px 20px; border: 1px solid var(--c-border); border-radius: 8px; background: #fff; }
+.cobraa-share h2 { margin-top: 2px; }
+.cobraa-share-copy > p:not(.cobraa-eyebrow) { max-width: 540px; margin-bottom: 12px; }
+.cobraa-share code { display: inline-block; max-width: 100%; overflow-wrap: anywhere; margin: 0 0 11px; color: #494a45; font-family: var(--font-mono, monospace); font-size: 12px; }
+.cobraa-share .cobraa-actions { gap: 7px; }
+.cobraa-share .cobraa-actions a, .cobraa-share .cobraa-actions button { min-height: 36px; padding-inline: 11px; font-size: 11px; }
+.cobraa-config-note { max-width: 600px; padding: 10px 12px; border: 1px solid #ead9bf; border-radius: 6px; background: #fcf8f1; color: #654c2b; font-size: 12px; line-height: 1.5; }
+.cobraa-config-note code { margin: 0; color: inherit; }
+.cobraa-qr-tool { display: grid; justify-items: center; gap: 8px; min-width: 180px; }
+.cobraa-qr-tool label { justify-self: stretch; color: #555750; font-size: 11px; font-weight: 600; }
+.cobraa-qr-tool select { width: 100%; min-height: 36px; padding: 0 10px; border: 1px solid var(--c-border); border-radius: 6px; background: #fff; color: var(--c-text); font: inherit; font-size: 11px; }
+.cobraa-qr-image { display: block; width: 156px; height: 156px; padding: 8px; border: 1px solid var(--c-border); border-radius: 4px; background: #fff; }
+.cobraa-qr-tool .cobraa-actions { justify-content: center; }
+.cobraa-qr-tool .cobraa-actions a { min-height: 32px; padding: 0 9px; font-size: 10px; }
+.cobraa-secondary { margin-top: 20px; color: var(--c-muted); font-size: 12px; }
+.cobraa-secondary summary { cursor: pointer; color: #555750; font-weight: 550; }
+.cobraa-vcard-preview { max-width: 100%; overflow: auto; padding: 12px; border: 1px solid var(--c-border); border-radius: 6px; background: #fff; color: var(--c-text); white-space: pre-wrap; }
+.cobraa-getting-started { padding-top: 5px; }
+.cobraa-getting-started ol { display: flex; flex-wrap: wrap; gap: 8px 28px; padding-left: 18px; color: #555750; font-size: 12px; }
 
-  &__banner {
-    & h4 {
-      margin: 0;
-    }
-  }
-
-  &__instructions {
-    list-style: decimal;
-    margin-bottom: base(0.5);
-
-    & li {
-      width: 100%;
-    }
-  }
-
-  & a:hover {
-    opacity: 0.85;
-  }
+@media (max-width: 900px) {
+  .cobraa-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cobraa-dashboard-columns { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .cobraa-dashboard { padding: 18px 14px 36px; }
+  .cobraa-welcome { margin-bottom: 23px; }
+  .cobraa-dashboard > section, .cobraa-dashboard-columns { margin-top: 21px; }
+  .cobraa-cards { gap: 8px; }
+  .cobraa-card { min-height: 126px; padding: 12px; }
+  .cobraa-card-label { font-size: 11px; }
+  .cobraa-card strong { font-size: 23px; }
+  .cobraa-card small { font-size: 9px; }
+  .cobraa-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .cobraa-actions a { min-height: 44px; padding-inline: 9px; text-align: center; font-size: 11px; }
+  .cobraa-share { grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 16px; }
+  .cobraa-share .cobraa-actions { grid-template-columns: 1fr; }
+  .cobraa-share .cobraa-actions a, .cobraa-share .cobraa-actions button { min-height: 42px; }
+  .cobraa-qr-tool { justify-items: stretch; width: 100%; }
+  .cobraa-qr-image { justify-self: center; width: 176px; height: 176px; }
+  .cobraa-qr-tool .cobraa-actions { display: flex; }
+  .cobraa-checklist { grid-template-columns: 1fr; }
+  .cobraa-getting-started ol { display: block; line-height: 1.8; }
 }

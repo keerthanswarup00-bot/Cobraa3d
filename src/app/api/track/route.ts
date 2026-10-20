@@ -1,15 +1,37 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { env } from '@/lib/env'
+import { consumeRateLimit, getClientIP } from '@/lib/rateLimit'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
   try {
     const origin = req.headers.get('origin')
-    const site = env.NEXT_PUBLIC_SITE_URL
-    if (site && origin && !origin.startsWith(site)) {
+    const allowedOrigins = new Set<string>()
+    if (env.NEXT_PUBLIC_SITE_URL) allowedOrigins.add(new URL(env.NEXT_PUBLIC_SITE_URL).origin)
+    if (process.env.VERCEL_URL) {
+      const deploymentURL = process.env.VERCEL_URL.startsWith('http')
+        ? process.env.VERCEL_URL
+        : `https://${process.env.VERCEL_URL}`
+      allowedOrigins.add(new URL(deploymentURL).origin)
+    }
+    if (allowedOrigins.size === 0) allowedOrigins.add(new URL(req.url).origin)
+    let requestOrigin: string
+    try {
+      requestOrigin = origin ? new URL(origin).origin : ''
+    } catch {
+      requestOrigin = ''
+    }
+    if (!requestOrigin || !allowedOrigins.has(requestOrigin)) {
       return new Response(null, { status: 400 })
+    }
+
+    const ip = getClientIP(req)
+    if (!ip) return new Response(null, { status: 400 })
+    const payload = await getPayload({ config })
+    if (await consumeRateLimit(payload, { namespace: 'track', ip, limit: 30, windowMs: 60_000 })) {
+      return new Response(null, { status: 429 })
     }
 
     let body: any
@@ -31,7 +53,6 @@ export async function POST(req: Request) {
       if (!slug && !source) {
         return new Response(null, { status: 400 })
       }
-      const payload = await getPayload({ config })
       await payload.create({ collection: 'whatsapp-clicks' as any, data: { slug, source } as any, overrideAccess: true })
     }
     return new Response(null, { status: 204 })

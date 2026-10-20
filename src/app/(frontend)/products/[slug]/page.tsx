@@ -3,6 +3,11 @@ import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { ProductDetail } from '@/components/ProductDetail'
+import Link from 'next/link'
+import { ArrowUpRight } from 'lucide-react'
+import { ConnectTerrain } from '@/components/home/ConnectTerrain'
+import { ProductRender, type ConnectProduct } from '@/components/home/ConnectProducts'
+import { TEMP_PRODUCTS } from '@/lib/tempProducts'
 import type { Product } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
 
@@ -11,11 +16,11 @@ export const revalidate = 60
 async function loadProduct(slug: string) {
   const payload = await getPayload({ config })
   const [result, settings] = await Promise.all([
-    payload.find({ collection: 'products', where: { and: [{ slug: { equals: slug } }, { status: { equals: 'published' } }, { _status: { equals: 'published' } }] }, limit: 1, depth: 1 }),
+    payload.find({ collection: 'products', where: { and: [{ slug: { equals: slug } }, { status: { equals: 'published' } }, { _status: { equals: 'published' } }, { isDemo: { not_equals: true } }] }, limit: 1, depth: 1 }),
     payload.findGlobal({ slug: 'site-settings', depth: 0 }),
   ])
   const product = result.docs[0]
-  return { product: product && (process.env.NODE_ENV !== 'production' || !product.isDemo) ? product : undefined, settings }
+  return { product, settings }
 }
 
 function textFromLexical(value: unknown): string {
@@ -33,7 +38,10 @@ function urlForMedia(image: Product['images'] extends (infer _T)[] | null | unde
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const { product } = await loadProduct(slug)
-  if (!product) return { title: 'Product not found' }
+  if (!product) {
+    const temporary = TEMP_PRODUCTS.find((item) => item.slug === slug)
+    return temporary ? { title: temporary.name, description: temporary.blurb, robots: { index: false, follow: true } } : { title: 'Product not found' }
+  }
   const mainImage = product.images?.[0]?.image
   const media = typeof mainImage === 'object' && mainImage ? mainImage : null
   const canonical = `/products/${product.slug}`
@@ -48,7 +56,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const { product, settings } = await loadProduct(slug)
-  if (!product) notFound()
+  if (!product) {
+    const temporary = TEMP_PRODUCTS.find((item) => item.slug === slug)
+    if (!temporary) notFound()
+    const visual: ConnectProduct = { id: temporary.id, slug: temporary.slug, title: temporary.name, blurb: temporary.blurb, tag: temporary.tag, filament: temporary.fil, visual: temporary.vis, sample: 'sample' in temporary ? temporary.sample : undefined, temporary: true }
+    return <main className="studio-home studio-temp-detail"><ConnectTerrain /><div className="studio-vignette" aria-hidden="true" /><section className="studio-temp-detail-inner studio-wrap"><Link href="/products" className="studio-temp-back">← All products</Link><div className="studio-temp-visual"><ProductRender product={visual} animate={false} buildKey={0} /></div><p className="studio-eyebrow">{temporary.tag} · Temporary catalogue preview</p><h1>{temporary.name}</h1><p className="studio-temp-description">{temporary.blurb}</p><p className="studio-temp-note">This temporary preview has no price or availability details.</p><Link className="studio-button is-light" href={`/?item=${temporary.id}#custom`}>Customise this piece <ArrowUpRight size={16} /></Link></section></main>
+  }
   const payload = await getPayload({ config })
   let relatedProducts: Product[] = []
   const manual = (product.relatedProducts || []).filter((item): item is Product => typeof item === 'object' && !!item && item.status === 'published' && item._status === 'published' && (process.env.NODE_ENV !== 'production' || !item.isDemo))

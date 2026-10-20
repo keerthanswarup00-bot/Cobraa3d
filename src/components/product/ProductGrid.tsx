@@ -10,9 +10,10 @@ export type GridProduct = {
   image?: { url: string; alt?: string };
 };
 
-export function ProductGrid({ products }: { products: GridProduct[] }) {
-  if (!products.length) return <p className="pg-empty">Products are coming soon.</p>;
+export function ProductGrid({ products, pagination }: { products: GridProduct[]; pagination?: { currentPage: number; totalPages: number } }) {
+  if (!products.length) return <><p className="pg-empty">Products are coming soon.</p>{pagination?.currentPage && pagination.currentPage > 1 && <nav className="pg-pagination" aria-label="Product pages"><Link href={`/products?page=${pagination.currentPage - 1}`}>Previous page</Link></nav>}</>;
   return (
+    <>
     <ul className="pg-grid">
       {products.map((p, i) => (
         <li key={p.slug}>
@@ -29,5 +30,11 @@ export function ProductGrid({ products }: { products: GridProduct[] }) {
         </li>
       ))}
     </ul>
+    {pagination && pagination.totalPages > 1 && <nav className="pg-pagination" aria-label="Product pages">
+      {pagination.currentPage > 1 && <Link href={`/products?page=${pagination.currentPage - 1}`}>Previous</Link>}
+      <span>Page {pagination.currentPage} of {pagination.totalPages}</span>
+      {pagination.currentPage < pagination.totalPages && <Link href={`/products?page=${pagination.currentPage + 1}`}>Next</Link>}
+    </nav>}
+    </>
   );
 }

@@ -10,10 +10,13 @@ next-env.d.ts
 
 # Payload default media upload directory
 public/media/
+/private/enquiry-files/
 
 public/robots.txt
 public/sitemap*.xml
 *.db
+*.db.bak-*
+*.db.emptypush-*
 *.sqlite
 test.env
 *.tsbuildinfo
@@ -31,3 +34,6 @@ node_modules/
 .env*
 .env.migrate
 supabase/.temp/
+
+# Local artifacts
+artifacts/

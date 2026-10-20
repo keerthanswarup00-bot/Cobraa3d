@@ -12,4 +12,7 @@
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .pg-price { display: block; margin-top: 2px; font-size: .9rem; opacity: .65; }
 .pg-empty { opacity: .7; }
+.pg-pagination { display: flex; align-items: center; justify-content: center; gap: 20px; margin-top: 32px; }
+.pg-pagination a { color: inherit; text-underline-offset: 3px; }
+.pg-pagination span { opacity: .7; }
 @media (prefers-reduced-motion: reduce) { .pg-media img { transition: none; } }

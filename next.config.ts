@@ -12,6 +12,7 @@ const NEXT_PUBLIC_SERVER_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
   : process.env.__NEXT_PRIVATE_ORIGIN || 'http://localhost:3000'
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ['192.168.*.*'],
   experimental: { globalNotFound: true },
   serverExternalPackages: ['@payloadcms/db-sqlite', '@payloadcms/db-postgres', 'libsql', '@libsql/client', 'pg'],
   // Temporarily required on Windows until Next.js fixes Turbopack Sass resolution.

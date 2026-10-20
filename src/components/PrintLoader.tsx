@@ -11,27 +11,23 @@ import { useEffect, useRef, useState } from 'react'
  * finished loading (or after a safety timeout). Shown once per browser session.
  */
 
-const LOGO_A =
-  'M60.2569 118.758L18.9035 94.9917C18.4016 94.6917 18.067 94.1583 18.067 93.5583V56.825C18.067 56.1917 18.7696 55.7917 19.3049 56.0917L67.3164 83.6917C67.9855 84.0917 68.822 83.5917 68.822 82.825V64.925C68.822 64.225 68.4539 63.5583 67.8182 63.1917L10.0707 29.9917C9.56883 29.6917 8.89968 29.6917 8.39782 29.9917L0.836436 34.3583C0.334574 34.6583 0 35.1917 0 35.7917V104.025C0 104.625 0.334574 105.158 0.836436 105.458L60.1565 139.592C60.6583 139.892 61.3275 139.892 61.8293 139.592L111.647 110.925C112.317 110.525 112.317 109.592 111.647 109.192L96.1232 100.258C95.4875 99.8917 94.7515 99.8917 94.1158 100.258L61.9632 118.758C61.4613 119.058 60.7922 119.058 60.2903 118.758H60.2569Z'
-const LOGO_B =
-  'M121.149 34.325L61.8294 0.225C61.3275 -0.075 60.6584 -0.075 60.1565 0.225L28.8069 18.2583C28.1378 18.6583 28.1378 19.5917 28.8069 19.9917L44.1973 28.8583C44.833 29.225 45.5691 29.225 46.2048 28.8583L60.2569 20.7917C60.7588 20.4917 61.4279 20.4917 61.9298 20.7917L103.283 44.5583C103.785 44.8583 104.12 45.3917 104.12 45.9917V82.8917C104.12 83.5917 104.488 84.2583 105.123 84.625L120.514 93.4583C121.183 93.8583 122.019 93.3583 122.019 92.5917V35.7917C122.019 35.1917 121.685 34.6583 121.183 34.3583L121.149 34.325Z'
-
-// Scene geometry (viewBox 0 0 360 320). The mark is 122 x 140, centred on x = 180.
-const VIEW_W = 360
+// Scene geometry: the supplied wordmark is 2149 × 732, centred in the scene.
+const VIEW_W = 520
 const VIEW_H = 320
-const LOGO_X = 119
-const LOGO_TOP = 70
-const LOGO_HEIGHT = 140
+const LOGO_WIDTH = 380
+const LOGO_HEIGHT = (LOGO_WIDTH * 732) / 2149
+const LOGO_X = (VIEW_W - LOGO_WIDTH) / 2
+const LOGO_TOP = 60
 const LOGO_BOTTOM = LOGO_TOP + LOGO_HEIGHT
-const CENTER_X = 180
-const ORBIT_RX = 72
-const ORBIT_RY = 15
-const EXTRUDE = 5 // visible wall thickness under the mark
+const CENTER_X = VIEW_W / 2
+const ORBIT_RX = 205
+const ORBIT_RY = 14
+const EXTRUDE = 4 // visible wall thickness under the wordmark
 const HOT = 9 // freshly printed layers glow in the accent colour
 
 const LAYERS = 84
-const MIN_MS = 2600
-const MAX_WAIT_MS = 7000
+const MIN_MS = 2200
+const MAX_WAIT_MS = 2500
 const ORBITS_PER_SECOND = 1.15
 const SESSION_KEY = 'cobraa-loader'
 
@@ -162,41 +158,30 @@ export function PrintLoader({ brandName }: { brandName: string }) {
     <div className={`print-loader${leaving ? ' is-leaving' : ''}`} role="status" aria-live="polite" aria-label={`${brandName} is loading`}>
       <svg className="print-loader-art" viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} aria-hidden="true">
         <defs>
-          <path id="pl-a" d={LOGO_A} />
-          <path id="pl-b" d={LOGO_B} />
-          <clipPath id="pl-shape"><use href="#pl-a" /><use href="#pl-b" /></clipPath>
+          <mask id="pl-logo-mask" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="0" y="0" width={VIEW_W} height={VIEW_H}>
+            <image href="/cobraa-studio-logo.png" x={LOGO_X} y={LOGO_TOP} width={LOGO_WIDTH} height={LOGO_HEIGHT} style={{ filter: 'brightness(0) invert(1)' }} />
+          </mask>
           <clipPath id="pl-ink"><rect ref={inkRect} x="0" y={VIEW_H} width={VIEW_W} height="0" /></clipPath>
           <clipPath id="pl-hot"><rect ref={hotRect} x="0" y={VIEW_H} width={VIEW_W} height="0" /></clipPath>
           <clipPath id="pl-wall"><rect ref={wallRect} x="0" y={VIEW_H} width={VIEW_W} height="0" /></clipPath>
         </defs>
 
-        <ellipse className="pl-plate" cx={CENTER_X} cy={LOGO_BOTTOM + 16} rx="132" ry="30" />
-        <ellipse className="pl-plate-inner" cx={CENTER_X} cy={LOGO_BOTTOM + 16} rx="112" ry="24" />
+        <ellipse className="pl-plate" cx={CENTER_X} cy={LOGO_BOTTOM + 14} rx="236" ry="30" />
+        <ellipse className="pl-plate-inner" cx={CENTER_X} cy={LOGO_BOTTOM + 14} rx="208" ry="24" />
 
         <g ref={nozzleBack}><Nozzle /></g>
 
         <g clipPath="url(#pl-wall)">
-          <g transform={`translate(${LOGO_X} ${LOGO_TOP + EXTRUDE})`}>
-            <use href="#pl-a" className="pl-wall" />
-            <use href="#pl-b" className="pl-wall" />
-          </g>
+          <image href="/cobraa-studio-logo.png" x={LOGO_X} y={LOGO_TOP + EXTRUDE} width={LOGO_WIDTH} height={LOGO_HEIGHT} className="pl-wall" />
         </g>
 
         <g clipPath="url(#pl-ink)">
-          <g transform={`translate(${LOGO_X} ${LOGO_TOP})`}>
-            <use href="#pl-a" className="pl-ink" />
-            <use href="#pl-b" className="pl-ink" />
-            <g clipPath="url(#pl-shape)">
-              {lines.map((y) => <line key={y} x1="-2" x2="126" y1={y} y2={y} className="pl-layer-line" />)}
-            </g>
-          </g>
+          <image href="/cobraa-studio-logo.png" x={LOGO_X} y={LOGO_TOP} width={LOGO_WIDTH} height={LOGO_HEIGHT} />
+          <g mask="url(#pl-logo-mask)">{lines.map((y) => <line key={y} x1={LOGO_X} x2={LOGO_X + LOGO_WIDTH} y1={LOGO_TOP + y} y2={LOGO_TOP + y} className="pl-layer-line" />)}</g>
         </g>
 
         <g clipPath="url(#pl-hot)">
-          <g transform={`translate(${LOGO_X} ${LOGO_TOP})`}>
-            <use href="#pl-a" className="pl-hot" />
-            <use href="#pl-b" className="pl-hot" />
-          </g>
+          <rect x="0" y="0" width={VIEW_W} height={VIEW_H} className="pl-hot" mask="url(#pl-logo-mask)" />
         </g>
 
         <ellipse ref={ring} className="pl-ring" cx={CENTER_X} cy={LOGO_BOTTOM} rx={ORBIT_RX} ry={ORBIT_RY} />

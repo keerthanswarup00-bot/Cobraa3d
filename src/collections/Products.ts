@@ -17,24 +17,29 @@ export const Products: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'category', 'price', 'status', 'availability', 'featured'],
+    defaultColumns: ['title', 'shortDescription', 'price'],
     livePreview: { url: ({ data, req }) => generatePreviewPath({ slug: data?.slug, collection: 'products', req }) },
     preview: (data, { req }) => generatePreviewPath({ slug: data?.slug as string, collection: 'products', req }),
   },
   fields: [
-    { name: 'title', type: 'text', required: true, admin: { description: 'Product name customers will see. Example: Desk nameplate.' } },
-    slugField({ name: 'slug', position: 'sidebar', required: false }),
-    { name: 'status', type: 'select', defaultValue: 'draft', options: [{ label: 'Draft', value: 'draft' }, { label: 'Published', value: 'published' }], admin: { position: 'sidebar' } },
-    { name: 'isDemo', type: 'checkbox', defaultValue: false, admin: { position: 'sidebar', description: 'Development demonstration record. Never use as confirmed stock or pricing.' } },
     { type: 'tabs', tabs: [
-      { label: 'Basics', fields: [
+      { label: 'Overview', fields: [
+        { name: 'title', type: 'text', required: true, admin: { description: 'Product name customers will see.' } },
+        { name: 'shortDescription', label: 'Description', type: 'textarea', maxLength: 240, admin: { description: 'The description shown on product cards. Keep it under 240 characters.' } },
+        { name: 'price', type: 'number', min: 0, admin: {
+          description: 'Enter the price in INR. Leave blank to show “Ask for price”.',
+          components: { Cell: '/components/admin/EditablePriceCell#EditablePriceCell' },
+        } },
+      ] },
+      { label: 'More details', fields: [
+        slugField({ name: 'slug', required: false }),
+        { name: 'status', type: 'select', defaultValue: 'draft', options: [{ label: 'Draft', value: 'draft' }, { label: 'Published', value: 'published' }] },
+        { name: 'isDemo', type: 'checkbox', defaultValue: false, admin: { description: 'Development demonstration record. Never use as confirmed stock or pricing.' } },
         { name: 'category', type: 'relationship', relationTo: 'categories', admin: { description: 'Choose a visible catalogue category.' } },
-        { name: 'shortDescription', type: 'textarea', maxLength: 240, admin: { description: 'A short summary for product cards. Keep it under 240 characters.' } },
-        { name: 'description', type: 'richText' },
+        { name: 'description', label: 'Full description', type: 'richText' },
         { name: 'images', type: 'array', label: 'Photos (first photo is the main image)', admin: { description: 'Add useful alt text for every photo. The first photo is used as the main image.' }, fields: [
           { name: 'image', type: 'upload', relationTo: 'media', required: true }, { name: 'alt', type: 'text', required: true },
         ] },
-        { name: 'price', type: 'number', min: 0, admin: { description: 'Optional. Leave blank to show “Ask for price”.' } },
         { name: 'originalPrice', type: 'number', min: 0 }, { name: 'currency', type: 'text', defaultValue: 'INR', required: true },
         { name: 'priceMode', type: 'select', defaultValue: 'ask', options: [{ label: 'Ask for price', value: 'ask' }, { label: 'Show price', value: 'show' }] },
       ] },
@@ -57,7 +62,9 @@ export const Products: CollectionConfig = {
         { name: 'whatsappMessageOverride', type: 'textarea', admin: { description: 'Optional message. Tokens: {{title}}, {{price}}, {{url}}, {{imageUrl}}.' } },
         { name: 'seoTitle', type: 'text' }, { name: 'seoDescription', type: 'textarea', maxLength: 160 },
       ] },
-      { label: 'Advanced', fields: [{ name: 'publishedAt', type: 'date' }, { name: 'sortOrder', type: 'number', defaultValue: 0 }] },
+      { label: 'Advanced', fields: [
+        { name: 'publishedAt', type: 'date' }, { name: 'sortOrder', type: 'number', defaultValue: 0 },
+      ] },
     ] },
   ],
   hooks: {

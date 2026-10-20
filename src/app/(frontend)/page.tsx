@@ -1,112 +1,95 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowDownRight, ArrowUpRight, MapPin, MessageCircle } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { LayerShowcase } from '@/components/LayerShowcase'
-import { buildProductMessage, buildWhatsAppUrl, formatPrice } from '@/lib/shared'
-import { getServerSideURL } from '@/utilities/getURL'
-import type { Media, Product } from '@/payload-types'
+import { ConnectBuilder } from '@/components/home/ConnectBuilder'
+import { ConnectProducts, type ConnectProduct } from '@/components/home/ConnectProducts'
+import { ConnectHud, ConnectTerrain } from '@/components/home/ConnectTerrain'
+import { TEMP_PRODUCTS } from '@/lib/tempProducts'
+import { buildWhatsAppUrl } from '@/lib/shared'
 import { getSiteSettings } from '@/utilities/getSiteSettings'
+import type { Product } from '@/payload-types'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const payload = await getPayload({ config })
   const settings = await getSiteSettings(0)
-  const description = settings.seoDefaults?.description || settings.hero?.description || settings.tagline || 'Thoughtfully designed 3D-printed products and custom creations from Hoskote, Bengaluru.'
+  const description = settings.seoDefaults?.description || settings.hero?.description || settings.tagline || undefined
   return {
-    title: { absolute: `${settings.brandName || 'Cobraa 3D'} | Made in Hoskote. Made to be yours.` },
+    title: { absolute: settings.seoDefaults?.title || settings.brandName || 'Cobraa 3D' },
     description,
     alternates: { canonical: '/' },
-    openGraph: { title: `${settings.brandName || 'Cobraa 3D'} | Made in Hoskote`, description, images: settings.ogImage && typeof settings.ogImage === 'object' && settings.ogImage.url ? [{ url: settings.ogImage.url }] : undefined },
+    openGraph: { title: settings.seoDefaults?.title || settings.brandName || 'Cobraa 3D', description, images: settings.ogImage && typeof settings.ogImage === 'object' && settings.ogImage.url ? [{ url: settings.ogImage.url }] : undefined },
   }
 }
 
-function photoOf(product: Product): Media | null {
-  const image = product.images?.find((row) => row.image && typeof row.image === 'object')?.image
-  return image && typeof image === 'object' ? image : null
+function cmsVisual(product: Product): ConnectProduct['visual'] {
+  const category = typeof product.category === 'object' && product.category ? product.category.name || '' : ''
+  const value = `${product.slug || ''} ${product.title} ${category}`.toLowerCase()
+  if (value.includes('nameplate') || value.includes('name plate')) return 'plate'
+  if (value.includes('keychain') || value.includes('key chain')) return 'key'
+  if (value.includes('lamp')) return 'lamp'
+  if (value.includes('phone stand') || value.includes('phone-stand')) return 'stand'
+  if (value.includes('photo stand') || value.includes('photo-stand')) return 'photo'
+  return 'sphere'
 }
 
 export default async function HomePage() {
   const payload = await getPayload({ config })
-  const [settings, productsResult] = await Promise.all([
+  const [settings, result] = await Promise.all([
     getSiteSettings(0),
-    payload.find({ collection: 'products', where: { and: [{ status: { equals: 'published' } }, { _status: { equals: 'published' } }] }, sort: 'sortOrder,title', depth: 1, limit: 12 }),
+    payload.find({ collection: 'products', where: { and: [{ status: { equals: 'published' } }, { _status: { equals: 'published' } }, { isDemo: { not_equals: true } }] }, sort: 'sortOrder,title', depth: 1, limit: 100 }),
   ])
-  const products = (productsResult.docs as Product[])
-    .filter((product) => process.env.NODE_ENV !== 'production' || !product.isDemo)
-    .sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)) || (a.sortOrder || 0) - (b.sortOrder || 0))
-  const featured = products.slice(0, 3)
-  const heroProduct = products.find((product) => !product.isDemo && product.images?.some((row) => row.image && typeof row.image === 'object' && row.image.url))
-  const heroPhoto = heroProduct ? photoOf(heroProduct) : null
-  const whatsappURL = buildWhatsAppUrl({ number: settings.whatsappNumber, message: 'Hi Cobraa 3D, I found your connect page and would like to know more about your products.' })
-  const customURL = buildWhatsAppUrl({ number: settings.whatsappNumber, message: 'Hi Cobraa 3D, I have an idea for a custom 3D print. I\'d like to discuss the design, colours and pricing.' })
-  const baseURL = getServerSideURL()
+  const cmsProducts = (result.docs as Product[]).sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)) || (a.sortOrder || 0) - (b.sortOrder || 0))
+  const usingTemporary = cmsProducts.length === 0
+  const allProducts: ConnectProduct[] = usingTemporary ? TEMP_PRODUCTS.map((product) => ({ id: product.id, slug: product.slug, title: product.name, blurb: product.blurb, tag: product.tag, filament: product.fil, visual: product.vis, sample: 'sample' in product ? product.sample : undefined, temporary: true, priceLabel: 'Price on request' })) : cmsProducts.map((product) => {
+    const mediaRow = product.images?.find((row) => row.image && typeof row.image === 'object')
+    const media = mediaRow?.image && typeof mediaRow.image === 'object' ? mediaRow.image : null
+    return {
+      id: cmsVisual(product) === 'key' ? 'keychain' : cmsVisual(product) === 'lamp' ? 'lamp' : cmsVisual(product) === 'stand' ? 'stand' : cmsVisual(product) === 'photo' ? 'photo' : cmsVisual(product) === 'plate' ? 'nameplate' : 'other',
+      slug: product.slug || '', title: product.title, blurb: product.shortDescription || '', tag: product.badges?.[0] || (typeof product.category === 'object' && product.category ? product.category.name || 'Made to order' : 'Made to order'),
+      filament: product.colourOptions?.[0]?.hex || '#e6dcc6', visual: cmsVisual(product), sample: product.title,
+      image: media?.url ? { url: media.url, alt: mediaRow?.alt || media.alt || product.title, width: media.width, height: media.height } : undefined,
+      priceLabel: product.priceMode === 'show' && product.price != null ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: product.currency || 'INR', maximumFractionDigits: 2 }).format(product.price) : 'Price on request',
+      whatsappURL: buildWhatsAppUrl({ number: settings.whatsappNumber, message: `Hi Cobraa 3D, I would like to enquire about ${product.title}.` }),
+    }
+  })
+  // CMS results are already ordered with explicitly featured items first; always fill the three-card row from real records.
+  const featured = allProducts.slice(0, 3)
+  const genericWhatsApp = buildWhatsAppUrl({ number: settings.whatsappNumber, message: 'Hi Cobraa 3D! I have an idea I would like to discuss.' })
+  const stepOne = settings.connectCopy?.howStepOneTitle || 'Shape the brief'
+  const stepOneDescription = settings.connectCopy?.howStepOneDescription || 'Pick the object, colour and details.'
+  const stepTwo = settings.connectCopy?.howStepTwoTitle || 'We check and quote'
+  const stepTwoDescription = settings.connectCopy?.howStepTwoDescription || 'Feasibility, price and timeline, confirmed in chat.'
+  const stepThree = settings.connectCopy?.howStepThreeTitle || 'Layer by layer'
+  const stepThreeDescription = settings.connectCopy?.howStepThreeDescription || 'Printed to order in Hoskote, Bengaluru.'
 
-  return <main className="connect-page">
-    <section className="connect-hero" id="top" aria-labelledby="connect-title">
-      <div className="hero-contour-lines" aria-hidden="true" />
-      <div className="connect-hero-copy">
-        <p className="connect-eyebrow">{settings.brandName || 'COBRAA 3D'} <span>·</span> HOSKOTE, BENGALURU</p>
-        <h1 id="connect-title">Made in Hoskote.<br /><em>Made to be yours.</em></h1>
-        <p className="connect-intro">Thoughtfully designed 3D-printed products, personalised gifts and custom creations — made one layer at a time.</p>
-        <div className="connect-hero-actions">
-          <Link className="button-dark" href="#products">Explore products <ArrowDownRight size={17} /></Link>
-          {whatsappURL && <a className="button-light" href={whatsappURL} data-wa-source="hero" target="_blank" rel="noopener noreferrer"><MessageCircle size={17} /> Chat on WhatsApp</a>}
-        </div>
-        {!whatsappURL && process.env.NODE_ENV !== 'production' && <p className="connect-dev-warning">Add a valid business WhatsApp number in Site Settings to enable contact links.</p>}
+  return <main className="studio-home" id="top">
+    <ConnectTerrain />
+    <div className="studio-vignette" aria-hidden="true" />
+    <section className="studio-hero" aria-labelledby="connect-title">
+      <div className="studio-wrap studio-hero-content">
+        <p className="studio-eyebrow"><i aria-hidden="true" />Hoskote, Bengaluru · Printed to order</p>
+        <h1 id="connect-title"><span>Made in Hoskote.</span><span className="is-outline">Made to be yours.</span></h1>
+        <p className="studio-lede">Personalised nameplates, lamps, keychains and desk pieces, printed one layer at a time. Tell us the idea and we’ll make it real.</p>
+        <div className="studio-hero-actions"><Link className="studio-button is-light" href="#products">Browse products <span aria-hidden="true">↓</span></Link><Link className="studio-button is-ghost" href="#custom">Start a custom brief <span aria-hidden="true">→</span></Link></div>
       </div>
-      <div className={`connect-hero-visual${heroPhoto?.url ? ' has-photo' : ' needs-photo'}`}>
-        {heroPhoto?.url ? <Image src={heroPhoto.url} alt={heroPhoto.alt || heroProduct?.title || 'Cobraa 3D product'} fill priority sizes="(max-width: 760px) 92vw, 48vw" unoptimized={!heroPhoto.url.startsWith('/')} /> : <div className="hero-photo-placeholder"><span className="placeholder-orbit" aria-hidden="true" /><p>Studio photograph needed</p><small>Add a genuine product photo in the admin to feature it here.</small></div>}
-        {heroPhoto?.url && heroProduct && <span className="hero-image-caption">{heroProduct.title}</span>}
-      </div>
-      <a className="hero-scroll-cue" href="#products" aria-label="Scroll to featured products"><span />Scroll to explore</a>
+      <p className="studio-hint"><span className="for-pointer">Move your cursor. The terrain bends like a print bed.</span><span className="for-touch">Touch and drag. The terrain bends like a print bed.</span></p>
     </section>
 
-    <section className="connect-products" id="products" aria-labelledby="featured-title">
-      <header className="connect-section-heading">
-        <div><p className="connect-eyebrow">Selected work</p><h2 id="featured-title">A few things we’ve made.</h2></div>
-        <p>Useful little objects, thoughtful gifts and ideas brought to life in 3D.</p>
-      </header>
-      {featured.length ? <div className="connect-product-grid">{featured.map((product) => {
-        const image = photoOf(product)
-        const messageProduct = { ...product, whatsappMessageOverride: "Hi Cobraa 3D, I'm interested in the {{title}}. Please share more details, available customisation options and pricing. {{url}}" }
-        const productWhatsApp = buildWhatsAppUrl({ number: settings.whatsappNumber, message: buildProductMessage(messageProduct, { baseURL }, settings) })
-        return <article className="connect-product-card" key={product.id}>
-          <Link className="connect-product-photo" href={`/products/${product.slug}`} scroll={false} aria-label={`View ${product.title}`}>
-            {image?.url ? <Image src={image.url} alt={image.alt || product.title} fill sizes="(max-width: 700px) 46vw, (max-width: 1000px) 30vw, 25vw" unoptimized={!image.url.startsWith('/')} /> : <span className="connect-card-photo-needed">{product.isDemo ? 'Temporary illustration needed' : 'Product photo needed'}</span>}
-            {product.isDemo && process.env.NODE_ENV !== 'production' && <span className="demo-product-mark">Development sample</span>}
-          </Link>
-          <div className="connect-product-copy"><div><h3><Link href={`/products/${product.slug}`} scroll={false}>{product.title}</Link></h3><p>{product.shortDescription}</p></div>
-            {!product.isDemo && product.priceMode !== 'ask' && product.price != null && <span className="connect-product-price">{formatPrice(product.price, product.priceMode, product.currency || 'INR')}</span>}
-          </div>
-          <div className="connect-card-actions"><Link href={`/products/${product.slug}`}>View product <ArrowUpRight size={15} /></Link>{productWhatsApp ? <a className="connect-product-enquire" href={productWhatsApp} data-wa-source="product-card" data-wa-slug={product.slug} target="_blank" rel="noopener noreferrer"><MessageCircle size={15} /> Enquire on WhatsApp</a> : <button type="button" disabled>WhatsApp unavailable</button>}</div>
-        </article>
-      })}</div> : <div className="connect-products-pending"><span className="pending-mark" aria-hidden="true">C3</span><div><h3>Product photographs are being prepared.</h3><p>Ask us about a custom piece while the catalogue is coming together.</p>{whatsappURL && <a href={whatsappURL} target="_blank" rel="noopener noreferrer">Ask on WhatsApp <ArrowUpRight size={15} /></a>}</div></div>}
-      <Link className="connect-view-all" href="/products">View all products <ArrowUpRight size={16} /></Link>
+    <section className="studio-products studio-wrap" id="products" aria-labelledby="featured-title">
+      <header className="studio-section-heading"><div><p className="studio-eyebrow">Ready to order</p><h2 id="featured-title">A few things <em>we’ve made.</em></h2></div><p>Every piece is printed to order. Pick a colour, add your details, and we’ll confirm the rest.</p></header>
+      <ConnectProducts products={featured} total={allProducts.length} />
     </section>
 
-    <section className="connect-showcase" aria-labelledby="layer-title">
-      <div className="showcase-contours" aria-hidden="true" />
-      <div className="showcase-copy"><p className="connect-eyebrow">A different way to make</p><h2 id="layer-title">A little idea.<br /><em>Layer by layer.</em></h2><p>From a simple everyday object to something made just for you.</p><span className="showcase-instruction">Drag the form to explore its layers</span></div>
-      <LayerShowcase />
-    </section>
+    <section className="studio-showcase" aria-labelledby="layer-title"><div className="studio-wrap studio-showcase-grid"><div className="studio-showcase-copy"><p className="studio-eyebrow">A different way to make</p><h2 id="layer-title">A little idea.<br /><em>Layer by layer.</em></h2><p>From a simple everyday object to something made just for you.</p><span className="studio-showcase-instruction">Drag the form to explore its layers</span></div><LayerShowcase /></div></section>
 
-    <section className="connect-custom" id="custom" aria-labelledby="custom-title">
-      <div className="custom-copy"><p className="connect-eyebrow">Made around your idea</p><h2 id="custom-title">Have something<br /><em>in mind?</em></h2><p>Personalised gifts, nameplates, desk accessories or a completely new idea. Tell us what you’d like to make.</p><p className="custom-details">Discuss colours, text, quantities and feasibility with the studio.</p></div>
-      <div className="custom-actions">
-        {customURL && <a className="button-dark" href={customURL} target="_blank" rel="noopener noreferrer">Discuss your idea on WhatsApp <ArrowUpRight size={16} /></a>}
-        <Link className="button-light" href="/custom">Explore custom options <ArrowUpRight size={16} /></Link>
-      </div>
-    </section>
+    <section className="studio-custom" id="custom" aria-labelledby="custom-title"><div className="studio-wrap studio-custom-grid">
+      <div className="studio-custom-intro"><p className="studio-eyebrow">Start a custom order</p><h2 id="custom-title">Tell us the idea. <em>We’ll print the rest.</em></h2><p className="studio-lede">Nameplates, gifts, desk pieces, or something nobody has made yet. Shape your brief and it lands in our WhatsApp, ready to quote.</p><ol className="studio-custom-steps"><li><span>01</span><div><b>{stepOne}</b><p>{stepOneDescription}</p></div></li><li><span>02</span><div><b>{stepTwo}</b><p>{stepTwoDescription}</p></div></li><li><span>03</span><div><b>{stepThree}</b><p>{stepThreeDescription}</p></div></li></ol>{genericWhatsApp && <a className="studio-talk-link" href={genericWhatsApp} target="_blank" rel="noopener noreferrer">Rather just talk? Open a blank chat →</a>}</div>
+      <ConnectBuilder whatsappNumber={settings.whatsappNumber} />
+    </div></section>
 
-    <footer className="connect-footer" id="location">
-      <div className="footer-contours" aria-hidden="true" />
-      <div className="footer-main"><div><Link href="/" className="footer-brand">{settings.brandName || 'COBRAA 3D'}</Link><p>Hoskote, Bengaluru</p></div>
-        <nav aria-label="Footer links"><Link href="/products">Products</Link><Link href="/custom">Custom orders</Link>{settings.mapsUrl && <a href={settings.mapsUrl} target="_blank" rel="noopener noreferrer"><MapPin size={15} /> Directions</a>}</nav>
-        <div className="footer-contact">{whatsappURL && <a className="footer-whatsapp" href={whatsappURL} target="_blank" rel="noopener noreferrer"><MessageCircle size={16} /> Chat on WhatsApp <ArrowUpRight size={15} /></a>}</div>
-      </div>
-      <div className="footer-bottom"><span>© {new Date().getFullYear()} {settings.brandName || 'Cobraa 3D'}</span><span>Designed and made one layer at a time.</span></div>
-    </footer>
+    <footer className="studio-footer"><div className="studio-footer-contours" aria-hidden="true" /><div className="studio-wrap"><div className="studio-footer-top"><div className="studio-footer-story"><h2>Small ideas,<br /><em>made real.</em></h2><p>{settings.brandName || 'Cobraa 3D'} is a small print studio in Hoskote, Bengaluru, making personalised pieces to order.</p></div><div><h3>Explore</h3><nav aria-label="Explore links"><Link href="#products">Products</Link><Link href="#custom">Custom orders</Link><Link href="/products">View all products</Link></nav></div><div><h3>Say hello</h3><nav aria-label="Contact links">{genericWhatsApp && <a href={genericWhatsApp} target="_blank" rel="noopener noreferrer">WhatsApp ↗</a>}{settings.mapsUrl && <a href={settings.mapsUrl} target="_blank" rel="noopener noreferrer"><MapPin size={14} /> Directions</a>}<span>Hoskote, Bengaluru</span></nav></div></div><div className="studio-footer-bottom"><span>© {new Date().getFullYear()} {settings.brandName || 'Cobraa 3D'}</span><span>Designed and made one layer at a time.</span><Link href="#top">Back to top ↑</Link></div></div></footer>
+    <ConnectHud />
   </main>
 }
