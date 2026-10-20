@@ -11,16 +11,28 @@ import { getServerSideURL } from '@/utilities/getURL'
 import { SiteNavigation } from '@/components/SiteNavigation'
 import { buildWhatsAppUrl } from '@/lib/shared'
 import './globals.css'
+import '@/components/home/home-c3.css'
+import '@/components/product/product-sheet.css'
+import '@/components/Splash/splash.css'
 
 const instrumentSerif = localFont({ src: '../../../public/fonts/instrument-serif-regular.ttf', weight: '400', style: 'normal', variable: '--font-instrument-serif', display: 'swap' })
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+import { AccentScript } from '@/components/home/AccentScript'
+import { Splash } from '@/components/Splash/Splash'
+
+export default async function RootLayout({ children, modal }: { children: React.ReactNode; modal?: React.ReactNode }) {
   const payload = await getPayload({ config })
   const settings = await getSiteSettings(0)
   const whatsappURL = buildWhatsAppUrl({ number: settings.whatsappNumber, message: 'Hi Cobraa 3D, I found your connect page and would like to know more about your products.' })
   return <html className={cn(GeistSans.variable, GeistMono.variable, instrumentSerif.variable)} lang="en" suppressHydrationWarning>
     <head><link href="/favicon.svg" rel="icon" type="image/svg+xml" /></head>
-    <body><SiteNavigation brandName={settings.brandName || 'Cobraa 3D'} whatsappURL={whatsappURL} />{children}</body>
+    <body>
+      <AccentScript />
+      <Splash />
+      <SiteNavigation brandName={settings.brandName || 'Cobraa 3D'} whatsappURL={whatsappURL} />
+      {children}
+      {modal}
+    </body>
   </html>
 }
 
