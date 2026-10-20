@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { getSiteSettings } from '@/utilities/getSiteSettings'
 import React from 'react'
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
@@ -15,7 +16,7 @@ const instrumentSerif = localFont({ src: '../../../public/fonts/instrument-serif
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const payload = await getPayload({ config })
-  const settings = await payload.findGlobal({ slug: 'site-settings', depth: 0 })
+  const settings = await getSiteSettings(0)
   const whatsappURL = buildWhatsAppUrl({ number: settings.whatsappNumber, message: 'Hi Cobraa 3D, I found your connect page and would like to know more about your products.' })
   return <html className={cn(GeistSans.variable, GeistMono.variable, instrumentSerif.variable)} lang="en" suppressHydrationWarning>
     <head><link href="/favicon.svg" rel="icon" type="image/svg+xml" /></head>
@@ -25,7 +26,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
 export async function generateMetadata(): Promise<Metadata> {
   const payload = await getPayload({ config })
-  const settings = await payload.findGlobal({ slug: 'site-settings', depth: 1 })
+  const settings = await getSiteSettings(1)
   const description = undefined
   return {
     metadataBase: new URL(getServerSideURL()),

@@ -17,19 +17,19 @@ export const SiteSettings: GlobalConfig = {
       { name: 'connectCopy', type: 'group', label: 'Connect page copy', fields: [
         { name: 'catalogueHeading', type: 'text', defaultValue: 'Find your next favourite.' },
         { name: 'catalogueDescription', type: 'textarea', defaultValue: 'Something playful, something thoughtful, or something made just for you.' },
-        { name: 'paintingHeading', type: 'text', defaultValue: 'A little room for colour.' },
+        { name: 'paintingHeading', type: 'text', defaultValue: 'A little room for colour.', admin: { hidden: true } },
         { name: 'kidsKitDescription', type: 'text', defaultValue: 'Made to be coloured. Ready for imagination.' },
         { name: 'adultsKitDescription', type: 'text', defaultValue: 'Unplug. Create. Make it yours.' },
         { name: 'customHeading', type: 'text', defaultValue: 'Have an idea? Let’s print it.' },
         { name: 'customPrompt', type: 'text', defaultValue: 'Tell us your wild idea.' },
         { name: 'customNote', type: 'textarea', defaultValue: 'We’ll review the idea and confirm feasibility, material and cost with you.' },
-        { name: 'bulkHeading', type: 'text', defaultValue: 'Something special for a group?' },
-        { name: 'bulkDescription', type: 'textarea', defaultValue: 'Share the product, quantity, date and any personalisation you have in mind.' },
+        { name: 'bulkHeading', type: 'text', defaultValue: 'Something special for a group?', admin: { hidden: true } },
+        { name: 'bulkDescription', type: 'textarea', defaultValue: 'Share the product, quantity, date and any personalisation you have in mind.', admin: { hidden: true } },
         { name: 'howHeading', type: 'text', defaultValue: 'From first thought to finished print.' },
         { name: 'howStepOneTitle', type: 'text', defaultValue: 'Discover' }, { name: 'howStepOneDescription', type: 'text', defaultValue: 'Find something you like or tell us your idea.' },
         { name: 'howStepTwoTitle', type: 'text', defaultValue: 'Ask us on WhatsApp' }, { name: 'howStepTwoDescription', type: 'text', defaultValue: 'Share details and any preferences.' },
         { name: 'howStepThreeTitle', type: 'text', defaultValue: 'Confirm the details' }, { name: 'howStepThreeDescription', type: 'text', defaultValue: 'We’ll confirm options, price and delivery or collection.' },
-        { name: 'printBedHeading', type: 'text', defaultValue: 'On the print bed this week' }, { name: 'locationHeading', type: 'text', defaultValue: 'Meet the studio.' },
+        { name: 'printBedHeading', type: 'text', defaultValue: 'On the print bed this week', admin: { hidden: true } }, { name: 'locationHeading', type: 'text', defaultValue: 'Meet the studio.' },
         { name: 'closingHeading', type: 'text', defaultValue: 'Your idea could be our next favourite print.' }, { name: 'closingCtaLabel', type: 'text', defaultValue: 'Let’s Create Something' },
       ] },
     ] },
@@ -43,7 +43,11 @@ export const SiteSettings: GlobalConfig = {
       { name: 'mapsUrl', type: 'text', label: 'Maps share link' }, { name: 'mapsEmbedUrl', type: 'text' }, { name: 'address', type: 'textarea' },
       { name: 'showFullAddress', type: 'checkbox', defaultValue: false }, { name: 'openingHours', type: 'textarea' },
     ] },
-    { label: 'Messages', fields: [{ name: 'messageTemplates', type: 'group', fields: [
+    { label: 'Messages', fields: [
+    // Keep the original column during local SQLite schema sync; the value is
+    // copied into messageTemplates.product after the additive sync completes.
+    { name: 'productMessageTemplate', type: 'textarea', admin: { hidden: true } },
+    { name: 'messageTemplates', type: 'group', fields: [
       { name: 'product', type: 'textarea', defaultValue: 'Hi, I would like to enquire about {{title}}. Price: {{price}}. {{url}}' },
       { name: 'custom', type: 'textarea', defaultValue: 'Hi, I have an idea for a custom 3D print. {{details}}' },
       { name: 'bulk', type: 'textarea', defaultValue: 'Hi, I would like to discuss a bulk order. Product: {{product}}. Quantity: {{quantity}}. Date: {{date}}. Personalisation: {{personalisation}}.' },
@@ -56,11 +60,11 @@ export const SiteSettings: GlobalConfig = {
     ] },
     { label: 'Experience', fields: [
       { name: 'experience', type: 'group', fields: [
-      toggle('heroPrintReveal', 'Reveal the hero as if a print is in progress.'), toggle('contourField', 'Show subtle contour line art.'),
-      toggle('scrollGauge', 'Show a small scroll progress indicator.'), toggle('filamentAccentPicker', 'Allow visitors to preview accent colours.'),
-      toggle('nameplateStudio', 'Enable the nameplate designer.'), toggle('printBedFeed', 'Show recent print bed posts.'),
-      toggle('modelViewer', 'Enable product GLB previews.'), toggle('surpriseMe', 'Show a random product discovery link.'),
-      toggle('saveContactButton', 'Offer a downloadable contact card.'), toggle('tiltEffect', 'Enable gentle pointer tilt.', false),
+      { ...toggle('heroPrintReveal', 'Reveal the hero as if a print is in progress.'), admin: { hidden: true } }, { ...toggle('contourField', 'Show subtle contour line art.'), admin: { hidden: true } },
+      { ...toggle('scrollGauge', 'Show a small scroll progress indicator.'), admin: { hidden: true } }, toggle('filamentAccentPicker', 'Allow visitors to preview accent colours.'),
+      toggle('nameplateStudio', 'Enable the nameplate designer.'), { ...toggle('printBedFeed', 'Show recent print bed posts.'), admin: { hidden: true } },
+      { ...toggle('modelViewer', 'Enable product GLB previews.'), admin: { hidden: true } }, { ...toggle('surpriseMe', 'Show a random product discovery link.'), admin: { hidden: true } },
+      { ...toggle('saveContactButton', 'Offer a downloadable contact card.'), admin: { hidden: true } }, { ...toggle('tiltEffect', 'Enable gentle pointer tilt.', false), admin: { hidden: true } },
       toggle('calmMode', 'Turn off all non-essential motion.', false),
       ] },
       { name: 'vcard', type: 'group', fields: [

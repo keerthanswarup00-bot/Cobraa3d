@@ -1,6 +1,10 @@
 import type { Payload } from 'payload'
 
-export type WhatsAppSettings = { whatsappNumber?: string | null; productMessageTemplate?: string | null }
+export type WhatsAppSettings = {
+  whatsappNumber?: string | null
+  productMessageTemplate?: string | null
+  messageTemplates?: { product?: string | null }
+}
 export type ProductMessageInput = {
   title: string
   slug?: string | null
@@ -51,7 +55,7 @@ export function buildProductMessage(
   const firstImage = product.images?.[0]?.image
   const imageUrl = typeof firstImage === 'object' && firstImage ? firstImage.url || '' : ''
   const url = options.baseURL && product.slug ? `${options.baseURL.replace(/\/$/, '')}/products/${encodeURIComponent(product.slug)}` : ''
-  const template = product.whatsappMessageOverride || settings.productMessageTemplate || 'Hi, I would like to enquire about {{title}}. Price: {{price}}. {{url}}'
+  const template = product.whatsappMessageOverride || settings.messageTemplates?.product || settings.productMessageTemplate || 'Hi, I would like to enquire about {{title}}. Price: {{price}}. {{url}}'
   let message = template
     .replaceAll('{{title}}', product.title)
     .replaceAll('{{price}}', displayPrice(product))

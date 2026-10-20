@@ -7,6 +7,7 @@ function shouldRevalidate(req: { url?: string }, context: { disableRevalidate?: 
 async function revalidatePublicSite() {
   const { revalidatePath, revalidateTag } = await import('next/cache')
   revalidateTag('site-content', 'max')
+  revalidateTag('site-settings', 'max')
   revalidatePath('/')
   revalidatePath('/products')
   revalidatePath('/products/[slug]', 'page')

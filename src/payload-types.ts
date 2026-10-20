@@ -1355,6 +1355,7 @@ export interface SiteSetting {
   address?: string | null;
   showFullAddress?: boolean | null;
   openingHours?: string | null;
+  productMessageTemplate?: string | null;
   messageTemplates?: {
     product?: string | null;
     custom?: string | null;
@@ -1368,17 +1369,8 @@ export interface SiteSetting {
   };
   ogImage?: (number | null) | Media;
   experience?: {
-    /**
-     * Reveal the hero as if a print is in progress.
-     */
     heroPrintReveal?: boolean | null;
-    /**
-     * Show subtle contour line art.
-     */
     contourField?: boolean | null;
-    /**
-     * Show a small scroll progress indicator.
-     */
     scrollGauge?: boolean | null;
     /**
      * Allow visitors to preview accent colours.
@@ -1388,25 +1380,10 @@ export interface SiteSetting {
      * Enable the nameplate designer.
      */
     nameplateStudio?: boolean | null;
-    /**
-     * Show recent print bed posts.
-     */
     printBedFeed?: boolean | null;
-    /**
-     * Enable product GLB previews.
-     */
     modelViewer?: boolean | null;
-    /**
-     * Show a random product discovery link.
-     */
     surpriseMe?: boolean | null;
-    /**
-     * Offer a downloadable contact card.
-     */
     saveContactButton?: boolean | null;
-    /**
-     * Enable gentle pointer tilt.
-     */
     tiltEffect?: boolean | null;
     /**
      * Turn off all non-essential motion.
@@ -1545,6 +1522,7 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   address?: T;
   showFullAddress?: T;
   openingHours?: T;
+  productMessageTemplate?: T;
   messageTemplates?:
     | T
     | {
