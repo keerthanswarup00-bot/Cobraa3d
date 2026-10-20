@@ -11,8 +11,8 @@ export const revalidate = 60
 async function loadProduct(slug: string) {
   const payload = await getPayload({ config })
   const [result, settings] = await Promise.all([
-    payload.find({ collection: 'products', where: { and: [{ slug: { equals: slug } }, { status: { equals: 'published' } }, { _status: { equals: 'published' } }] }, limit: 1, depth: 2 }),
-    payload.findGlobal({ slug: 'site-settings', depth: 2 }),
+    payload.find({ collection: 'products', where: { and: [{ slug: { equals: slug } }, { status: { equals: 'published' } }, { _status: { equals: 'published' } }] }, limit: 1, depth: 1 }),
+    payload.findGlobal({ slug: 'site-settings', depth: 0 }),
   ])
   const product = result.docs[0]
   return { product: product && (process.env.NODE_ENV !== 'production' || !product.isDemo) ? product : undefined, settings }
@@ -54,7 +54,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const manual = (product.relatedProducts || []).filter((item): item is Product => typeof item === 'object' && !!item && item.status === 'published' && item._status === 'published' && (process.env.NODE_ENV !== 'production' || !item.isDemo))
   if (manual.length) relatedProducts = manual.slice(0, 6)
   else if (typeof product.category === 'object' && product.category) {
-    const related = await payload.find({ collection: 'products', where: { and: [{ category: { equals: product.category.id } }, { id: { not_equals: product.id } }, { status: { equals: 'published' } }, { _status: { equals: 'published' } }] }, limit: 6, depth: 2, sort: 'sortOrder,title' })
+    const related = await payload.find({ collection: 'products', where: { and: [{ category: { equals: product.category.id } }, { id: { not_equals: product.id } }, { status: { equals: 'published' } }, { _status: { equals: 'published' } }] }, limit: 6, depth: 1, sort: 'sortOrder,title' })
     relatedProducts = related.docs
   }
   const siteURL = getServerSideURL()

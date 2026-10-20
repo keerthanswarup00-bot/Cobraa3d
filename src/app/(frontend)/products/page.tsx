@@ -19,7 +19,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const params = await searchParams
   const payload = await getPayload({ config })
   const [{ docs: rawProducts }, categories, settings] = await Promise.all([
-    payload.find({ collection: 'products', where: { and: [{ status: { equals: 'published' } }, { _status: { equals: 'published' } }] }, sort: 'sortOrder,title', depth: 2, limit: 100 }),
+    payload.find({ collection: 'products', where: { and: [{ status: { equals: 'published' } }, { _status: { equals: 'published' } }] }, sort: 'sortOrder,title', depth: 1, limit: 100 }),
     findVisibleCategories(payload),
     payload.findGlobal({ slug: 'site-settings', depth: 1 }),
   ])

@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic'
 
 export async function generateMetadata(): Promise<Metadata> {
   const payload = await getPayload({ config })
-  const settings = await payload.findGlobal({ slug: 'site-settings', depth: 1 })
+  const settings = await payload.findGlobal({ slug: 'site-settings', depth: 0 })
   const description = settings.seoDefaults?.description || settings.hero?.description || settings.tagline || 'Thoughtfully designed 3D-printed products and custom creations from Hoskote, Bengaluru.'
   return {
     title: { absolute: `${settings.brandName || 'Cobraa 3D'} | Made in Hoskote. Made to be yours.` },
@@ -31,8 +31,8 @@ function photoOf(product: Product): Media | null {
 export default async function HomePage() {
   const payload = await getPayload({ config })
   const [settings, productsResult] = await Promise.all([
-    payload.findGlobal({ slug: 'site-settings', depth: 2 }),
-    payload.find({ collection: 'products', where: { and: [{ status: { equals: 'published' } }, { _status: { equals: 'published' } }] }, sort: 'sortOrder,title', depth: 2, limit: 40 }),
+    payload.findGlobal({ slug: 'site-settings', depth: 0 }),
+    payload.find({ collection: 'products', where: { and: [{ status: { equals: 'published' } }, { _status: { equals: 'published' } }] }, sort: 'sortOrder,title', depth: 1, limit: 12 }),
   ])
   const products = (productsResult.docs as Product[])
     .filter((product) => process.env.NODE_ENV !== 'production' || !product.isDemo)
