@@ -75,6 +75,7 @@ export interface Config {
     'print-bed': PrintBed;
     media: Media;
     users: User;
+    'whatsapp-clicks': WhatsappClick;
     search: Search;
     redirects: Redirect;
     exports: Export;
@@ -100,6 +101,7 @@ export interface Config {
     'print-bed': PrintBedSelect<false> | PrintBedSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'whatsapp-clicks': WhatsappClicksSelect<false> | WhatsappClicksSelect<true>;
     search: SearchSelect<false> | SearchSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     exports: ExportsSelect<false> | ExportsSelect<true>;
@@ -529,6 +531,17 @@ export interface User {
   collection: 'users';
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "whatsapp-clicks".
+ */
+export interface WhatsappClick {
+  id: number;
+  slug?: string | null;
+  source?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This is a collection of automatically created search results. These results are used by the global site search and will be updated automatically as documents in the CMS are created or updated.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -784,6 +797,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'whatsapp-clicks';
+        value: number | WhatsappClick;
       } | null)
     | ({
         relationTo: 'search';
@@ -1115,6 +1132,16 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "whatsapp-clicks_select".
+ */
+export interface WhatsappClicksSelect<T extends boolean = true> {
+  slug?: T;
+  source?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1631,6 +1658,7 @@ export interface TaskCreateCollectionExport {
       | 'print-bed'
       | 'media'
       | 'users'
+      | 'whatsapp-clicks'
       | 'search'
       | 'redirects'
       | 'exports'

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 const serverSchema = z.object({
-  DATABASE_URI: z.string().min(1),
+  DATABASE_URI: z.string().optional(),
   DATABASE_URI_MIGRATE: z.string().optional(),
   PAYLOAD_SECRET: z.string().min(1),
   NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
@@ -38,6 +38,7 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data
+export const isPostgres = Boolean(env.DATABASE_URI?.startsWith('postgres'))
 export const getConnectionString = () => {
   if (process.env.MIGRATING === '1' && env.DATABASE_URI_MIGRATE) {
     return env.DATABASE_URI_MIGRATE

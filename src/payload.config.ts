@@ -1,4 +1,5 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { s3Storage } from '@payloadcms/storage-s3'
 import { seoPlugin } from '@payloadcms/plugin-seo'
 import { searchPlugin } from '@payloadcms/plugin-search'
@@ -22,7 +23,7 @@ import { SiteSettings } from './globals/SiteSettings'
 import { LegalPages } from './globals/LegalPages'
 import { getServerSideURL } from './utilities/getURL'
 import { defaultLexical } from '@/fields/defaultLexical'
-import { env, getConnectionString } from './lib/env'
+import { env, getConnectionString, isPostgres } from './lib/env'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -72,7 +73,9 @@ export default buildConfig({
     ] },
   },
   editor: defaultLexical,
-  db: postgresAdapter({ pool: { connectionString: getConnectionString(), max: 3 }, push: process.env.NODE_ENV === 'production' ? false : false }),
+  db: isPostgres
+    ? postgresAdapter({ pool: { connectionString: getConnectionString()!, max: 3 }, push: false })
+    : sqliteAdapter({ client: { url: env.DATABASE_URI || 'file:./cobraa3d.db' } }),
   collections: [
     { ...Products, admin: { ...Products.admin, group: 'Catalogue' } },
     { ...Categories, admin: { ...Categories.admin, group: 'Catalogue' } },
