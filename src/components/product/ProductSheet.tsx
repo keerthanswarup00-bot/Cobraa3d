@@ -92,7 +92,6 @@ export function ProductSheet({ product, hrefs }: { product: SheetProduct; hrefs:
             )}
 
             <h2 id={titleId} className="ps-title">{product.name}</h2>
-            {product.price && <p className="ps-price">{product.price}</p>}
             {product.shortDescription && <p className="ps-desc">{product.shortDescription}</p>}
 
             {!!product.colors?.length && (
@@ -108,7 +107,8 @@ export function ProductSheet({ product, hrefs }: { product: SheetProduct; hrefs:
           </div>
 
           <div className="ps-cta">
-            <a className="ps-wa" href={href} target="_blank" rel="noopener noreferrer">Enquire on WhatsApp</a>
+            <p className="ps-price">{product.price ?? "Ask for price"}</p>
+            <a className="ps-wa" href={href} target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>
           </div>
         </motion.div>
       )}

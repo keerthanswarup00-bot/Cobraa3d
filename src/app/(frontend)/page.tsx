@@ -73,11 +73,11 @@ export default async function HomePage() {
         const messageProduct = { ...product, whatsappMessageOverride: "Hi Cobraa 3D, I'm interested in the {{title}}. Please share more details, available customisation options and pricing. {{url}}" }
         const productWhatsApp = buildWhatsAppUrl({ number: settings.whatsappNumber, message: buildProductMessage(messageProduct, { baseURL }, settings) })
         return <article className="connect-product-card" key={product.id}>
-          <Link className="connect-product-photo" href={`/products/${product.slug}`} aria-label={`View ${product.title}`}>
+          <Link className="connect-product-photo" href={`/products/${product.slug}`} scroll={false} aria-label={`View ${product.title}`}>
             {image?.url ? <Image src={image.url} alt={image.alt || product.title} fill sizes="(max-width: 700px) 46vw, (max-width: 1000px) 30vw, 25vw" unoptimized={!image.url.startsWith('/')} /> : <span className="connect-card-photo-needed">{product.isDemo ? 'Temporary illustration needed' : 'Product photo needed'}</span>}
             {product.isDemo && process.env.NODE_ENV !== 'production' && <span className="demo-product-mark">Development sample</span>}
           </Link>
-          <div className="connect-product-copy"><div><h3><Link href={`/products/${product.slug}`}>{product.title}</Link></h3><p>{product.shortDescription}</p></div>
+          <div className="connect-product-copy"><div><h3><Link href={`/products/${product.slug}`} scroll={false}>{product.title}</Link></h3><p>{product.shortDescription}</p></div>
             {!product.isDemo && product.priceMode !== 'ask' && product.price != null && <span className="connect-product-price">{formatPrice(product.price, product.priceMode, product.currency || 'INR')}</span>}
           </div>
           <div className="connect-card-actions"><Link href={`/products/${product.slug}`}>View product <ArrowUpRight size={15} /></Link>{productWhatsApp ? <a className="connect-product-enquire" href={productWhatsApp} target="_blank" rel="noopener noreferrer"><MessageCircle size={15} /> Enquire on WhatsApp</a> : <button type="button" disabled>WhatsApp unavailable</button>}</div>
