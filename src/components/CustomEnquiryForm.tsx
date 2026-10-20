@@ -43,8 +43,8 @@ export function CustomEnquiryForm({ whatsappNumber, source, note, messageTemplat
     if (files.length > 2) nextErrors.files = 'Attach no more than two files.'
     for (const file of files) {
       const ext = file.name.split('.').pop()?.toLowerCase()
-      if (!(file.type.startsWith('image/') || ext === 'stl' || ext === '3mf')) nextErrors.files = 'Attach an image, STL or 3MF file.'
-      if (file.size > 10 * 1024 * 1024) nextErrors.files = 'Each file must be 10 MB or smaller.'
+      if (!(['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type) || ext === 'stl' || ext === '3mf')) nextErrors.files = 'Attach a JPEG, PNG, WebP, GIF, STL or 3MF file.'
+      if (file.size > 4 * 1024 * 1024) nextErrors.files = 'Each file must be 4 MB or smaller.'
     }
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return
@@ -76,7 +76,7 @@ export function CustomEnquiryForm({ whatsappNumber, source, note, messageTemplat
         <label>Occasion (optional)<input value={values.occasion} onChange={(e) => update('occasion', e.target.value)} /></label>
         <label>Colour (optional)<input value={values.colour} onChange={(e) => update('colour', e.target.value)} /></label>
         <label>Budget (optional)<input value={values.budget} onChange={(e) => update('budget', e.target.value)} /></label>
-        <label className="form-wide">Reference image or STL / 3MF (optional)<input type="file" accept="image/*,.stl,.3mf" multiple onChange={(e) => setFiles(Array.from(e.target.files || []))} /><small>Up to 2 files, 10 MB each.</small>{errors.files && <small>{errors.files}</small>}</label>
+        <label className="form-wide">Reference image or STL / 3MF (optional)<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,.stl,.3mf" multiple onChange={(e) => setFiles(Array.from(e.target.files || []))} /><small>Up to 2 files, 4 MB each.</small>{errors.files && <small>{errors.files}</small>}</label>
       </div>
       <p className="form-note">{note || 'We’ll review the idea and confirm feasibility, material and cost with you.'}</p>
       <button className="form-submit" disabled={status === 'sending'}>{status === 'sending' ? 'Sending…' : 'Send enquiry'}</button>

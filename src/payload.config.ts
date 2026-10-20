@@ -16,6 +16,7 @@ import { Announcements } from './collections/Announcements'
 import { Enquiries } from './collections/Enquiries'
 import { PrintBed } from './collections/PrintBed'
 import { Media } from './collections/Media'
+import { EnquiryFiles } from './collections/EnquiryFiles'
 import { Products } from './collections/Products'
 import { Users } from './collections/Users'
 import { WhatsappClicks } from './collections/WhatsappClicks'
@@ -40,6 +41,19 @@ const storagePlugins: Plugin[] = cloudStorageConfigured ? [s3Storage({
   },
   clientUploads: true,
 })] : []
+if (cloudStorageConfigured && env.S3_PRIVATE_BUCKET) {
+  storagePlugins.push(s3Storage({
+    collections: { 'enquiry-files': { signedDownloads: true } },
+    bucket: env.S3_PRIVATE_BUCKET,
+    acl: 'private',
+    config: {
+      endpoint: env.S3_ENDPOINT,
+      region: env.S3_REGION || 'auto',
+      forcePathStyle: true,
+      credentials: { accessKeyId: env.S3_ACCESS_KEY_ID!, secretAccessKey: env.S3_SECRET_ACCESS_KEY! },
+    },
+  }))
+}
 
 export default buildConfig({
   endpoints: [{
@@ -82,6 +96,7 @@ export default buildConfig({
     { ...Offers, admin: { ...Offers.admin, group: 'Promotions' } },
     { ...Announcements, admin: { ...Announcements.admin, group: 'Promotions' } },
     { ...Enquiries, admin: { ...Enquiries.admin, group: 'Enquiries' } },
+    EnquiryFiles,
     { ...PrintBed, admin: { ...PrintBed.admin, group: 'Site' } },
     { ...Media, admin: { ...Media.admin, group: 'Site' } },
     { ...Users, admin: { ...Users.admin, group: 'Team' } },

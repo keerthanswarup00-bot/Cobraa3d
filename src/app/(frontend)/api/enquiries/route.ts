@@ -7,7 +7,7 @@ import { customEnquirySchema } from '@/lib/enquiry-schema'
 const WINDOW_MS = 60_000
 const MAX_REQUESTS = 4
 const requests = new Map<string, number[]>()
-const MAX_FILE_SIZE = 10 * 1024 * 1024
+const MAX_FILE_SIZE = 4 * 1024 * 1024
 
 function rateLimited(ip: string, now = Date.now()) {
   const recent = (requests.get(ip) || []).filter((time) => now - time < WINDOW_MS)
@@ -33,14 +33,14 @@ export async function POST(request: Request) {
     if (files.length > 2) return NextResponse.json({ error: 'Please attach no more than two files.' }, { status: 400 })
     for (const file of files) {
       const ext = file.name.split('.').pop()?.toLowerCase()
-      const accepted = file.type.startsWith('image/') || ext === 'stl' || ext === '3mf'
+      const accepted = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type) || ext === 'stl' || ext === '3mf'
       if (!accepted) return NextResponse.json({ error: 'Attach an image, STL or 3MF file.' }, { status: 400 })
-      if (file.size > MAX_FILE_SIZE) return NextResponse.json({ error: 'Each attachment must be 10 MB or smaller.' }, { status: 400 })
+      if (file.size > MAX_FILE_SIZE) return NextResponse.json({ error: 'Each attachment must be 4 MB or smaller.' }, { status: 400 })
     }
     const payload = await getPayload({ config })
     const uploaded: number[] = []
     for (const file of files) {
-      const media = await payload.create({ collection: 'media', overrideAccess: true, data: { alt: file.name }, file: {
+      const media = await payload.create({ collection: 'enquiry-files', overrideAccess: true, data: { alt: file.name }, file: {
         data: Buffer.from(await file.arrayBuffer()), name: file.name.replace(/[\\/]/g, '_'), mimetype: file.type || (file.name.toLowerCase().endsWith('.stl') ? 'model/stl' : 'application/vnd.ms-3mfdocument'), size: file.size,
       } })
       uploaded.push(media.id)

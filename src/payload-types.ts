@@ -72,6 +72,7 @@ export interface Config {
     offers: Offer;
     announcements: Announcement;
     enquiries: Enquiry;
+    'enquiry-files': EnquiryFile;
     'print-bed': PrintBed;
     media: Media;
     users: User;
@@ -98,6 +99,7 @@ export interface Config {
     offers: OffersSelect<false> | OffersSelect<true>;
     announcements: AnnouncementsSelect<false> | AnnouncementsSelect<true>;
     enquiries: EnquiriesSelect<false> | EnquiriesSelect<true>;
+    'enquiry-files': EnquiryFilesSelect<false> | EnquiryFilesSelect<true>;
     'print-bed': PrintBedSelect<false> | PrintBedSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -479,13 +481,32 @@ export interface Enquiry {
   occasion?: string | null;
   colour?: string | null;
   budget?: string | null;
-  files?: (number | Media)[] | null;
+  files?: (number | EnquiryFile)[] | null;
   productRef?: (number | null) | Product;
   source?: ('qr' | 'nfc' | 'wa' | 'ig' | 'other') | null;
   status?: ('new' | 'contacted' | 'closed') | null;
   internalNotes?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "enquiry-files".
+ */
+export interface EnquiryFile {
+  id: number;
+  alt: string;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -787,6 +808,10 @@ export interface PayloadLockedDocument {
         value: number | Enquiry;
       } | null)
     | ({
+        relationTo: 'enquiry-files';
+        value: number | EnquiryFile;
+      } | null)
+    | ({
         relationTo: 'print-bed';
         value: number | PrintBed;
       } | null)
@@ -999,6 +1024,24 @@ export interface EnquiriesSelect<T extends boolean = true> {
   internalNotes?: T;
   createdAt?: T;
   updatedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "enquiry-files_select".
+ */
+export interface EnquiryFilesSelect<T extends boolean = true> {
+  alt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1655,6 +1698,7 @@ export interface TaskCreateCollectionExport {
       | 'offers'
       | 'announcements'
       | 'enquiries'
+      | 'enquiry-files'
       | 'print-bed'
       | 'media'
       | 'users'

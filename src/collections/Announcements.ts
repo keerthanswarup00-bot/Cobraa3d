@@ -1,9 +1,15 @@
 import type { CollectionConfig } from 'payload'
 import { editorAccess } from '../access/roles'
+import { publicActiveWindow } from '../access/publicActiveWindow'
 import { revalidateDeletedSiteContent, revalidateSite } from '../hooks/revalidateSite'
 
 export const Announcements: CollectionConfig = {
-  slug: 'announcements', access: { create: editorAccess, delete: editorAccess, read: () => true, update: editorAccess }, admin: { useAsTitle: 'message' },
+  slug: 'announcements', access: {
+    create: editorAccess,
+    delete: editorAccess,
+    read: publicActiveWindow,
+    update: editorAccess,
+  }, admin: { useAsTitle: 'message' },
   fields: [
     { name: 'message', type: 'text', required: true }, { name: 'link', type: 'text' },
     { name: 'type', type: 'select', defaultValue: 'info', options: ['info', 'festive', 'alert'].map((value) => ({ label: value, value })) },

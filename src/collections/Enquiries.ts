@@ -9,7 +9,7 @@ export const Enquiries: CollectionConfig = {
     { name: 'type', type: 'select', required: true, options: ['custom', 'bulk', 'product'].map((value) => ({ label: value, value })) },
     { name: 'name', type: 'text' }, { name: 'phone', type: 'text' }, { name: 'message', type: 'textarea' }, { name: 'quantity', type: 'number' },
     { name: 'occasion', type: 'text' }, { name: 'colour', type: 'text' }, { name: 'budget', type: 'text' },
-    { name: 'files', type: 'upload', relationTo: 'media', hasMany: true }, { name: 'productRef', type: 'relationship', relationTo: 'products' },
+    { name: 'files', type: 'upload', relationTo: 'enquiry-files', hasMany: true }, { name: 'productRef', type: 'relationship', relationTo: 'products' },
     { name: 'source', type: 'select', options: ['qr', 'nfc', 'wa', 'ig', 'other'].map((value) => ({ label: value, value })) },
     { name: 'status', type: 'select', defaultValue: 'new', options: ['new', 'contacted', 'closed'].map((value) => ({ label: value, value })) },
     { name: 'internalNotes', type: 'textarea', access: { read: ({ req }) => Boolean(req.user && (req.user as { role?: string }).role === 'admin'), update: ({ req }) => Boolean(req.user && (req.user as { role?: string }).role === 'admin') } }, { name: 'createdAt', type: 'date' },

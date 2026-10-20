@@ -1,10 +1,16 @@
 import type { CollectionConfig } from 'payload'
 import { editorAccess } from '../access/roles'
+import { publicActiveWindow } from '../access/publicActiveWindow'
 import { revalidateDeletedSiteContent, revalidateSite } from '../hooks/revalidateSite'
 
 export const Offers: CollectionConfig = {
   slug: 'offers',
-  access: { create: editorAccess, delete: editorAccess, read: () => true, update: editorAccess },
+  access: {
+    create: editorAccess,
+    delete: editorAccess,
+    read: publicActiveWindow,
+    update: editorAccess,
+  },
   admin: { useAsTitle: 'title' },
   fields: [
     { name: 'statusSummary', type: 'ui', admin: { components: { Field: '@/components/OfferStatusSummary#OfferStatusSummary' } } },
