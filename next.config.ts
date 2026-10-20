@@ -13,6 +13,7 @@ const NEXT_PUBLIC_SERVER_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
 
 const nextConfig: NextConfig = {
   experimental: { globalNotFound: true },
+  serverExternalPackages: ['@payloadcms/db-sqlite', '@payloadcms/db-postgres', 'libsql', '@libsql/client', 'pg'],
   // Temporarily required on Windows until Next.js fixes Turbopack Sass resolution.
   // See: https://github.com/vercel/next.js/issues/86431
   sassOptions: {
