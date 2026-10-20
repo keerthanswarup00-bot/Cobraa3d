@@ -19,6 +19,7 @@ const instrumentSerif = localFont({ src: '../../../public/fonts/instrument-serif
 
 import { AccentScript } from '@/components/home/AccentScript'
 import { Splash } from '@/components/Splash/Splash'
+import { TrackClicks } from '@/components/analytics/TrackClicks'
 
 export default async function RootLayout({ children, modal }: { children: React.ReactNode; modal?: React.ReactNode }) {
   const payload = await getPayload({ config })
@@ -32,6 +33,7 @@ export default async function RootLayout({ children, modal }: { children: React.
       <SiteNavigation brandName={settings.brandName || 'Cobraa 3D'} whatsappURL={whatsappURL} />
       {children}
       {modal}
+      <TrackClicks />
     </body>
   </html>
 }

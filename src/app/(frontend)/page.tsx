@@ -52,7 +52,7 @@ export default async function HomePage() {
         <p className="connect-intro">Thoughtfully designed 3D-printed products, personalised gifts and custom creations — made one layer at a time.</p>
         <div className="connect-hero-actions">
           <Link className="button-dark" href="#products">Explore products <ArrowDownRight size={17} /></Link>
-          {whatsappURL && <a className="button-light" href={whatsappURL} target="_blank" rel="noopener noreferrer"><MessageCircle size={17} /> Chat on WhatsApp</a>}
+          {whatsappURL && <a className="button-light" href={whatsappURL} data-wa-source="hero" target="_blank" rel="noopener noreferrer"><MessageCircle size={17} /> Chat on WhatsApp</a>}
         </div>
         {!whatsappURL && process.env.NODE_ENV !== 'production' && <p className="connect-dev-warning">Add a valid business WhatsApp number in Site Settings to enable contact links.</p>}
       </div>
@@ -80,7 +80,7 @@ export default async function HomePage() {
           <div className="connect-product-copy"><div><h3><Link href={`/products/${product.slug}`} scroll={false}>{product.title}</Link></h3><p>{product.shortDescription}</p></div>
             {!product.isDemo && product.priceMode !== 'ask' && product.price != null && <span className="connect-product-price">{formatPrice(product.price, product.priceMode, product.currency || 'INR')}</span>}
           </div>
-          <div className="connect-card-actions"><Link href={`/products/${product.slug}`}>View product <ArrowUpRight size={15} /></Link>{productWhatsApp ? <a className="connect-product-enquire" href={productWhatsApp} target="_blank" rel="noopener noreferrer"><MessageCircle size={15} /> Enquire on WhatsApp</a> : <button type="button" disabled>WhatsApp unavailable</button>}</div>
+          <div className="connect-card-actions"><Link href={`/products/${product.slug}`}>View product <ArrowUpRight size={15} /></Link>{productWhatsApp ? <a className="connect-product-enquire" href={productWhatsApp} data-wa-source="product-card" data-wa-slug={product.slug} target="_blank" rel="noopener noreferrer"><MessageCircle size={15} /> Enquire on WhatsApp</a> : <button type="button" disabled>WhatsApp unavailable</button>}</div>
         </article>
       })}</div> : <div className="connect-products-pending"><span className="pending-mark" aria-hidden="true">C3</span><div><h3>Product photographs are being prepared.</h3><p>Ask us about a custom piece while the catalogue is coming together.</p>{whatsappURL && <a href={whatsappURL} target="_blank" rel="noopener noreferrer">Ask on WhatsApp <ArrowUpRight size={15} /></a>}</div></div>}
       <Link className="connect-view-all" href="/products">View all products <ArrowUpRight size={16} /></Link>

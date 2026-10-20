@@ -21,7 +21,7 @@ export function SiteNavigation({ brandName, whatsappURL }: { brandName: string; 
       <Link href="/custom" onClick={() => setOpen(false)}>Custom</Link>
     </nav>
     <div className="site-nav-actions">
-      {whatsappURL && <a className="nav-whatsapp" href={whatsappURL} target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>}
+      {whatsappURL && <a className="nav-whatsapp" href={whatsappURL} data-wa-source="nav" target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>}
       <button className="site-nav-menu" type="button" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(!open)}><span /><span /></button>
     </div>
   </header>

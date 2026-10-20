@@ -6,7 +6,7 @@ export function StickyWhatsAppBar({ href, label = "Chat on WhatsApp" }: { href: 
   const [show, setShow] = useState(false);
   useEffect(() => {
     const el = document.getElementById("hero-actions");
-    if (!el) { setShow(true); return; }
+    if (!el) { const id = requestAnimationFrame(() => setShow(true)); return () => cancelAnimationFrame(id); }
     const io = new IntersectionObserver(([e]) => setShow(!e.isIntersecting));
     io.observe(el);
     return () => io.disconnect();

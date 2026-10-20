@@ -63,3 +63,14 @@ ALLOW_DEMO_SEED=true pnpm seed
 ```
 
 Use a local SQLite database (`DATABASE_URL=file:./cobraa3d.db`) for the seed. Records carry `isDemo: true`; they have no price or confirmed availability and use distinct temporary SVG illustrations. The listing/detail UI marks them as temporary, and public production reads exclude them. The seed refuses to overwrite a non-demo product whose slug matches one of these demos. Replace or delete only records with `isDemo` checked before launch. The seed also removes the six exact `SAMPLE Product NN — replace before launch` and `SAMPLE Category NN — replace before launch` records made by the previous local sample script; it does not touch other products or categories.
+
+## Deploying
+See [docs/DEPLOY.md](docs/DEPLOY.md) and [docs/ADD-PRODUCTS.md](docs/ADD-PRODUCTS.md).
+
+Scripts: , , .
+
+
+## Deploying
+See [docs/DEPLOY.md](docs/DEPLOY.md) and [docs/ADD-PRODUCTS.md](docs/ADD-PRODUCTS.md).
+
+Scripts: `migrate:create`, `migrate`, `vercel-build`.

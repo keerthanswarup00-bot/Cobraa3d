@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cobraa3d
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URI: postgresql://postgres:postgres@localhost:5432/cobraa3d
+      DATABASE_URI_MIGRATE: postgresql://postgres:postgres@localhost:5432/cobraa3d
+      PAYLOAD_SECRET: ci-test-secret-ci-test-secret
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NODE_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install -g pnpm@9
+      - run: pnpm install --frozen-lockfile || pnpm install
+      - run: pnpm run typecheck
+      - run: pnpm run lint
+      - run: pnpm run migrate
+      - run: pnpm run build

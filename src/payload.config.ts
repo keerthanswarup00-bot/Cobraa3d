@@ -1,4 +1,3 @@
-import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { s3Storage } from '@payloadcms/storage-s3'
 import { seoPlugin } from '@payloadcms/plugin-seo'
@@ -18,26 +17,27 @@ import { PrintBed } from './collections/PrintBed'
 import { Media } from './collections/Media'
 import { Products } from './collections/Products'
 import { Users } from './collections/Users'
+import { WhatsappClicks } from './collections/WhatsappClicks'
 import { SiteSettings } from './globals/SiteSettings'
 import { LegalPages } from './globals/LegalPages'
 import { getServerSideURL } from './utilities/getURL'
 import { defaultLexical } from '@/fields/defaultLexical'
+import { env, getConnectionString } from './lib/env'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
-const databaseURL = process.env.DATABASE_URL
-const usePostgres = Boolean(databaseURL?.startsWith('postgres'))
 
-const cloudStorageConfigured = Boolean(process.env.S3_BUCKET && process.env.S3_ENDPOINT && process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY)
+const cloudStorageConfigured = Boolean(env.S3_BUCKET && env.S3_ENDPOINT && env.S3_ACCESS_KEY_ID && env.S3_SECRET_ACCESS_KEY)
 const storagePlugins: Plugin[] = cloudStorageConfigured ? [s3Storage({
   collections: { media: true },
-  bucket: process.env.S3_BUCKET!,
+  bucket: env.S3_BUCKET!,
   config: {
-    endpoint: process.env.S3_ENDPOINT,
-    region: process.env.S3_REGION || 'auto',
+    endpoint: env.S3_ENDPOINT,
+    region: env.S3_REGION || 'auto',
     forcePathStyle: true,
-    credentials: { accessKeyId: process.env.S3_ACCESS_KEY_ID!, secretAccessKey: process.env.S3_SECRET_ACCESS_KEY! },
+    credentials: { accessKeyId: env.S3_ACCESS_KEY_ID!, secretAccessKey: env.S3_SECRET_ACCESS_KEY! },
   },
+  clientUploads: true,
 })] : []
 
 export default buildConfig({
@@ -72,9 +72,7 @@ export default buildConfig({
     ] },
   },
   editor: defaultLexical,
-  db: usePostgres
-    ? postgresAdapter({ pool: { connectionString: databaseURL } })
-    : sqliteAdapter({ client: { url: databaseURL || 'file:./cobraa3d.db' } }),
+  db: postgresAdapter({ pool: { connectionString: getConnectionString(), max: 3 }, push: process.env.NODE_ENV === 'production' ? false : false }),
   collections: [
     { ...Products, admin: { ...Products.admin, group: 'Catalogue' } },
     { ...Categories, admin: { ...Categories.admin, group: 'Catalogue' } },
@@ -84,8 +82,10 @@ export default buildConfig({
     { ...PrintBed, admin: { ...PrintBed.admin, group: 'Site' } },
     { ...Media, admin: { ...Media.admin, group: 'Site' } },
     { ...Users, admin: { ...Users.admin, group: 'Team' } },
+    WhatsappClicks,
   ],
-  cors: [getServerSideURL()].filter(Boolean),
+  cors: [process.env.NEXT_PUBLIC_SITE_URL, 'http://localhost:3000'].filter((v): v is string => Boolean(v)),
+  csrf: [process.env.NEXT_PUBLIC_SITE_URL, 'http://localhost:3000'].filter((v): v is string => Boolean(v)),
   globals: [SiteSettings, LegalPages],
   plugins: [
     ...storagePlugins,
@@ -94,13 +94,13 @@ export default buildConfig({
     redirectsPlugin({ collections: ['products'] }),
     importExportPlugin({ collections: [{ slug: 'enquiries', import: true, export: true }], defaultVersionStatus: 'draft' }),
   ],
-  secret: process.env.PAYLOAD_SECRET,
+  secret: env.PAYLOAD_SECRET,
   sharp,
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
   jobs: {
     access: { run: ({ req }: { req: PayloadRequest }): boolean => {
       if (req.user) return true
-      const secret = process.env.CRON_SECRET
+      const secret = env.CRON_SECRET
       return Boolean(secret && req.headers.get('authorization') === `Bearer ${secret}`)
     } },
     tasks: [],

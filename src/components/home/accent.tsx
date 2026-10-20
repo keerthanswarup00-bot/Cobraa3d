@@ -31,7 +31,10 @@ export function AccentPicker() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(KEY);
-      if (saved && FILAMENTS.some((f) => f.hex === saved)) setActive(saved);
+      if (saved && FILAMENTS.some((f) => f.hex === saved)) {
+        const id = requestAnimationFrame(() => setActive(saved));
+        return () => cancelAnimationFrame(id);
+      }
     } catch {}
   }, []);
 
