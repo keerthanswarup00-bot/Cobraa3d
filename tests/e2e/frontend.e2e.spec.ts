@@ -1,20 +1,23 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Frontend', () => {
-  test('shows three featured demos, all five products, and direct product routes', async ({ page }) => {
-    const slugs = ['personalised-nameplate', 'decorative-led-lamp', 'custom-phone-stand', 'kids-colouring-kit', 'custom-3d-creation']
+  test('shows three featured demos, a product catalogue, and direct product routes', async ({ page }) => {
     await page.goto('/')
     await expect(page.locator('.connect-product-card')).toHaveCount(3)
     await expect(page.getByRole('link', { name: 'View all products' })).toHaveAttribute('href', '/products')
     await page.goto('/products')
-    await expect(page.locator('.product-card')).toHaveCount(5)
-    for (const slug of slugs) {
-      await page.goto(`/products/${slug}`)
+    await expect(page.locator('.pc-card')).toHaveCount(15)
+    const detailLinks = page.locator('.pc-card a.pc-media')
+    for (let index = 0; index < 3; index += 1) {
+      const href = await detailLinks.nth(index).getAttribute('href')
+      expect(href).toMatch(/^\/products\//)
+      await page.goto(href || '/')
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
       await expect(page.locator('.detail-main-image img').or(page.locator('.detail-image-empty'))).toBeVisible()
       const enquiry = page.getByRole('link', { name: /Enquire on WhatsApp|Ask on WhatsApp/ }).first()
-      await expect(enquiry).toHaveAttribute('href', /^https:\/\/wa\.me\/916364224230/)
-      expect(new URL(await enquiry.getAttribute('href') || '').searchParams.get('text')).toContain(slug)
+      await expect(enquiry).toHaveAttribute('href', /^https:\/\/wa\.me\//)
+      const slug = (href || '').split('/').pop() || ''
+      expect(new URL(await enquiry.getAttribute('href') || '').searchParams.get('text') || '').toContain(slug)
     }
   })
 
@@ -72,9 +75,8 @@ test.describe('Frontend', () => {
 
   test('product listing filters stay shareable and fit common screens', async ({ page }) => {
     await page.goto('/products')
-    await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible()
-    await page.getByRole('button', { name: 'Search products' }).click()
-    await page.getByRole('textbox', { name: 'Search products' }).fill('stand')
+    await expect(page.getByRole('heading', { level: 1, name: /Thoughtful design\./ })).toBeVisible()
+    await page.getByRole('searchbox', { name: 'Search products' }).fill('stand')
     await expect(page).toHaveURL(/q=stand/)
     for (const width of [375, 430, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 })
@@ -84,6 +86,15 @@ test.describe('Frontend', () => {
     }
   })
 
+  test('product sheet opens from a deep link hash', async ({ page }) => {
+    await page.goto('/products#/p/minimalist-maroon-jewellery-stand')
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByRole('heading', { name: 'Minimalist Maroon Jewellery Stand' })).toBeVisible()
+    await dialog.getByRole('button', { name: 'Close' }).click()
+    await expect(dialog).not.toBeVisible()
+  })
+
 
   test('minimal navigation and dedicated routes remain available', async ({ page }) => {
     await page.goto('/')
@@ -91,7 +102,7 @@ test.describe('Frontend', () => {
     await expect(page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Location' })).toHaveCount(0)
     await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Products' }).click()
     await expect(page).toHaveURL(/\/products$/)
-    await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /Thoughtful design\./ })).toBeVisible()
     await page.goto('/painting-kits')
     await expect(page.getByRole('heading', { name: 'Painting kits', exact: true })).toBeVisible()
     await page.goto('/custom')
@@ -99,8 +110,8 @@ test.describe('Frontend', () => {
     await page.goto('/location')
     await expect(page.getByRole('heading', { name: 'Cobraa 3D' })).toBeVisible()
     await page.goto('/products')
-    await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible()
-    const cards = page.locator('.product-card')
+    await expect(page.getByRole('heading', { level: 1, name: /Thoughtful design\./ })).toBeVisible()
+    const cards = page.locator('.pc-card')
     if (await cards.count()) {
       const detailLink = cards.first().locator('a').first()
       const href = await detailLink.getAttribute('href')

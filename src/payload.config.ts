@@ -31,8 +31,13 @@ const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 const cloudStorageConfigured = Boolean(env.S3_BUCKET && env.S3_ENDPOINT && env.S3_ACCESS_KEY_ID && env.S3_SECRET_ACCESS_KEY)
+const publicBaseURL = env.S3_PUBLIC_BASE_URL?.replace(/\/$/, '')
 const storagePlugins: Plugin[] = cloudStorageConfigured ? [s3Storage({
-  collections: { media: true },
+  collections: {
+    media: publicBaseURL
+      ? { generateFileURL: ({ filename, prefix }) => `${publicBaseURL}/${prefix ? `${prefix}/` : ''}${encodeURIComponent(filename)}` }
+      : true,
+  },
   bucket: env.S3_BUCKET!,
   config: {
     endpoint: env.S3_ENDPOINT,

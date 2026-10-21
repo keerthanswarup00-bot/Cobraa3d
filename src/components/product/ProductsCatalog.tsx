@@ -53,6 +53,8 @@ type Props = {
   brandName: string
   siteURL: string
   calmMode: boolean
+  initialQuery?: string
+  initialPage?: number
 }
 
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
@@ -67,7 +69,7 @@ function prefersReduced() {
   return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-export function ProductsCatalog({ products, categories, copy, whatsappBase, brandName, siteURL, calmMode }: Props) {
+export function ProductsCatalog({ products, categories, copy, whatsappBase, brandName, siteURL, calmMode, initialQuery = '', initialPage = 1 }: Props) {
   const perPage = Math.min(48, Math.max(1, copy.perPage || 15))
   const sheetTitleId = useId()
 
@@ -91,20 +93,20 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
   const priceEnabled = priced.length >= 2 && minP < maxP
   const currency = priced[0]?.currency || 'INR'
 
-  const [q, setQ] = useState('')
-  const [query, setQuery] = useState('')
+  const [q, setQ] = useState(initialQuery)
+  const [query, setQuery] = useState(initialQuery.trim().toLowerCase())
   const [cat, setCat] = useState('All')
   const [tags, setTags] = useState<string[]>([])
-  const [max, setMax] = useState(maxP)
+  const [maxOverride, setMaxOverride] = useState<number | null>(null)
   const [sort, setSort] = useState<(typeof SORTS)[number]['value']>('new')
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useState(initialPage)
   const [drawer, setDrawer] = useState(false)
   const [openSlug, setOpenSlug] = useState<string | null>(null)
   const [lastProduct, setLastProduct] = useState<CatalogProduct | null>(null)
   const [qty, setQty] = useState(1)
   const [note, setNote] = useState('')
   const [slide, setSlide] = useState(0)
-  const [booted, setBooted] = useState(false)
+  const max = maxOverride == null ? maxP : Math.min(maxOverride, maxP)
 
   const resultsRef = useRef<HTMLElement>(null)
   const sheetRef = useRef<HTMLElement>(null)
@@ -113,7 +115,6 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
   const trackRef = useRef<HTMLDivElement>(null)
   const lastFocusRef = useRef<HTMLElement | null>(null)
   const pushedRef = useRef(false)
-  const bootedRef = useRef(false)
   const dragY = useRef<number | null>(null)
   const dragDist = useRef(0)
 
@@ -169,44 +170,22 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
     setQuery('')
     setCat('All')
     setTags([])
-    setMax(maxP)
+    setMaxOverride(null)
     setSort('new')
     setPage(1)
-  }, [maxP])
+  }, [])
 
   useEffect(() => {
-    if (bootedRef.current) return
-    bootedRef.current = true
-    setBooted(true)
-    try {
-      const url = new URL(window.location.href)
-      const initQ = url.searchParams.get('q')
-      if (initQ) setQ(initQ)
-      const initPage = Number(url.searchParams.get('page'))
-      if (initPage > 1) setPage(Math.floor(initPage))
-      const match = url.hash.match(/^#\/p\/(.+)$/)
-      if (match) openProduct(decodeURIComponent(match[1]), true)
-    } catch {
-      // malformed URLs simply boot with defaults
-    }
+    const timer = window.setTimeout(() => {
+      try {
+        const match = window.location.hash.match(/^#\/p\/(.+)$/)
+        if (match) openProduct(decodeURIComponent(match[1]), true)
+      } catch {
+        // a malformed hash simply opens nothing
+      }
+    }, 0)
+    return () => window.clearTimeout(timer)
   }, [openProduct])
-
-  useEffect(() => {
-    setMax(maxP)
-  }, [maxP])
-
-  useEffect(() => {
-    if (!booted) return
-    try {
-      const url = new URL(window.location.href)
-      const trimmed = q.trim()
-      trimmed ? url.searchParams.set('q', trimmed) : url.searchParams.delete('q')
-      page > 1 ? url.searchParams.set('page', String(page)) : url.searchParams.delete('page')
-      history.replaceState(history.state, '', url)
-    } catch {
-      // history can be unavailable in restricted contexts
-    }
-  }, [booted, q, page])
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -292,14 +271,24 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
 
   const pages = Math.max(1, Math.ceil(filtered.length / perPage))
   const safePage = Math.min(page, pages)
+
   useEffect(() => {
-    if (page !== safePage) setPage(safePage)
-  }, [page, safePage])
+    try {
+      const url = new URL(window.location.href)
+      const trimmed = q.trim()
+      if (trimmed) url.searchParams.set('q', trimmed)
+      else url.searchParams.delete('q')
+      if (safePage > 1) url.searchParams.set('page', String(safePage))
+      else url.searchParams.delete('page')
+      history.replaceState(history.state, '', url)
+    } catch {
+      // history can be unavailable in restricted contexts
+    }
+  }, [q, safePage])
 
   const start = (safePage - 1) * perPage
   const slice = filtered.slice(start, start + perPage)
   const activeFilters = tags.length + (max < maxP ? 1 : 0)
-  const sheetProduct = openSlug ? bySlug.get(openSlug) || null : null
   const money = (value: number) => formatPrice(value, 'show', currency)
 
   const pageNumbers = (() => {
@@ -409,7 +398,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
             {priceEnabled && (
               <section>
                 <h3>{copy.maxPriceLabel}</h3>
-                <input type="range" min={priceFloor} max={maxP} step={50} value={max} aria-label={copy.maxPriceLabel} onChange={(event) => { setMax(Number(event.target.value)); setPage(1) }} />
+                <input type="range" min={priceFloor} max={maxP} step={50} value={max} aria-label={copy.maxPriceLabel} onChange={(event) => { setMaxOverride(Number(event.target.value)); setPage(1) }} />
                 <div className="pc-range-val"><span>{money(priceFloor)}</span><span>{max >= maxP ? 'Any' : `Up to ${money(max)}`}</span></div>
               </section>
             )}
@@ -499,7 +488,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
             <div className="pc-track" ref={trackRef} onScroll={onTrackScroll}>
               {lastProduct && (lastProduct.images.length ? lastProduct.images.map((image, index) => (
                 <div className="pc-slide" key={`${image.url}-${index}`}>
-                  <img src={image.url} alt={`${lastProduct.title} — image ${index + 1} of ${lastProduct.images.length}`} loading={index === 0 ? 'eager' : 'lazy'} draggable={false} />
+                  <Image src={image.url} alt={`${lastProduct.title} — image ${index + 1} of ${lastProduct.images.length}`} fill sizes="(max-width: 860px) 100vw, 50vw" loading={index === 0 ? 'eager' : 'lazy'} draggable={false} unoptimized={!image.url.startsWith('/')} />
                 </div>
               )) : (
                 <div className="pc-slide"><span className="pc-fallback"><ProductRender product={lastProduct.render} animate={false} buildKey={0} /></span></div>
