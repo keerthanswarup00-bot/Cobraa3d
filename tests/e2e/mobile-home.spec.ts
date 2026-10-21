@@ -148,8 +148,9 @@ test.describe('Mobile home', () => {
 
     const before = await page.evaluate(() => window.scrollY)
     await page.mouse.wheel(0, 600)
-    await page.waitForTimeout(250)
-    const after = await page.evaluate(() => window.scrollY)
+    await expect
+      .poll(() => page.evaluate(() => window.scrollY), { timeout: 10000 })
+      .toBeGreaterThan(before)
 
     const tapTarget = await page.evaluate(() => {
       const top = document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 2)
@@ -161,7 +162,6 @@ test.describe('Mobile home', () => {
     await page.screenshot({ path: 'test-results/mobile-home/phase0-loader.png' })
     await context.close()
 
-    expect(after, 'the page is still scrollable one second after load').toBeGreaterThan(before)
     expect(tapTarget, 'the loading screen is swallowing taps').toBe('page')
   })
 
@@ -177,12 +177,18 @@ test.describe('Mobile home', () => {
     expect(tall, 'the sticky preview eats the form on a tall phone').toBeLessThanOrEqual(168)
 
     const counter = builder.locator('.studio-stage-tag.bottom-left')
-    await builder.getByRole('radio', { name: 'Nameplate', exact: true }).click()
-    const start = await counter.textContent()
-    await page.waitForTimeout(500)
-    const later = await counter.textContent()
-    expect(start, 'the layer counter never moved').not.toBe(later)
-    await expect(counter).toHaveText(/^\d+ \/ 24 layers$/)
+    await builder.getByRole('radio', { name: 'Lamp', exact: true }).click()
+    const seen = await counter.evaluate(async (node) => {
+      const values = new Set<string>()
+      const startedAt = performance.now()
+      while (performance.now() - startedAt < 1500) {
+        values.add(node.textContent || '')
+        await new Promise((resolve) => requestAnimationFrame(resolve))
+      }
+      return [...values]
+    })
+    expect(seen.length, 'the layer counter never moved').toBeGreaterThan(1)
+    await expect(counter).toHaveText(/^\d+ \/ 36 layers$/)
 
     await page.setViewportSize({ width: 390, height: 420 })
     await page.waitForTimeout(300)

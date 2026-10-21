@@ -9,6 +9,7 @@ export const SiteSettings: GlobalConfig = {
   fields: [{ type: 'tabs', tabs: [
     { label: 'Brand and Hero', fields: [
       { name: 'brandName', type: 'text', defaultValue: 'Cobraa 3D', required: true }, { name: 'tagline', type: 'text' },
+      { name: 'deliveryLine', type: 'text', defaultValue: 'Most small pieces ready in 1-2 days', admin: { description: 'Delivery promise shown in the home page trust strip.' } },
       { name: 'hero', type: 'group', fields: [
         { name: 'headline', type: 'text' }, { name: 'description', type: 'textarea' }, { name: 'primaryCtaLabel', type: 'text' },
         { name: 'secondaryCtaLabel', type: 'text' }, { name: 'featuredProducts', type: 'relationship', relationTo: 'products', hasMany: true },

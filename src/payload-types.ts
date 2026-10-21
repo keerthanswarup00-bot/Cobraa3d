@@ -320,7 +320,6 @@ export interface Media {
     };
     [k: string]: unknown;
   } | null;
-  _objectKey?: string | null;
   folder?: (number | null) | FolderInterface;
   updatedAt: string;
   createdAt: string;
@@ -1090,7 +1089,6 @@ export interface PrintBedSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   caption?: T;
-  _objectKey?: T;
   folder?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1389,6 +1387,10 @@ export interface SiteSetting {
   id: number;
   brandName: string;
   tagline?: string | null;
+  /**
+   * Delivery promise shown in the home page trust strip.
+   */
+  deliveryLine?: string | null;
   hero?: {
     headline?: string | null;
     description?: string | null;
@@ -1600,6 +1602,7 @@ export interface LegalPage {
 export interface SiteSettingsSelect<T extends boolean = true> {
   brandName?: T;
   tagline?: T;
+  deliveryLine?: T;
   hero?:
     | T
     | {

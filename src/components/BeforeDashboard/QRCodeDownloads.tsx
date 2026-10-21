@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react'
 export function QRCodeDownloads({ url }: { url: string }) {
   const [png, setPng] = useState('')
   const [svg, setSvg] = useState('')
-  const [variant, setVariant] = useState<'plain' | 'qr' | 'nfc'>('plain')
+  const [variant, setVariant] = useState<'plain' | 'qr' | 'nfc' | 'stall'>('plain')
   const target = (() => {
     const destination = new URL(url)
     if (variant === 'plain') destination.searchParams.delete('src')
@@ -28,7 +28,7 @@ export function QRCodeDownloads({ url }: { url: string }) {
   return <div className="cobraa-qr-tool">
     <label htmlFor="qr-variant">QR destination</label>
     <select id="qr-variant" value={variant} onChange={(event) => setVariant(event.target.value as typeof variant)}>
-      <option value="plain">Standard site link</option><option value="qr">Track as QR (?src=qr)</option><option value="nfc">Track as NFC (?src=nfc)</option>
+      <option value="plain">Standard site link</option><option value="qr">Track as QR (?src=qr)</option><option value="nfc">Track as NFC (?src=nfc)</option><option value="stall">Stall QR (?src=stall)</option>
     </select>
     {png && <Image className="cobraa-qr-image" src={png} width={192} height={192} alt={`QR code preview for ${variant === 'plain' ? 'the storefront' : `a storefront visit tracked as ${variant.toUpperCase()}`}`} unoptimized />}
     {!png && <p role="status">QR code preview is unavailable. Check the storefront URL and try again.</p>}

@@ -17,8 +17,9 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* The local development database is SQLite, so the specs run one at a time
+   * to stop the admin fixtures from locking the database file. */
+  workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -40,5 +41,6 @@ export default defineConfig({
     reuseExistingServer: true,
     command: `./node_modules/.bin/next dev --hostname 127.0.0.1 --port ${port}`,
     url: `http://127.0.0.1:${port}`,
+    env: { ...process.env, PLAYWRIGHT_PORT: port },
   },
 })
