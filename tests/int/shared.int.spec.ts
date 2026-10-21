@@ -7,6 +7,7 @@ import {
   buildVCard,
   buildWhatsAppUrl,
   formatPrice,
+  formatProductPrices,
   getActiveAnnouncement,
   getActiveOffer,
   getLatestPrintBed,
@@ -81,6 +82,16 @@ describe('shared business helpers', () => {
     expect(getActiveAnnouncement([{ active: true, priority: 1 }, { active: true, priority: 4 }], now)?.priority).toBe(4)
   })
 
+  it('includes exact offer start and end instants and excludes offers outside the window', () => {
+    const now = new Date('2026-10-19T12:00:00.000Z')
+    expect(getActiveOffer([{ active: true, startsAt: now.toISOString() }], now)?.active).toBe(true)
+    expect(getActiveOffer([{ active: true, endsAt: now.toISOString() }], now)?.active).toBe(true)
+    expect(getActiveOffer([{ active: true, startsAt: '2026-10-19T12:00:00.001Z' }], now)).toBeUndefined()
+    expect(getActiveOffer([{ active: true, endsAt: '2026-10-19T11:59:59.999Z' }], now)).toBeUndefined()
+    expect(getActiveOffer([{ active: false }], now)).toBeUndefined()
+    expect(getActiveOffer([{ active: true }], now)?.active).toBe(true)
+  })
+
   it('shows only visible categories with at least one published product', () => {
     const categories = [{ id: 1, visible: true }, { id: 2, visible: true }, { id: 3, visible: false }]
     const products = [{ category: 1, status: 'published', _status: 'published' }, { category: 2, status: 'draft', _status: 'draft' }]
@@ -91,6 +102,16 @@ describe('shared business helpers', () => {
     expect(formatPrice()).toBe('Ask for price')
     expect(formatPrice(250, 'ask')).toBe('Ask for price')
     expect(formatPrice(250, 'show', 'INR')).toBe('₹250.00')
+  })
+
+  it('shows a regular price only when a valid reduced offer price is configured', () => {
+    expect(formatProductPrices({ price: 299, originalPrice: 399, priceMode: 'show', currency: 'INR' })).toEqual({
+      priceLabel: '₹299.00',
+      originalPriceLabel: '₹399.00',
+    })
+    expect(formatProductPrices({ price: 399, originalPrice: 299, priceMode: 'show' })).toEqual({ priceLabel: '₹399.00' })
+    expect(formatProductPrices({ price: 299, originalPrice: 399, priceMode: 'ask' })).toEqual({ priceLabel: 'Ask for price' })
+    expect(formatProductPrices({ originalPrice: 399, priceMode: 'show' })).toEqual({ priceLabel: 'Ask for price' })
   })
 
   it('builds a nameplate enquiry URL and a valid vCard', () => {

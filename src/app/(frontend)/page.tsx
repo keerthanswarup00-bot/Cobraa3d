@@ -8,7 +8,7 @@ import { ConnectBuilder } from '@/components/home/ConnectBuilder'
 import { ConnectProducts, type ConnectProduct } from '@/components/home/ConnectProducts'
 import { ConnectHud, ConnectTerrain } from '@/components/home/ConnectTerrain'
 import { TEMP_PRODUCTS } from '@/lib/tempProducts'
-import { buildWhatsAppUrl } from '@/lib/shared'
+import { buildWhatsAppUrl, formatProductPrices } from '@/lib/shared'
 import { getSiteSettings } from '@/utilities/getSiteSettings'
 import type { Product } from '@/payload-types'
 
@@ -45,12 +45,14 @@ export default async function HomePage() {
   const allProducts: ConnectProduct[] = usingTemporary ? TEMP_PRODUCTS.map((product) => ({ id: product.id, slug: product.slug, title: product.name, blurb: product.blurb, tag: product.tag, filament: product.fil, visual: product.vis, sample: 'sample' in product ? product.sample : undefined, temporary: true, priceLabel: 'Price on request' })) : cmsProducts.map((product) => {
     const mediaRow = product.images?.find((row) => row.image && typeof row.image === 'object')
     const media = mediaRow?.image && typeof mediaRow.image === 'object' ? mediaRow.image : null
+    const priceLabels = formatProductPrices(product)
     return {
       id: cmsVisual(product) === 'key' ? 'keychain' : cmsVisual(product) === 'lamp' ? 'lamp' : cmsVisual(product) === 'stand' ? 'stand' : cmsVisual(product) === 'photo' ? 'photo' : cmsVisual(product) === 'plate' ? 'nameplate' : 'other',
       slug: product.slug || '', title: product.title, blurb: product.shortDescription || '', tag: product.badges?.[0] || (typeof product.category === 'object' && product.category ? product.category.name || 'Made to order' : 'Made to order'),
       filament: product.colourOptions?.[0]?.hex || '#e6dcc6', visual: cmsVisual(product), sample: product.title,
       image: media?.url ? { url: media.url, alt: mediaRow?.alt || media.alt || product.title, width: media.width, height: media.height } : undefined,
-      priceLabel: product.priceMode === 'show' && product.price != null ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: product.currency || 'INR', maximumFractionDigits: 2 }).format(product.price) : 'Price on request',
+      ...priceLabels,
+      priceLabel: product.priceMode === 'show' && product.price != null ? priceLabels.priceLabel : 'Price on request',
       whatsappURL: buildWhatsAppUrl({ number: settings.whatsappNumber, message: `Hi Cobraa 3D, I would like to enquire about ${product.title}.` }),
     }
   })

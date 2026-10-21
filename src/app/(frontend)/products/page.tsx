@@ -3,7 +3,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { ProductsCatalog, type CatalogCopy, type CatalogProduct, type CatalogSpec } from '@/components/product/ProductsCatalog'
 import type { ConnectProduct } from '@/components/home/ConnectProducts'
-import { buildWhatsAppUrl, formatPrice, getVisibleCategories } from '@/lib/shared'
+import { buildWhatsAppUrl, formatProductPrices, getVisibleCategories } from '@/lib/shared'
 import { getSiteSettings } from '@/utilities/getSiteSettings'
 import { getServerSideURL } from '@/utilities/getURL'
 import type { Product } from '@/payload-types'
@@ -73,6 +73,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     const category = typeof product.category === 'object' && product.category ? product.category.name : null
     const tags = [...new Set((product.seasonalTags || []).map((row) => row.tag).filter((tag): tag is string => Boolean(tag)))]
     const hasPrice = product.priceMode === 'show' && product.price != null
+    const priceLabels = formatProductPrices(product)
     const render: ConnectProduct = {
       id: String(product.id),
       slug,
@@ -90,7 +91,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       category,
       tags,
       description: product.shortDescription || '',
-      priceLabel: formatPrice(product.price, product.priceMode, product.currency || 'INR'),
+      ...priceLabels,
       hasPrice,
       price: product.price,
       currency: product.currency || 'INR',

@@ -14,7 +14,6 @@ import { PrintLoader } from '@/components/PrintLoader'
 import { buildWhatsAppUrl } from '@/lib/shared'
 import './globals.css'
 import '@/components/home/studio-home.css'
-import '@/components/home/home-c3.css'
 import '@/components/product/product-sheet.css'
 import '@/components/Splash/splash.css'
 

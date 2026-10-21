@@ -29,7 +29,6 @@
     "vercel-build": "cross-env MIGRATING=1 payload migrate && next build --webpack"
   },
   "dependencies": {
-    "@google/model-viewer": "4.4.0",
     "@hookform/resolvers": "6.0.0",
     "@payloadcms/admin-bar": "3.91.0",
     "@payloadcms/db-postgres": "3.91.0",

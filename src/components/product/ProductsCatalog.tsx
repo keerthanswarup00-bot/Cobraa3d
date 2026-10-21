@@ -17,6 +17,7 @@ export type CatalogProduct = {
   tags: string[]
   description: string
   priceLabel: string
+  originalPriceLabel?: string
   hasPrice: boolean
   price?: number | null
   currency: string
@@ -439,7 +440,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
                   <div className="pc-info">
                     <h2 className="pc-card-title">{product.title}</h2>
                     <div className="pc-foot">
-                      <span className="pc-price">{product.priceLabel}</span>
+                      <span className="pc-price">{product.priceLabel}{product.originalPriceLabel && <del>{product.originalPriceLabel}</del>}</span>
                       <a className="pc-view" href={`/products/${product.slug}`} onClick={(event) => onCardActivate(event, product.slug)}>View</a>
                     </div>
                   </div>
@@ -510,7 +511,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
             <div className="pc-detail">
               {lastProduct.category && <div className="pc-cat">{lastProduct.category}</div>}
               <h2 id={sheetTitleId}>{lastProduct.title}</h2>
-              <div className="pc-sheet-price">{lastProduct.priceLabel}</div>
+              <div className="pc-sheet-price">{lastProduct.priceLabel}{lastProduct.originalPriceLabel && <del>{lastProduct.originalPriceLabel}</del>}</div>
               {lastProduct.description && <p className="pc-desc">{lastProduct.description}</p>}
               {lastProduct.specs.length > 0 && (
                 <dl className="pc-specs">

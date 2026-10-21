@@ -1,4 +1,4 @@
-/* Products catalogue — ported from the products.html prototype.
+/* Products catalogue.
    Everything is namespaced (pc-*) so it can coexist with the legacy light-theme CSS.
    Tokens live on body:has(.pc-page) so the site navigation can theme itself too. */
 
@@ -180,6 +180,7 @@ body:has(.pc-page) .connect-nav button:focus-visible { outline: 2px solid #fff; 
 }
 .pc-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .pc-price { font-weight: 600; font-size: 16px; font-variant-numeric: tabular-nums; }
+.pc-price del, .pc-sheet-price del { display: block; color: var(--pc-muted); font-size: .75em; font-weight: 400; }
 .pc-view {
   height: 36px;
   padding: 0 16px;

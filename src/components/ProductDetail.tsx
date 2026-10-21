@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
-import { buildProductMessage, buildWhatsAppUrl, formatPrice } from '@/lib/shared'
+import { buildProductMessage, buildWhatsAppUrl, formatProductPrices } from '@/lib/shared'
 
 type Photo = { url: string; alt: string }
 type ProductData = {
@@ -32,6 +32,7 @@ export function ProductDetail({ product, brandName, whatsappNumber, productTempl
     whatsappNumber, productMessageTemplate: productTemplate,
   }), [product, quantity, colour, kind, siteURL, whatsappNumber, productTemplate])
   const waURL = buildWhatsAppUrl({ message, number: whatsappNumber })
+  const priceLabels = formatProductPrices(product)
   const share = async () => {
     const url = `${siteURL}/products/${product.slug}`
     if (navigator.share) { try { await navigator.share({ title: product.title, text: product.shortDescription || product.title, url }); return } catch { /* user cancelled */ } }
@@ -51,7 +52,7 @@ export function ProductDetail({ product, brandName, whatsappNumber, productTempl
       <div className="detail-copy">
         <p className="detail-kicker">{brandName}</p><h1>{product.title}</h1>{product.isDemo && <p className="demo-detail-note">TEMPORARY DEMO LISTING · Image and product information will be replaced before launch.</p>}
         {product.shortDescription && <p className="detail-summary">{product.shortDescription}</p>}
-        {!product.isDemo && <p className="detail-price">{formatPrice(product.price, product.priceMode, product.currency || 'INR')}{product.originalPrice && product.price && product.originalPrice > product.price && <del>{formatPrice(product.originalPrice, 'show', product.currency || 'INR')}</del>}</p>}
+        {!product.isDemo && <p className="detail-price">{priceLabels.priceLabel}{priceLabels.originalPriceLabel && <del>{priceLabels.originalPriceLabel}</del>}</p>}
         {!product.isDemo && product.availability === 'made_to_order' && <p className="made-to-order-note">Availability and final price confirmed on WhatsApp.</p>}
         {!product.isDemo && product.availability && <p className="detail-availability">{product.availability.replaceAll('_', ' ')}</p>}
         {product.colourOptions?.length ? <fieldset className="colour-picker"><legend>Colour or design</legend><div>{product.colourOptions.map((option) => <button type="button" key={option.name} aria-pressed={colour === option.name} onClick={() => setColour(option.name)}>{option.hex && <i style={{ backgroundColor: option.hex }} />} {option.name}</button>)}</div></fieldset> : null}
@@ -74,6 +75,6 @@ export function ProductDetail({ product, brandName, whatsappNumber, productTempl
       {product.productionNote && <div className="product-fact"><h2>Production</h2><p>{product.productionNote}</p></div>}
     </section>
     {!!related.length && <section className="related-products"><h2>You may also like</h2><div>{related.map((item) => <Link href={`/products/${item.slug}`} key={item.slug}>{item.image?.url && <Image src={item.image.url} alt={item.image.alt} width={180} height={225} />}<span>{item.title}</span></Link>)}</div></section>}
-    <div className="detail-mobile-cta">{waURL ? <a href={waURL} target="_blank" rel="noopener noreferrer">{product.isDemo ? 'Enquire on WhatsApp' : `${ctaLabel} · ${formatPrice(product.price, product.priceMode, product.currency || 'INR')}`}</a> : null}</div>
+    <div className="detail-mobile-cta">{waURL ? <a href={waURL} target="_blank" rel="noopener noreferrer">{product.isDemo ? 'Enquire on WhatsApp' : `${ctaLabel} · ${priceLabels.priceLabel}`}</a> : null}</div>
   </main>
 }

@@ -26,5 +26,10 @@ export const redirects: NextConfig['redirects'] = async () => {
       destination: '/products',
       permanent: true,
     },
+    {
+      source: '/custom',
+      destination: '/#custom',
+      permanent: true,
+    },
   ]
 }
