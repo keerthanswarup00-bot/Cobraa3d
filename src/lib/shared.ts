@@ -39,12 +39,33 @@ function displayPrice(product: ProductMessageInput): string {
 }
 
 export function formatPrice(price?: number | null, priceMode?: string | null, currency = 'INR'): string {
-  if (priceMode === 'ask' || price == null || !Number.isFinite(price)) return 'Ask for price'
+  if (priceMode === 'ask' || price == null || !Number.isFinite(price) || price < 0) return 'Ask for price'
   try {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency, maximumFractionDigits: 2 }).format(price)
   } catch {
     return `${currency} ${price.toFixed(2)}`
   }
+}
+
+/** Only show a crossed-out regular price when a valid, lower sale price is displayed. */
+export function formatOriginalPrice(
+  originalPrice?: number | null,
+  currentPrice?: number | null,
+  priceMode?: string | null,
+  currency = 'INR',
+): string | null {
+  if (
+    priceMode !== 'show' ||
+    originalPrice == null ||
+    currentPrice == null ||
+    !Number.isFinite(originalPrice) ||
+    !Number.isFinite(currentPrice) ||
+    originalPrice < 0 ||
+    currentPrice < 0 ||
+    originalPrice <= currentPrice
+  ) return null
+
+  return formatPrice(originalPrice, 'show', currency)
 }
 
 export function buildProductMessage(
