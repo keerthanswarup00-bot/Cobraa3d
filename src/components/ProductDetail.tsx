@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
-import { buildProductMessage, buildWhatsAppUrl, formatPrice } from '@/lib/shared'
+import { buildProductMessage, buildWhatsAppUrl, formatOriginalPrice, formatPrice } from '@/lib/shared'
 
 type Photo = { url: string; alt: string }
 type ProductData = {
@@ -51,7 +51,7 @@ export function ProductDetail({ product, brandName, whatsappNumber, productTempl
       <div className="detail-copy">
         <p className="detail-kicker">{brandName}</p><h1>{product.title}</h1>{product.isDemo && <p className="demo-detail-note">TEMPORARY DEMO LISTING · Image and product information will be replaced before launch.</p>}
         {product.shortDescription && <p className="detail-summary">{product.shortDescription}</p>}
-        {!product.isDemo && <p className="detail-price">{formatPrice(product.price, product.priceMode, product.currency || 'INR')}{product.originalPrice && product.price && product.originalPrice > product.price && <del>{formatPrice(product.originalPrice, 'show', product.currency || 'INR')}</del>}</p>}
+        {!product.isDemo && <p className="detail-price">{formatPrice(product.price, product.priceMode, product.currency || 'INR')}{formatOriginalPrice(product.originalPrice, product.price, product.priceMode, product.currency || 'INR') && <del>{formatOriginalPrice(product.originalPrice, product.price, product.priceMode, product.currency || 'INR')}</del>}</p>}
         {!product.isDemo && product.availability === 'made_to_order' && <p className="made-to-order-note">Availability and final price confirmed on WhatsApp.</p>}
         {!product.isDemo && product.availability && <p className="detail-availability">{product.availability.replaceAll('_', ' ')}</p>}
         {product.colourOptions?.length ? <fieldset className="colour-picker"><legend>Colour or design</legend><div>{product.colourOptions.map((option) => <button type="button" key={option.name} aria-pressed={colour === option.name} onClick={() => setColour(option.name)}>{option.hex && <i style={{ backgroundColor: option.hex }} />} {option.name}</button>)}</div></fieldset> : null}
