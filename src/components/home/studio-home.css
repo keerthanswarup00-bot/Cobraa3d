@@ -206,11 +206,14 @@ body:has(.studio-home) .nav-whatsapp { min-height: 44px; gap: 8px; padding: 0 16
 .studio-builder-head h3 { margin: 0; font: 600 30px var(--display); letter-spacing: -.03em; }
 .studio-builder-grid { display: grid; grid-template-columns: minmax(0,5fr) minmax(0,6fr); gap: 28px; }
 .studio-stage-column { position: relative; }
-.studio-stage { position: sticky; top: 96px; display: grid; aspect-ratio: 4 / 5; overflow: hidden; place-items: center; border: 1px solid var(--studio-line); background: radial-gradient(ellipse 70% 55% at 50% 38%, #26221e 0%, #120f0d 62%, #0a0908 100%); perspective: 900px; touch-action: pan-y; }
+.studio-stage { position: sticky; top: 96px; display: grid; grid-template-rows: minmax(0, 1fr) auto; overflow: hidden; border: 1px solid var(--studio-line); background: radial-gradient(ellipse 70% 55% at 50% 38%, #26221e 0%, #120f0d 62%, #0a0908 100%); perspective: 900px; touch-action: pan-y; }
 .studio-stage-tag { position: absolute; z-index: 2; color: var(--studio-muted); font: 10.5px var(--mono); letter-spacing: .14em; text-transform: uppercase; }
-.studio-stage-tag.top { top: 14px; left: 16px; }.studio-stage-tag.bottom-right { right: 16px; bottom: 14px; }.studio-stage-tag.bottom-left { bottom: 14px; left: 16px; color: var(--studio-text); }
-.studio-stage-model { display: grid; width: 100%; place-items: center; transform: rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)); transition: transform .3s cubic-bezier(.2,.7,.2,1); will-change: transform; }
-.studio-stage-model .studio-layer-render { width: 92%; }
+.studio-stage-tag.top { top: 14px; left: 16px; }
+.studio-stage-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 16px; border-top: 1px solid var(--studio-line); }
+.studio-stage-foot .studio-stage-tag { position: static; }
+.studio-stage-foot .studio-stage-tag.bottom-left { color: var(--studio-text); }
+.studio-stage-model { display: grid; width: 100%; max-height: 100%; overflow: hidden; place-items: center; transform: rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)); transition: transform .3s cubic-bezier(.2,.7,.2,1); will-change: transform; }
+.studio-stage-model .studio-layer-render { width: 92%; max-height: 100%; }
 .studio-preview-plate { position: relative; max-width: 100%; padding: .55em .9em .6em; background: repeating-linear-gradient(180deg, var(--fil) 0 3px, rgba(0,0,0,.17) 3px 4px); box-shadow: inset 0 1px 0 rgb(255 255 255 / 25%), 0 .17em 0 rgba(0,0,0,.5), 0 26px 36px -10px rgb(0 0 0 / 80%); color: #1b1814; font-size: clamp(22px, 4vw, 46px); line-height: 1.05; text-align: center; transform: rotate(-3deg); }
 .studio-preview-plate.is-empty { opacity: .5; }
 .studio-preview-plate.is-keychain { padding-left: 1.5em; border-radius: .5em; transform: rotate(-7deg); }
@@ -391,10 +394,12 @@ body:has(.studio-home) .nav-whatsapp { min-height: 44px; gap: 8px; padding: 0 16
   .studio-custom-grid { grid-template-columns: 1fr; gap: 48px; }
   .studio-custom-intro { position: static; }
   .studio-custom-intro h2 { margin: 20px 0 24px; font-size: clamp(34px,4.6vw,66px); line-height: 1; letter-spacing: -.04em; }
-  .studio-builder-card { padding: 18px; }
+  .studio-builder-card { padding: 18px; --studio-stage-h: min(22svh, 168px); --studio-stage-top: calc(68px + env(safe-area-inset-top)); }
+  .studio-builder-card.is-short-viewport { --studio-stage-h: min(22svh, 120px); }
+  .studio-text-input, .studio-quantity input { scroll-margin-top: calc(var(--studio-stage-top) + var(--studio-stage-h) + 12px); }
   .studio-builder-grid { grid-template-columns: 1fr; gap: 20px; }
   .studio-stage-column { display: contents; }
-  .studio-stage { position: sticky; z-index: 5; top: calc(68px + env(safe-area-inset-top)); height: 34svh; min-height: 240px; max-height: 360px; aspect-ratio: auto; }
+  .studio-stage { position: sticky; z-index: 5; top: calc(68px + env(safe-area-inset-top)); height: var(--studio-stage-h); min-height: 0; max-height: 168px; aspect-ratio: auto; }
   .studio-send { grid-template-columns: 1fr; gap: 16px; }
   .studio-builder-actions { min-width: 0; flex-direction: row; }
   .studio-builder-actions > * { flex: 1; min-height: 46px; }

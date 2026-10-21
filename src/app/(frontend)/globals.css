@@ -551,7 +551,9 @@ main a:focus-visible, main button:focus-visible, footer a:focus-visible, footer 
 .connect-nav .site-nav-links a { color: #383838; font-size: 13px; }
 .connect-nav .site-nav-links a:hover { color: #080808; }
 .connect-nav .site-nav-actions { gap: 14px; }
-.nav-whatsapp { display: inline-flex; min-height: 42px; align-items: center; padding: 0 15px; border-radius: 4px; background: #080808; color: white; font-size: 12px; text-decoration: none; transition: background 150ms ease, transform 150ms ease; }
+.nav-whatsapp { display: inline-flex; min-height: 42px; align-items: center; gap: 8px; padding: 0 15px; border-radius: 4px; background: #080808; color: white; font-size: 12px; text-decoration: none; transition: background 150ms ease, transform 150ms ease; }
+.nav-whatsapp-icon { display: none; }
+.nav-whatsapp-short { display: none; }
 .nav-whatsapp:hover, .button-dark:hover { background: #292929; transform: translateY(-1px); }
 .connect-nav .site-nav-menu { display: none; width: 44px; height: 44px; padding: 12px; border: 1px solid #e7e5e0; border-radius: 4px; cursor: pointer; }
 .connect-nav .site-nav-menu span { display: block; height: 1px; width: 18px; margin: 5px auto; background: #080808; }
@@ -657,7 +659,10 @@ main a:focus-visible, main button:focus-visible, footer a:focus-visible, footer 
   .connect-nav .site-nav-links { display: none; position: absolute; top: calc(100% + 1px); left: 0; right: 0; padding: 7px 18px 13px; border-bottom: 1px solid #e7e5e0; background: #fafaf8; box-shadow: 0 8px 15px rgb(0 0 0 / 4%); }
   .connect-nav .site-nav-links.is-open { display: grid; grid-template-columns: 1fr; gap: 0; }
   .connect-nav .site-nav-links a { min-height: 46px; border-top: 1px solid #eeece7; }
-  .nav-whatsapp { min-height: 40px; padding-inline: 11px; font-size: 10px; }
+  .nav-whatsapp { min-height: 44px; gap: 7px; padding-inline: 12px; font-size: 11px; }
+  .nav-whatsapp-icon { display: block; }
+  .nav-whatsapp-long, .nav-whatsapp-arrow { display: none; }
+  .nav-whatsapp-short { display: inline; }
   .connect-nav .site-nav-actions { gap: 8px; }
   .connect-hero { min-height: 0; grid-template-columns: 1fr; gap: 27px; padding: 45px 20px 72px; }
   .connect-hero h1 { margin: 18px 0 15px; font-size: clamp(48px, 12vw, 68px); }
@@ -743,24 +748,3 @@ main a:focus-visible, main button:focus-visible, footer a:focus-visible, footer 
 .demo-image-label { position:absolute; z-index:2; left:8px; top:8px; padding:5px 7px; color:#333; background:rgba(255,255,255,.92); font:9px var(--font-geist-mono); }
 .site-nav-close { display:grid; place-items:center; width:44px; height:44px; border:0; background:transparent; color:#555; cursor:pointer; }
 .site-nav-close:focus-visible,.site-nav-menu:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
-
-/* Print loader: the print head lays the Cobraa mark down layer by layer */
-.print-loader { --loader-accent: #9a742e; position: fixed; z-index: 9999; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: #f6f5f1; color: #080808; opacity: 1; transition: opacity .6s ease, visibility .6s; }
-.print-loader.is-leaving { opacity: 0; visibility: hidden; pointer-events: none; }
-.print-loader-art { width: min(88vw, 500px); height: auto; overflow: visible; }
-.pl-plate { fill: #ece9e1; stroke: #cbc8bf; stroke-width: 1; }
-.pl-plate-inner { fill: none; stroke: #cbc8bf; stroke-width: .6; stroke-dasharray: 1 4; }
-.pl-wall { opacity: .3; }
-.pl-hot { fill: var(--loader-accent); }
-.pl-layer-line { stroke: #f6f5f1; stroke-width: .55; opacity: .32; }
-.pl-ring { fill: none; stroke: var(--loader-accent); stroke-width: 1; stroke-dasharray: 2 5; opacity: .55; }
-.pl-nozzle-body { fill: #080808; }
-.pl-nozzle-tip { fill: var(--loader-accent); }
-.pl-filament { stroke: var(--loader-accent); stroke-width: 1.4; stroke-linecap: round; }
-.print-loader-meta { display: grid; justify-items: center; gap: 12px; margin-top: -8px; }
-.print-loader-brand { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 11px; letter-spacing: .32em; text-transform: uppercase; }
-.print-loader-track { display: block; width: min(52vw, 180px); height: 1px; overflow: hidden; background: #cbc8bf; }
-.print-loader-track > span { display: block; height: 100%; background: var(--loader-accent); transform: scaleX(0); transform-origin: left; }
-.print-loader-layer { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 10.5px; letter-spacing: .14em; color: #62615d; font-variant-numeric: tabular-nums; }
-html[data-loader='skip'] .print-loader { display: none; }
-@media (prefers-reduced-motion: reduce) { .print-loader { display: none; } }

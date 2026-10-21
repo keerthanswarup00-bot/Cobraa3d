@@ -25,18 +25,18 @@ const ITEMS = [
   { id: 'other', label: 'Something else', shape: 'sphere', layers: 36 },
 ] as const
 
-/** Skip the print loader so a test can start on a settled page. */
-async function skipLoader(page: import('@playwright/test').Page) {
+/** The splash is a one-off; tests that need a settled page can skip it. */
+async function skipSplash(page: import('@playwright/test').Page) {
   await page.addInitScript(() => {
     try {
-      sessionStorage.setItem('cobraa-loader', 'done')
+      sessionStorage.setItem('cobraa-splash', '1')
     } catch {}
   })
 }
 
 test.describe('Mobile home', () => {
   test('the builder preview always matches the selected item chip', async ({ page }) => {
-    await skipLoader(page)
+    await skipSplash(page)
     await page.goto('/')
     const builder = page.locator('#connect-builder')
     await builder.scrollIntoViewIfNeeded()
@@ -96,7 +96,7 @@ test.describe('Mobile home', () => {
   })
 
   test('the name field stays fully visible and uncovered on a short screen', async ({ page }) => {
-    await skipLoader(page)
+    await skipSplash(page)
     await page.setViewportSize({ width: 390, height: 420 })
     await page.goto('/')
     const input = page.locator('#connect-text')
@@ -128,7 +128,7 @@ test.describe('Mobile home', () => {
   })
 
   test('typing a quantity in a cleared field gives exactly that number', async ({ page }) => {
-    await skipLoader(page)
+    await skipSplash(page)
     await page.goto('/')
     const quantity = page.locator('#connect-quantity')
     await quantity.scrollIntoViewIfNeeded()
@@ -154,7 +154,6 @@ test.describe('Mobile home', () => {
     const tapTarget = await page.evaluate(() => {
       const top = document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 2)
       if (!top) return 'none'
-      if (top.closest('.print-loader')) return 'print-loader'
       if (top.closest('.splash')) return 'splash'
       return 'page'
     })
@@ -164,5 +163,58 @@ test.describe('Mobile home', () => {
 
     expect(after, 'the page is still scrollable one second after load').toBeGreaterThan(before)
     expect(tapTarget, 'the loading screen is swallowing taps').toBe('page')
+  })
+
+  test('the sticky preview stays small and the layer counter runs on its own', async ({ page }) => {
+    await skipSplash(page)
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/')
+    const builder = page.locator('#connect-builder')
+    await builder.scrollIntoViewIfNeeded()
+
+    const stage = page.locator('.studio-stage')
+    const tall = await stage.evaluate((node) => Math.round(node.getBoundingClientRect().height))
+    expect(tall, 'the sticky preview eats the form on a tall phone').toBeLessThanOrEqual(168)
+
+    const counter = builder.locator('.studio-stage-tag.bottom-left')
+    await builder.getByRole('radio', { name: 'Nameplate', exact: true }).click()
+    const start = await counter.textContent()
+    await page.waitForTimeout(500)
+    const later = await counter.textContent()
+    expect(start, 'the layer counter never moved').not.toBe(later)
+    await expect(counter).toHaveText(/^\d+ \/ 24 layers$/)
+
+    await page.setViewportSize({ width: 390, height: 420 })
+    await page.waitForTimeout(300)
+    const short = await stage.evaluate((node) => Math.round(node.getBoundingClientRect().height))
+    expect(short, 'the sticky preview is too tall for a short screen').toBeLessThanOrEqual(120)
+  })
+
+  test('the mobile header keeps a reachable WhatsApp action and a closeable menu', async ({ page }) => {
+    await skipSplash(page)
+    await page.goto('/')
+
+    const whatsapp = page.locator('.nav-whatsapp')
+    await expect(whatsapp).toBeVisible()
+    await expect(whatsapp).toHaveText(/WhatsApp/)
+    const size = await whatsapp.evaluate((node) => {
+      const box = node.getBoundingClientRect()
+      return { height: Math.round(box.height) }
+    })
+    expect(size.height, 'the WhatsApp action is shorter than a thumb').toBeGreaterThanOrEqual(44)
+
+    const menu = page.getByRole('button', { name: 'Open menu' })
+    await menu.click()
+    await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible()
+
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('button', { name: 'Open menu' })).toBeFocused()
+    await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeHidden()
+
+    await menu.click()
+    await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible()
+    const viewport = page.viewportSize()!
+    await page.mouse.click(viewport.width / 2, viewport.height - 20)
+    await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeHidden()
   })
 })

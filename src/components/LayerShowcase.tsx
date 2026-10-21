@@ -34,7 +34,7 @@ export function LayerShowcase() {
     else if (event.key === 'Home') { setTurn({ x: -7, y: 0 }) }
   }
 
-  return <div className="layer-showcase-control" role="img" aria-label="Interactive illustration of a layered 3D-printed form. Drag to rotate or use the arrow keys." tabIndex={0} style={style} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={() => { drag.current.active = false }} onPointerCancel={() => { drag.current.active = false }} onKeyDown={onKeyDown}>
+  return <div className="layer-showcase-control" data-drag-surface role="img" aria-label="Interactive illustration of a layered 3D-printed form. Drag to rotate or use the arrow keys." tabIndex={0} style={style} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={() => { drag.current.active = false }} onPointerCancel={() => { drag.current.active = false }} onKeyDown={onKeyDown}>
     <div className="layer-object" aria-hidden="true"><svg viewBox="0 0 360 280" focusable="false"><ellipse cx="180" cy="252" rx="106" ry="13" className="layer-shadow" />{layers.map(({ index, path }) => <path key={index} d={path} className="printed-layer" style={{ opacity: .58 + index / layers.length * .4 }} />)}<path d="M180 54 C230 54 272 63 272 74 M180 54 C130 54 88 63 88 74" className="layer-highlight" /></svg></div>
     <span className="layer-object-caption" aria-hidden="true">Illustrative print layers</span>
   </div>
