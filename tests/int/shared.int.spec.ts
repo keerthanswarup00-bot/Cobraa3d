@@ -7,6 +7,7 @@ import {
   buildVCard,
   buildWhatsAppUrl,
   formatPrice,
+  formatOriginalPrice,
   getActiveAnnouncement,
   getActiveOffer,
   getLatestPrintBed,
@@ -87,10 +88,29 @@ describe('shared business helpers', () => {
     expect(getVisibleCategories(categories, products)).toEqual([categories[0]])
   })
 
-  it('formats missing prices as Ask for price', () => {
+  it('formats missing or invalid prices as Ask for price', () => {
     expect(formatPrice()).toBe('Ask for price')
     expect(formatPrice(250, 'ask')).toBe('Ask for price')
+    expect(formatPrice(-1, 'show')).toBe('Ask for price')
+    expect(formatPrice(Number.NaN, 'show')).toBe('Ask for price')
     expect(formatPrice(250, 'show', 'INR')).toBe('₹250.00')
+  })
+
+  it('shows an original price only when it is valid and higher than a visible sale price', () => {
+    expect(formatOriginalPrice(500, 350, 'show', 'INR')).toBe('₹500.00')
+    expect(formatOriginalPrice(350, 350, 'show', 'INR')).toBeNull()
+    expect(formatOriginalPrice(250, 350, 'show', 'INR')).toBeNull()
+    expect(formatOriginalPrice(500, 350, 'ask', 'INR')).toBeNull()
+    expect(formatOriginalPrice(-1, 350, 'show', 'INR')).toBeNull()
+    expect(formatOriginalPrice(Number.NaN, 350, 'show', 'INR')).toBeNull()
+    expect(formatOriginalPrice(500, null, 'show', 'INR')).toBeNull()
+  })
+
+  it('treats offer-window start and end timestamps as inclusive and rejects invalid dates', () => {
+    const boundary = new Date('2026-10-19T12:00:00.000Z')
+    expect(getActiveOffer([{ active: true, startsAt: boundary.toISOString(), endsAt: boundary.toISOString() }], boundary)?.active).toBe(true)
+    expect(getActiveOffer([{ active: true, startsAt: 'not-a-date' }], boundary)).toBeUndefined()
+    expect(getActiveOffer([{ active: true, endsAt: 'not-a-date' }], boundary)).toBeUndefined()
   })
 
   it('builds a nameplate enquiry URL and a valid vCard', () => {
