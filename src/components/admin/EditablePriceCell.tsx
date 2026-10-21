@@ -71,11 +71,26 @@ function EditablePriceEditor({
         }),
       })
 
-      if (!response.ok) throw new Error('Could not save price')
+      if (!response.ok) {
+        let reason = ''
+        try {
+          const body = await response.json() as { errors?: Array<{ message?: string }>; message?: string }
+          reason = body.errors?.map((item) => item.message).filter(Boolean).join(' ') || body.message || ''
+        } catch {
+          // Some proxy and authentication failures return a non-JSON response.
+        }
+        const statusMessage = response.status === 401
+          ? 'Your session may have expired. Sign in again.'
+          : response.status === 403
+            ? 'The server denied this update. Confirm your account has editor or admin access.'
+            : reason || 'Please try again.'
+        setFeedback(`Save failed (${response.status}): ${statusMessage}`)
+        return
+      }
 
       setFeedback('Saved')
     } catch {
-      setFeedback('Save failed. Try again.')
+      setFeedback('Save failed. Check your connection and try again.')
     } finally {
       setSaving(false)
     }
