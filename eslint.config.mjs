@@ -23,6 +23,10 @@ const eslintConfig = [
       ],
     },
   },
+  {
+    files: ['scripts/**/*.cjs'],
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
   { ignores: ['.next/**', 'src/payload-types.ts', 'src/payload-generated-schema.ts', 'test-results/**', 'playwright-report/**'] },
 ]
 
