@@ -91,10 +91,10 @@ export function ConnectProducts({ products, total, productsURL = '/products', va
       </Link>
       <div className="studio-product-copy"><h3>{product.title}</h3>{variant !== 'catalog' && <p>{product.blurb}</p>}</div>
       {variant === 'catalog' ? <div className="studio-product-catalog-footer">
-        <span className="studio-product-catalog-price">{product.priceLabel || 'Price on request'}{product.originalPriceLabel && <del>{product.originalPriceLabel}</del>}</span>
+        <span className="studio-product-catalog-price">{product.priceLabel || 'Ask for price'}{product.originalPriceLabel && <del>{product.originalPriceLabel}</del>}</span>
         {product.whatsappURL && <a className="studio-product-whatsapp" href={product.whatsappURL} aria-label={`Details for ${product.title} on WhatsApp`} target="_blank" rel="noopener noreferrer">Details</a>}
-      </div> : <div className="studio-product-actions"><span className="studio-product-price">{product.priceLabel || 'Price on request'}</span><div className="studio-product-links"><Link className="studio-product-view" href={`/products/${product.slug}`}>View <ArrowUpRight size={15} /></Link>{product.whatsappURL && <a className="studio-product-ask" href={product.whatsappURL} data-wa-source="card" target="_blank" rel="noopener noreferrer">{ctaLabel}</a>}</div></div>}
+      </div> : <div className="studio-product-actions"><span className="studio-product-price">{product.priceLabel || 'Ask for price'}</span><div className="studio-product-links"><Link className="studio-product-view" href={`/products/${product.slug}`}>View <ArrowUpRight size={15} /></Link>{product.whatsappURL && <a className="studio-product-ask" href={product.whatsappURL} data-wa-source="card" target="_blank" rel="noopener noreferrer">{ctaLabel}</a>}</div></div>}
     </article>)}</div>
-    {variant === 'home' && <Link className="studio-view-all" href={productsURL}><span>View all products <small>{total} pieces</small></span><span className="studio-view-arrow" aria-hidden="true">↗</span></Link>}
+    {variant === 'home' && <Link className="studio-view-all" href={productsURL}><span>See all {total} pieces</span><span className="studio-view-arrow" aria-hidden="true">↗</span></Link>}
   </div>
 }

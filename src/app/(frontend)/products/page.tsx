@@ -3,10 +3,12 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { ProductsCatalog, type CatalogCopy, type CatalogProduct, type CatalogSpec } from '@/components/product/ProductsCatalog'
 import type { ConnectProduct } from '@/components/home/ConnectProducts'
-import { buildWhatsAppUrl, formatPrice, getVisibleCategories } from '@/lib/shared'
+import { getDisplayPrice } from '@/lib/pricing'
+import { buildWhatsAppUrl, getVisibleCategories } from '@/lib/shared'
 import { getSiteSettings } from '@/utilities/getSiteSettings'
 import { getServerSideURL } from '@/utilities/getURL'
 import type { Product } from '@/payload-types'
+import { env } from '@/lib/env'
 
 export const metadata: Metadata = { title: 'Products', alternates: { canonical: '/products' } }
 
@@ -72,7 +74,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     })
     const category = typeof product.category === 'object' && product.category ? product.category.name : null
     const tags = [...new Set((product.seasonalTags || []).map((row) => row.tag).filter((tag): tag is string => Boolean(tag)))]
-    const hasPrice = product.priceMode === 'show' && product.price != null
+    const display = getDisplayPrice({ id: product.id, price: product.price, salePrice: product.salePrice, priceMode: product.priceMode, currency: product.currency })
+    const hasPrice = display.regularPrice != null && product.priceMode === 'show'
     const render: ConnectProduct = {
       id: String(product.id),
       slug,
@@ -90,9 +93,9 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       category,
       tags,
       description: product.shortDescription || '',
-      priceLabel: formatPrice(product.price, product.priceMode, product.currency || 'INR'),
+      priceLabel: display.priceLabel,
       hasPrice,
-      price: product.price,
+      price: display.regularPrice ?? product.price ?? null,
       currency: product.currency || 'INR',
       specs: specsFor(product),
       images,
@@ -131,6 +134,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       brandName={settings.brandName || 'Cobraa 3D'}
       siteURL={getServerSideURL()}
       calmMode={settings.experience?.calmMode === true}
+      pushPublicKey={env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || env.VAPID_PUBLIC_KEY}
       initialQuery={initialQuery}
       initialPage={initialPage}
     />

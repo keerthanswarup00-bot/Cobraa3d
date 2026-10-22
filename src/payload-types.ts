@@ -74,6 +74,8 @@ export interface Config {
     enquiries: Enquiry;
     'enquiry-files': EnquiryFile;
     'request-rate-limits': RequestRateLimit;
+    'push-subscriptions': PushSubscription;
+    'push-notifications': PushNotification;
     'print-bed': PrintBed;
     media: Media;
     users: User;
@@ -102,6 +104,8 @@ export interface Config {
     enquiries: EnquiriesSelect<false> | EnquiriesSelect<true>;
     'enquiry-files': EnquiryFilesSelect<false> | EnquiryFilesSelect<true>;
     'request-rate-limits': RequestRateLimitsSelect<false> | RequestRateLimitsSelect<true>;
+    'push-subscriptions': PushSubscriptionsSelect<false> | PushSubscriptionsSelect<true>;
+    'push-notifications': PushNotificationsSelect<false> | PushNotificationsSelect<true>;
     'print-bed': PrintBedSelect<false> | PrintBedSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -183,6 +187,10 @@ export interface Product {
    */
   price?: number | null;
   /**
+   * Optional one-time offer price for active seasonal promotions. It must be lower than the regular price.
+   */
+  salePrice?: number | null;
+  /**
    * When enabled, the slug will auto-generate from the title field on save and autosave.
    */
   generateSlug?: boolean | null;
@@ -221,6 +229,9 @@ export interface Product {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Hidden from the public storefront. Use only for internal bookkeeping or migration if needed.
+   */
   originalPrice?: number | null;
   currency: string;
   priceMode?: ('ask' | 'show') | null;
@@ -519,6 +530,41 @@ export interface RequestRateLimit {
   key: string;
   windowStart: number;
   count: number;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "push-subscriptions".
+ */
+export interface PushSubscription {
+  id: number;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  userAgent?: string | null;
+  source?: string | null;
+  isTest?: boolean | null;
+  active?: boolean | null;
+  lastError?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "push-notifications".
+ */
+export interface PushNotification {
+  id: number;
+  title: string;
+  body: string;
+  url: string;
+  status?: ('draft' | 'sending' | 'sent') | null;
+  sentAt?: string | null;
+  sentCount?: number | null;
+  failedCount?: number | null;
+  testSentAt?: string | null;
+  lastCursor?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -828,6 +874,14 @@ export interface PayloadLockedDocument {
         value: number | RequestRateLimit;
       } | null)
     | ({
+        relationTo: 'push-subscriptions';
+        value: number | PushSubscription;
+      } | null)
+    | ({
+        relationTo: 'push-notifications';
+        value: number | PushNotification;
+      } | null)
+    | ({
         relationTo: 'print-bed';
         value: number | PrintBed;
       } | null)
@@ -905,6 +959,7 @@ export interface ProductsSelect<T extends boolean = true> {
   title?: T;
   shortDescription?: T;
   price?: T;
+  salePrice?: T;
   generateSlug?: T;
   slug?: T;
   status?: T;
@@ -1067,6 +1122,39 @@ export interface RequestRateLimitsSelect<T extends boolean = true> {
   key?: T;
   windowStart?: T;
   count?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "push-subscriptions_select".
+ */
+export interface PushSubscriptionsSelect<T extends boolean = true> {
+  endpoint?: T;
+  p256dh?: T;
+  auth?: T;
+  userAgent?: T;
+  source?: T;
+  isTest?: T;
+  active?: T;
+  lastError?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "push-notifications_select".
+ */
+export interface PushNotificationsSelect<T extends boolean = true> {
+  title?: T;
+  body?: T;
+  url?: T;
+  status?: T;
+  sentAt?: T;
+  sentCount?: T;
+  failedCount?: T;
+  testSentAt?: T;
+  lastCursor?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1415,8 +1503,17 @@ export interface SiteSetting {
   } | null;
   studioPhotos?: (number | Media)[] | null;
   connectCopy?: {
+    heroLede?: string | null;
+    heroHint?: string | null;
+    productsEyebrow?: string | null;
+    productsSubline?: string | null;
+    namePromise?: string | null;
     catalogueHeading?: string | null;
     catalogueDescription?: string | null;
+    /**
+     * Optional delivery note shown in the home page trust strip.
+     */
+    deliveryNote?: string | null;
     paintingHeading?: string | null;
     kidsKitDescription?: string | null;
     adultsKitDescription?: string | null;
@@ -1577,6 +1674,10 @@ export interface LegalPage {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * Copy this line into the privacy page when you enable offer alerts.
+   */
+  pushAlertsPrivacyLine?: string | null;
   terms?: {
     root: {
       type: string;
@@ -1617,8 +1718,14 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   connectCopy?:
     | T
     | {
+        heroLede?: T;
+        heroHint?: T;
+        productsEyebrow?: T;
+        productsSubline?: T;
+        namePromise?: T;
         catalogueHeading?: T;
         catalogueDescription?: T;
+        deliveryNote?: T;
         paintingHeading?: T;
         kidsKitDescription?: T;
         adultsKitDescription?: T;
@@ -1753,6 +1860,7 @@ export interface SiteSettingsSelect<T extends boolean = true> {
  */
 export interface LegalPagesSelect<T extends boolean = true> {
   privacy?: T;
+  pushAlertsPrivacyLine?: T;
   terms?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1785,6 +1893,8 @@ export interface TaskCreateCollectionExport {
       | 'enquiries'
       | 'enquiry-files'
       | 'request-rate-limits'
+      | 'push-subscriptions'
+      | 'push-notifications'
       | 'print-bed'
       | 'media'
       | 'users'

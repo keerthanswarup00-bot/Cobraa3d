@@ -18,6 +18,8 @@ import { PrintBed } from './collections/PrintBed'
 import { Media } from './collections/Media'
 import { EnquiryFiles } from './collections/EnquiryFiles'
 import { RequestRateLimits } from './collections/RequestRateLimits'
+import { PushSubscriptions } from './collections/PushSubscriptions'
+import { PushNotifications } from './collections/PushNotifications'
 import { Products } from './collections/Products'
 import { Users } from './collections/Users'
 import { WhatsappClicks } from './collections/WhatsappClicks'
@@ -116,6 +118,8 @@ export default buildConfig({
     { ...Enquiries, admin: { ...Enquiries.admin, group: 'Customers' } },
     EnquiryFiles,
     RequestRateLimits,
+    PushSubscriptions,
+    PushNotifications,
     { ...PrintBed, admin: { ...PrintBed.admin, group: 'Content' } },
     { ...Media, admin: { ...Media.admin, group: 'Content' } },
     { ...Users, admin: { ...Users.admin, group: 'Team' } },

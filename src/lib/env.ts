@@ -13,6 +13,10 @@ const serverSchema = z.object({
   S3_SECRET_ACCESS_KEY: z.string().optional(),
   S3_PUBLIC_BASE_URL: z.string().optional(),
   CRON_SECRET: z.string().optional(),
+  VAPID_PUBLIC_KEY: z.string().optional(),
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  VAPID_SUBJECT: z.string().regex(/^mailto:[^\s@]+@[^\s@]+$/).optional(),
   MIGRATING: z.string().optional(),
   NODE_ENV: z.enum(['development', 'test', 'production']).optional(),
 })
@@ -30,6 +34,10 @@ const parsed = serverSchema.safeParse({
   S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY,
   S3_PUBLIC_BASE_URL: process.env.S3_PUBLIC_BASE_URL,
   CRON_SECRET: process.env.CRON_SECRET,
+  VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY,
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
+  VAPID_SUBJECT: process.env.VAPID_SUBJECT,
   MIGRATING: process.env.MIGRATING,
   NODE_ENV: process.env.NODE_ENV,
 })

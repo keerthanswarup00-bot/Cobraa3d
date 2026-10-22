@@ -74,7 +74,7 @@ export function buildProductMessage(
   return message.trim()
 }
 
-type DatedActive = { active?: boolean | null; startsAt?: string | null; endsAt?: string | null; priority?: number | null }
+export type DatedActive = { active?: boolean | null; startsAt?: string | null; endsAt?: string | null; priority?: number | null }
 export function isActiveWithinWindow(item: DatedActive, now = new Date()): boolean {
   return Boolean(item.active) && (!item.startsAt || new Date(item.startsAt).getTime() <= now.getTime()) && (!item.endsAt || new Date(item.endsAt).getTime() >= now.getTime())
 }

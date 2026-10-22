@@ -34,6 +34,7 @@ export default async function RootLayout({ children, modal }: { children: React.
   return <html className={cn(GeistSans.variable, GeistMono.variable, instrumentSerif.variable, bricolage.variable, dmSans.variable, dmMono.variable, dmSerif.variable)} lang="en" suppressHydrationWarning>
     <head>
       <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
+      <link href="/apple-touch-icon.png" rel="apple-touch-icon" />
     </head>
     <body>
       <AccentScript />

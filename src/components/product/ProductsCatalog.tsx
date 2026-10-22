@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type TouchEvent as ReactTouchEvent } from 'react'
 import { ProductRender, type ConnectProduct } from '@/components/home/ConnectProducts'
 import { formatPrice } from '@/lib/shared'
+import { PushAlerts } from '@/components/PushAlerts'
 import './products-catalog.css'
 
 export type CatalogImage = { url: string; alt: string; width?: number | null; height?: number | null }
@@ -53,6 +54,7 @@ type Props = {
   brandName: string
   siteURL: string
   calmMode: boolean
+  pushPublicKey?: string
   initialQuery?: string
   initialPage?: number
 }
@@ -69,7 +71,7 @@ function prefersReduced() {
   return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-export function ProductsCatalog({ products, categories, copy, whatsappBase, brandName, siteURL, calmMode, initialQuery = '', initialPage = 1 }: Props) {
+export function ProductsCatalog({ products, categories, copy, whatsappBase, brandName, siteURL, calmMode, pushPublicKey, initialQuery = '', initialPage = 1 }: Props) {
   const perPage = Math.min(48, Math.max(1, copy.perPage || 15))
   const sheetTitleId = useId()
 
@@ -541,6 +543,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
               )}
               <label className="pc-field" htmlFor="pc-note">{copy.noteLabel}</label>
               <textarea className="pc-note" id="pc-note" placeholder={copy.notePlaceholder} value={note} onChange={(event) => setNote(event.target.value)} />
+              <PushAlerts publicKey={pushPublicKey} source="product-sheet" />
             </div>
           )}
         </div>
