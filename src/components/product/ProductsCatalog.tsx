@@ -78,11 +78,23 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
   const chips = useMemo(() => {
     const counts = new Map<string, number>()
     products.forEach((product) => {
-      if (product.category) counts.set(product.category, (counts.get(product.category) || 0) + 1)
+      const name = product.category?.trim()
+      if (name) counts.set(name, (counts.get(name) || 0) + 1)
     })
+
+    // Prefer the configured category order, but never hide a category that
+    // is actually attached to a published product.
+    const configured = categories
+      .filter((category) => (counts.get(category.name) || 0) > 0)
+      .map((category) => category.name)
+    const seen = new Set(configured)
+    const productCategories = [...counts.keys()]
+      .filter((name) => !seen.has(name))
+      .sort((a, b) => a.localeCompare(b))
+
     return [
       { name: 'All', count: products.length },
-      ...categories.filter((category) => (counts.get(category.name) || 0) > 0).map((category) => ({ name: category.name, count: counts.get(category.name) || 0 })),
+      ...[...configured, ...productCategories].map((name) => ({ name, count: counts.get(name) || 0 })),
     ]
   }, [products, categories])
   const tagList = useMemo(() => [...new Set(products.flatMap((product) => product.tags))].sort((a, b) => a.localeCompare(b)), [products])
@@ -288,7 +300,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
 
   const start = (safePage - 1) * perPage
   const slice = filtered.slice(start, start + perPage)
-  const activeFilters = tags.length + (max < maxP ? 1 : 0)
+  const activeFilters = tags.length + (max < maxP ? 1 : 0) + (cat !== 'All' ? 1 : 0)
   const money = (value: number) => formatPrice(value, 'show', currency)
 
   const pageNumbers = (() => {
@@ -394,12 +406,12 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
 
         <div className="pc-layout">
           <aside className={`pc-side${drawer ? ' open' : ''}`} aria-label={copy.filtersLabel}>
-            <div className="pc-side-head"><span>{copy.filtersLabel}</span><button type="button" className="pc-linkbtn" onClick={() => setDrawer(false)}>Done</button></div>
+            <div className="pc-side-head"><span>{copy.filtersLabel}</span><div className="pc-side-actions"><button type="button" className="pc-linkbtn" onClick={resetAll}>Reset</button><button type="button" className="pc-side-done" onClick={() => setDrawer(false)}>Show {filtered.length} products</button></div></div>
             <section className="pc-side-categories">
               <h3>Category</h3>
               <div className="pc-side-category-list">
                 {chips.map((chip) => (
-                  <button key={chip.name} type="button" className="pc-opt pc-category-opt" aria-pressed={cat === chip.name} onClick={() => { setCat(chip.name); setPage(1); setDrawer(false) }}>
+                  <button key={chip.name} type="button" className="pc-opt pc-category-opt" aria-pressed={cat === chip.name} onClick={() => { setCat(chip.name); setPage(1) }}>
                     <span>{chip.name}</span><small>{chip.count}</small>
                   </button>
                 ))}
