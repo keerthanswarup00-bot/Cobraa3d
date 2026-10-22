@@ -395,6 +395,16 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
         <div className="pc-layout">
           <aside className={`pc-side${drawer ? ' open' : ''}`} aria-label={copy.filtersLabel}>
             <div className="pc-side-head"><span>{copy.filtersLabel}</span><button type="button" className="pc-linkbtn" onClick={() => setDrawer(false)}>Done</button></div>
+            <section className="pc-side-categories">
+              <h3>Category</h3>
+              <div className="pc-side-category-list">
+                {chips.map((chip) => (
+                  <button key={chip.name} type="button" className="pc-opt pc-category-opt" aria-pressed={cat === chip.name} onClick={() => { setCat(chip.name); setPage(1); setDrawer(false) }}>
+                    <span>{chip.name}</span><small>{chip.count}</small>
+                  </button>
+                ))}
+              </div>
+            </section>
             {priceEnabled && (
               <section>
                 <h3>{copy.maxPriceLabel}</h3>
