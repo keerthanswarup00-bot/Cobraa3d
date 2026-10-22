@@ -88,6 +88,16 @@ describe('shared business helpers', () => {
     expect(getVisibleCategories(categories, products)).toEqual([categories[0]])
   })
 
+  it('matches category relationships when IDs arrive as strings or numbers', () => {
+    const categories = [{ id: 1, visible: true }, { id: '2', visible: true }, { id: 3, visible: true }]
+    const products = [
+      { category: '1', status: 'published', _status: 'published' },
+      { category: { id: 2 }, status: 'published', _status: 'published' },
+      { category: 3, status: 'draft', _status: 'draft' },
+    ]
+    expect(getVisibleCategories(categories, products)).toEqual(categories.slice(0, 2))
+  })
+
   it('formats missing prices as Ask for price', () => {
     expect(formatPrice()).toBe('Ask for price')
     expect(formatPrice(250, 'ask')).toBe('Ask for price')

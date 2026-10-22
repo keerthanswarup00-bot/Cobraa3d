@@ -60,6 +60,10 @@ type Props = {
 }
 
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
+
+function categoryKey(value: string | null | undefined): string {
+  return (value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase()
+}
 const SORTS = [
   { value: 'new', label: 'Newest' },
   { value: 'plow', label: 'Price: low to high' },
@@ -78,25 +82,35 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
   const bySlug = useMemo(() => new Map(products.map((product) => [product.slug, product])), [products])
   const orderMap = useMemo(() => new Map(products.map((product, index) => [product.id, index])), [products])
   const chips = useMemo(() => {
-    const counts = new Map<string, number>()
+    const counts = new Map<string, { name: string; count: number }>()
     products.forEach((product) => {
-      const name = product.category?.trim()
-      if (name) counts.set(name, (counts.get(name) || 0) + 1)
+      const name = product.category?.trim().replace(/\s+/g, ' ')
+      const key = categoryKey(name)
+      if (!name || !key) return
+      const current = counts.get(key)
+      counts.set(key, { name: current?.name || name, count: (current?.count || 0) + 1 })
     })
 
-    // Prefer the configured category order, but never hide a category that
-    // is actually attached to a published product.
-    const configured = categories
-      .filter((category) => (counts.get(category.name) || 0) > 0)
-      .map((category) => category.name)
-    const seen = new Set(configured)
-    const productCategories = [...counts.keys()]
-      .filter((name) => !seen.has(name))
-      .sort((a, b) => a.localeCompare(b))
+    // Keep CMS ordering where possible, but derive the final list from the
+    // actual published catalogue so access-control or stale category queries
+    // cannot make attached product categories disappear.
+    const configuredKeys = new Set<string>()
+    const configured = categories.flatMap((category) => {
+      const key = categoryKey(category.name)
+      const linked = counts.get(key)
+      if (!key || !linked || configuredKeys.has(key)) return []
+      configuredKeys.add(key)
+      return [{ name: linked.name, count: linked.count }]
+    })
+    const productCategories = [...counts.entries()]
+      .filter(([key]) => !configuredKeys.has(key))
+      .map(([, value]) => value)
+      .sort((a, b) => a.name.localeCompare(b.name))
 
     return [
       { name: 'All', count: products.length },
-      ...[...configured, ...productCategories].map((name) => ({ name, count: counts.get(name) || 0 })),
+      ...configured,
+      ...productCategories,
     ]
   }, [products, categories])
   const tagList = useMemo(() => [...new Set(products.flatMap((product) => product.tags))].sort((a, b) => a.localeCompare(b)), [products])
@@ -121,6 +135,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
   const [note, setNote] = useState('')
   const [slide, setSlide] = useState(0)
   const max = maxOverride == null ? maxP : Math.min(maxOverride, maxP)
+  const priceFilterActive = priceEnabled && maxOverride != null && max < maxP
 
   const resultsRef = useRef<HTMLElement>(null)
   const sheetRef = useRef<HTMLElement>(null)
@@ -265,11 +280,12 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
   useEffect(() => () => { document.body.classList.remove('pc-locked') }, [])
 
   const filtered = useMemo(() => {
+    const selectedCategory = categoryKey(cat)
     const list = products.filter((product) =>
-      (cat === 'All' || product.category === cat)
+      (cat === 'All' || categoryKey(product.category) === selectedCategory)
       && (!query || `${product.title} ${product.category || ''} ${product.tags.join(' ')}`.toLowerCase().includes(query))
       && (!tags.length || tags.every((tag) => product.tags.includes(tag)))
-      && (!product.hasPrice || (product.price as number) <= max))
+      && (!priceFilterActive || (product.hasPrice && product.price != null && product.price <= max)))
     const priceAsc = (a: CatalogProduct, b: CatalogProduct) => {
       if (a.hasPrice && b.hasPrice) return (a.price as number) - (b.price as number)
       if (a.hasPrice) return -1
@@ -281,7 +297,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
     else if (sort === 'phigh') list.sort((a, b) => (a.hasPrice && b.hasPrice ? (b.price as number) - (a.price as number) : priceAsc(a, b)) || (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
     else list.sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
     return list
-  }, [products, orderMap, cat, query, tags, max, sort])
+  }, [products, orderMap, cat, query, tags, priceFilterActive, max, sort])
 
   const pages = Math.max(1, Math.ceil(filtered.length / perPage))
   const safePage = Math.min(page, pages)
@@ -302,7 +318,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
 
   const start = (safePage - 1) * perPage
   const slice = filtered.slice(start, start + perPage)
-  const activeFilters = tags.length + (max < maxP ? 1 : 0) + (cat !== 'All' ? 1 : 0)
+  const activeFilters = tags.length + (priceFilterActive ? 1 : 0) + (cat !== 'All' ? 1 : 0)
   const money = (value: number) => formatPrice(value, 'show', currency)
 
   const pageNumbers = (() => {
@@ -389,7 +405,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
           <div className="pc-row">
             <label className="pc-search">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-              <input type="search" placeholder={copy.searchPlaceholder} autoComplete="off" aria-label="Search products" value={q} onChange={(event) => setQ(event.target.value)} />
+              <input type="search" placeholder={copy.searchPlaceholder} autoComplete="off" aria-label="Search products" value={q} onChange={(event) => { setQ(event.target.value); setPage(1) }} />
             </label>
             <span className="pc-spacer" />
             <button type="button" className="pc-ctl pc-btn-filter" onClick={() => setDrawer(true)}><span>{copy.filtersLabel}</span>{activeFilters > 0 && <span className="pc-filter-count">{activeFilters}</span>}<span aria-hidden="true">☷</span></button>
