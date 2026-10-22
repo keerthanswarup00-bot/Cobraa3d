@@ -7,7 +7,7 @@ import "./splash.css";
 // - Anything else (or blocked storage) marks the splash "off" so CSS hides it.
 // - Also turns itself off after the animation, so client-side navigation
 //   back to "/" never replays it.
-const SPLASH_SCRIPT = `(function(){var d=document.documentElement;try{if(location.pathname!=='/'||sessionStorage.getItem('cobraa-splash')){d.setAttribute('data-splash','off');return}sessionStorage.setItem('cobraa-splash','1');setTimeout(function(){d.setAttribute('data-splash','off')},1250)}catch(e){d.setAttribute('data-splash','off')}})();`;
+const SPLASH_SCRIPT = `(function(){var d=document.documentElement;try{if(location.pathname!=='/'||sessionStorage.getItem('cobraa-splash')){d.setAttribute('data-splash','off');return}sessionStorage.setItem('cobraa-splash','1');setTimeout(function(){d.setAttribute('data-splash','off')},900)}catch(e){d.setAttribute('data-splash','off')}})();`;
 
 export function Splash() {
   return (

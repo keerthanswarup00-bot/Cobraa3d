@@ -27,6 +27,19 @@ import { getServerSideURL } from './utilities/getURL'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { env, getConnectionString, isPostgres } from './lib/env'
 
+/**
+ * The site URL plus the local development hosts. The admin panel and the
+ * e2e suite run on 127.0.0.1 with their own port, so those origins have to be
+ * allowed before the admin session cookie is accepted.
+ */
+const localOrigins = [
+  process.env.NEXT_PUBLIC_SITE_URL,
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  process.env.PLAYWRIGHT_PORT ? `http://127.0.0.1:${process.env.PLAYWRIGHT_PORT}` : null,
+  process.env.PLAYWRIGHT_PORT ? `http://localhost:${process.env.PLAYWRIGHT_PORT}` : null,
+].filter((v): v is string => Boolean(v))
+
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
@@ -108,8 +121,8 @@ export default buildConfig({
     { ...Users, admin: { ...Users.admin, group: 'Team' } },
     WhatsappClicks,
   ],
-  cors: [process.env.NEXT_PUBLIC_SITE_URL, 'http://localhost:3000'].filter((v): v is string => Boolean(v)),
-  csrf: [process.env.NEXT_PUBLIC_SITE_URL, 'http://localhost:3000'].filter((v): v is string => Boolean(v)),
+  cors: localOrigins,
+  csrf: localOrigins,
   globals: [
     { ...SiteSettings, admin: { ...SiteSettings.admin, group: 'Website' } },
     { ...LegalPages, admin: { ...LegalPages.admin, group: 'Website' } },

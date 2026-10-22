@@ -2,7 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-const LEVELS = Array.from({ length: 36 }, (_, index) => -3.4 + index * 0.25)
+const LEVEL_MIN = -3.4
+const LEVEL_MAX = 5.35
+const FINE_LEVELS = 36
+const COARSE_LEVELS = 14
+const FINE_CELL = 20
+const COARSE_CELL = 34
+const FINE_FPS = 30
+const COARSE_FPS = 20
+const PULSE_MS = 900
+const IDLE_MS = 2000
 const SEGMENTS = [[], [[3, 2]], [[2, 1]], [[3, 1]], [[0, 1]], [[0, 1], [3, 2]], [[0, 2]], [[0, 3]], [[0, 3]], [[0, 2]], [[0, 3], [2, 1]], [[0, 1]], [[3, 1]], [[2, 1]], [[3, 2]], []]
 
 export function ConnectTerrain() {
@@ -15,11 +24,15 @@ export function ConnectTerrain() {
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const coarse = window.matchMedia('(hover: none)').matches
+    const levelCount = coarse ? COARSE_LEVELS : FINE_LEVELS
+    const levels = Array.from({ length: levelCount }, (_, index) => LEVEL_MIN + (LEVEL_MAX - LEVEL_MIN) * (index / (levelCount - 1)))
     const field = { x: -10000, y: -10000, targetX: -10000, targetY: -10000, strength: 0, targetStrength: 0 }
+    const pointer = { x: 0, y: 0, type: 'mouse', lastAt: 0, down: false, downX: 0, downY: 0, moved: false }
+    const pulse = { x: 0, y: 0, until: 0 }
     let width = 0
     let height = 0
     let dpr = 1
-    let cell = 20
+    let cell = FINE_CELL
     let columns = 0
     let rows = 0
     let values = new Float32Array()
@@ -29,6 +42,9 @@ export function ConnectTerrain() {
     let lastHeight = 0
     let visible = true
     let running = false
+    let dragging = false
+    let customVisible = false
+    let scrollFrame = 0
     const startedAt = performance.now()
 
     const resize = (force = false) => {
@@ -40,7 +56,7 @@ export function ConnectTerrain() {
       width = nextWidth
       height = nextHeight
       dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2)
-      cell = coarse ? 26 : 20
+      cell = coarse ? COARSE_CELL : FINE_CELL
       canvas.width = Math.round(width * dpr)
       canvas.height = Math.round(height * dpr)
       canvas.style.width = `${width}px`
@@ -52,11 +68,14 @@ export function ConnectTerrain() {
       if (reduced) draw(performance.now())
     }
 
-    const edgePoint = (edge: number, x: number, y: number, a: number, b: number, c: number, d: number, level: number) => {
-      if (edge === 0) return [x + cell * (level - a) / (b - a), y]
-      if (edge === 1) return [x + cell, y + cell * (level - b) / (c - b)]
-      if (edge === 2) return [x + cell * (level - d) / (c - d), y + cell]
-      return [x, y + cell * (level - a) / (d - a)]
+    /* Edge points are written straight into these, so the path never allocates. */
+    let edgeX = 0
+    let edgeY = 0
+    const setEdgePoint = (edge: number, x: number, y: number, a: number, b: number, c: number, d: number, level: number) => {
+      if (edge === 0) { edgeX = x + cell * (level - a) / (b - a); edgeY = y; return }
+      if (edge === 1) { edgeX = x + cell; edgeY = y + cell * (level - b) / (c - b); return }
+      if (edge === 2) { edgeX = x + cell * (level - d) / (c - d); edgeY = y + cell; return }
+      edgeX = x; edgeY = y + cell * (level - a) / (d - a)
     }
 
     const draw = (time: number) => {
@@ -80,8 +99,8 @@ export function ConnectTerrain() {
       }
 
       context.clearRect(0, 0, width, height)
-      for (let levelIndex = 0; levelIndex < LEVELS.length; levelIndex += 1) {
-        const level = LEVELS[levelIndex]!
+      for (let levelIndex = 0; levelIndex < levels.length; levelIndex += 1) {
+        const level = levels[levelIndex]!
         context.beginPath()
         for (let row = 0; row < rows - 1; row += 1) {
           for (let column = 0; column < columns - 1; column += 1) {
@@ -90,11 +109,15 @@ export function ConnectTerrain() {
             const c = values[(row + 1) * columns + column + 1]!
             const d = values[(row + 1) * columns + column]!
             const code = (a > level ? 8 : 0) | (b > level ? 4 : 0) | (c > level ? 2 : 0) | (d > level ? 1 : 0)
-            for (const [start, end] of SEGMENTS[code]!) {
-              const [startX, startY] = edgePoint(start!, column * cell, row * cell, a, b, c, d, level)
-              const [endX, endY] = edgePoint(end!, column * cell, row * cell, a, b, c, d, level)
-              context.moveTo(startX!, startY!)
-              context.lineTo(endX!, endY!)
+            const segments = SEGMENTS[code]!
+            const cellX = column * cell
+            const cellY = row * cell
+            for (let index = 0; index < segments.length; index += 1) {
+              const segment = segments[index]!
+              setEdgePoint(segment[0]!, cellX, cellY, a, b, c, d, level)
+              context.moveTo(edgeX, edgeY)
+              setEdgePoint(segment[1]!, cellX, cellY, a, b, c, d, level)
+              context.lineTo(edgeX, edgeY)
             }
           }
         }
@@ -105,27 +128,42 @@ export function ConnectTerrain() {
       }
     }
 
+    /** A tap leaves a ripple that fades on its own; a drag follows the finger. */
+    const updateField = (time: number) => {
+      const draggingPointer = pointer.type === 'touch' ? pointer.down : time - pointer.lastAt < IDLE_MS
+      if (draggingPointer && pointer.lastAt) {
+        field.targetX = pointer.x
+        field.targetY = pointer.y
+        field.targetStrength = pointer.type === 'touch' ? 1 : 0.7
+      } else if (pulse.until > time) {
+        field.targetX = pulse.x
+        field.targetY = pulse.y
+        field.targetStrength = ((pulse.until - time) / PULSE_MS) * 0.9
+      } else {
+        field.targetX = width * (0.5 + Math.sin(time * 0.00017) * 0.24)
+        field.targetY = height * (0.48 + Math.cos(time * 0.00013) * 0.22)
+        field.targetStrength = 0.22
+      }
+      field.x += (field.targetX - field.x) * 0.12
+      field.y += (field.targetY - field.y) * 0.12
+      field.strength += (field.targetStrength - field.strength) * 0.08
+    }
+
     const run = (time: number) => {
       frame = 0
-      if (!running || !visible || document.hidden) return
-      const frameInterval = coarse ? 1000 / 24 : 1000 / 30
+      if (!running) return
+      const frameInterval = 1000 / (coarse ? COARSE_FPS : FINE_FPS)
       if (time - lastFrame >= frameInterval) {
         lastFrame = time
-        if (coarse && field.targetStrength === 0) {
-          field.targetX = width * (0.5 + Math.sin(time * 0.00017) * 0.24)
-          field.targetY = height * (0.48 + Math.cos(time * 0.00013) * 0.22)
-          field.targetStrength = 0.22
-        }
-        field.x += (field.targetX - field.x) * 0.12
-        field.y += (field.targetY - field.y) * 0.12
-        field.strength += (field.targetStrength - field.strength) * 0.08
+        updateField(time)
         draw(time)
       }
       frame = requestAnimationFrame(run)
     }
 
+    const shouldRun = () => visible && !document.hidden && !dragging && !customVisible && !reduced
     const start = () => {
-      if (running || reduced || !visible || document.hidden) return
+      if (running || !shouldRun()) return
       running = true
       frame = requestAnimationFrame(run)
     }
@@ -134,42 +172,106 @@ export function ConnectTerrain() {
       if (frame) cancelAnimationFrame(frame)
       frame = 0
     }
+    const sync = () => { if (shouldRun()) start(); else stop() }
+
+    const onPointerDown = (event: PointerEvent) => {
+      pointer.x = event.clientX
+      pointer.y = event.clientY
+      pointer.type = event.pointerType
+      pointer.lastAt = performance.now()
+      pointer.down = event.pointerType === 'touch'
+      pointer.downX = event.clientX
+      pointer.downY = event.clientY
+      pointer.moved = false
+      if (pointer.down) {
+        pulse.x = event.clientX
+        pulse.y = event.clientY
+        pulse.until = performance.now() + PULSE_MS
+      }
+    }
     const onPointerMove = (event: PointerEvent) => {
-      field.targetX = event.clientX
-      field.targetY = event.clientY
-      field.targetStrength = event.pointerType === 'touch' ? 1 : 0.7
+      if (event.pointerType === 'touch' && !pointer.down) return
+      pointer.x = event.clientX
+      pointer.y = event.clientY
+      pointer.type = event.pointerType
+      pointer.lastAt = performance.now()
+      if (Math.abs(event.clientX - pointer.downX) + Math.abs(event.clientY - pointer.downY) > 8) pointer.moved = true
       if (reduced) draw(performance.now())
     }
-    const onPointerEnd = (event: PointerEvent) => {
-      if (event.pointerType === 'touch') field.targetStrength = 0
+    const onPointerUp = (event: PointerEvent) => {
+      if (event.pointerType !== 'touch') return
+      pointer.down = false
+      if (!pointer.moved) {
+        pulse.x = event.clientX
+        pulse.y = event.clientY
+        pulse.until = performance.now() + PULSE_MS
+      }
     }
-    const onScroll = () => { if (reduced) draw(performance.now()) }
-    const onResize = () => resize()
+    const onPointerCancel = () => { pointer.down = false }
+
+    /* The terrain steps aside while a 3D surface is being dragged. */
+    const onDragStart = (event: PointerEvent) => {
+      const target = event.target as Element | null
+      if (!target?.closest?.('[data-drag-surface]')) return
+      dragging = true
+      sync()
+      const release = () => {
+        dragging = false
+        sync()
+        window.removeEventListener('pointerup', release)
+        window.removeEventListener('pointercancel', release)
+      }
+      window.addEventListener('pointerup', release)
+      window.addEventListener('pointercancel', release)
+    }
+
+    /* And while the custom section owns most of the screen. */
+    const customSection = document.getElementById('custom')
+    const updateCustom = () => {
+      if (!customSection) return
+      const rect = customSection.getBoundingClientRect()
+      const shown = Math.max(0, Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0))
+      const next = shown >= window.innerHeight * 0.5
+      if (next === customVisible) return
+      customVisible = next
+      sync()
+    }
+    const onScroll = () => {
+      if (reduced) draw(performance.now())
+      if (scrollFrame) return
+      scrollFrame = requestAnimationFrame(() => { scrollFrame = 0; updateCustom() })
+    }
+    const onResize = () => { resize(); updateCustom() }
     const onVisibility = () => document.hidden ? stop() : start()
     const observer = new IntersectionObserver(([entry]) => {
       visible = Boolean(entry?.isIntersecting)
-      if (visible) start()
-      else stop()
+      sync()
     })
 
     resize(true)
     observer.observe(canvas)
+    updateCustom()
     if (reduced) draw(performance.now())
     else start()
     window.addEventListener('resize', onResize, { passive: true })
+    window.addEventListener('pointerdown', onPointerDown, { passive: true })
+    window.addEventListener('pointerdown', onDragStart, { passive: true })
     window.addEventListener('pointermove', onPointerMove, { passive: true })
-    window.addEventListener('pointerup', onPointerEnd, { passive: true })
-    window.addEventListener('pointercancel', onPointerEnd, { passive: true })
+    window.addEventListener('pointerup', onPointerUp, { passive: true })
+    window.addEventListener('pointercancel', onPointerCancel, { passive: true })
     window.addEventListener('scroll', onScroll, { passive: true })
     document.addEventListener('visibilitychange', onVisibility)
 
     return () => {
       stop()
+      if (scrollFrame) cancelAnimationFrame(scrollFrame)
       observer.disconnect()
       window.removeEventListener('resize', onResize)
+      window.removeEventListener('pointerdown', onPointerDown)
+      window.removeEventListener('pointerdown', onDragStart)
       window.removeEventListener('pointermove', onPointerMove)
-      window.removeEventListener('pointerup', onPointerEnd)
-      window.removeEventListener('pointercancel', onPointerEnd)
+      window.removeEventListener('pointerup', onPointerUp)
+      window.removeEventListener('pointercancel', onPointerCancel)
       window.removeEventListener('scroll', onScroll)
       document.removeEventListener('visibilitychange', onVisibility)
     }

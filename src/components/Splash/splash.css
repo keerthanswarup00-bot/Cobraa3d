@@ -1,4 +1,4 @@
-/* Timeline (1.2s total): print 0 to .7s, hold to .8s, peel .8 to 1.2s */
+/* Timeline (0.85s total): print 0 to .45s, hold to .55s, peel .55 to .85s */
 .splash {
   position: fixed;
   inset: 0;
@@ -7,7 +7,7 @@
   place-items: center;
   background: var(--splash-bg, #0b0b0c);
   pointer-events: none; /* never blocks taps or content */
-  animation: splash-peel 0.4s cubic-bezier(0.7, 0, 0.84, 0) 0.8s forwards;
+  animation: splash-peel 0.3s cubic-bezier(0.7, 0, 0.84, 0) 0.55s forwards;
 }
 .splash__stage {
   position: relative;
@@ -19,7 +19,7 @@
   inset: 0;
   color: var(--splash-ink, #f5f5f2);
   clip-path: inset(100% 0 0 0);
-  animation: splash-print 0.7s steps(14, end) forwards;
+  animation: splash-print 0.45s steps(10, end) forwards;
 }
 /* faint layer lines across the printed logo */
 .splash__logo::after {
@@ -42,7 +42,7 @@
   height: 2px;
   background: var(--splash-accent, #ff5a1f);
   box-shadow: 0 0 10px var(--splash-accent, #ff5a1f);
-  animation: splash-nozzle 0.7s steps(14, end) forwards;
+  animation: splash-nozzle 0.45s steps(10, end) forwards;
 }
 
 @keyframes splash-print {
