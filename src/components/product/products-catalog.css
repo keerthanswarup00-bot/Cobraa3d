@@ -133,7 +133,13 @@ body:has(.pc-page) .connect-nav button:focus-visible { outline: 2px solid #fff; 
 .pc-range-val { display: flex; justify-content: space-between; font-size: 13px; color: var(--pc-muted); margin-top: 8px; }
 .pc-linkbtn { font-size: 13px; text-decoration: underline; background: none; border: 0; color: var(--pc-muted); padding: 0; }
 .pc-linkbtn:hover { color: #fff; }
-.pc-side-head { display: none; }
+.pc-side-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-weight: 600; }
+.pc-side-head .pc-linkbtn { display: none; }
+.pc-side-category-list { display: grid; gap: 2px; }
+.pc-category-opt { width: 100%; border: 0; background: transparent; color: var(--pc-ink); text-align: left; justify-content: space-between; }
+.pc-category-opt small { color: var(--pc-muted); }
+.pc-category-opt[aria-pressed="true"] { color: #fff; font-weight: 600; }
+.pc-category-opt[aria-pressed="true"] span { text-decoration: underline; text-underline-offset: 4px; }
 .pc-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 13px; color: var(--pc-muted); }
 
 /* ============ grid + card ============ */
@@ -426,7 +432,7 @@ body:has(.pc-page) .connect-nav button:focus-visible { outline: 2px solid #fff; 
   }
   .pc-side.open { transform: none; }
   .pc-scrim.open { opacity: 1; pointer-events: auto; }
-  .pc-side-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-weight: 600; }
+  .pc-side-head .pc-linkbtn { display: inline; }
   .pc-grid { grid-template-columns: repeat(2, 1fr); gap: 22px 12px; }
   .pc-foot { flex-direction: column; align-items: stretch; gap: 10px; }
   .pc-view { justify-content: center; }
