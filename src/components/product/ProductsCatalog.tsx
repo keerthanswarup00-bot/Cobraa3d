@@ -62,7 +62,7 @@ type Props = {
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
 
 function categoryKey(value: string | null | undefined): string {
-  return (value || '').trim().replace(/\\s+/g, ' ').toLocaleLowerCase()
+  return (value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase()
 }
 const SORTS = [
   { value: 'new', label: 'Newest' },
@@ -84,7 +84,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
   const chips = useMemo(() => {
     const counts = new Map<string, { name: string; count: number }>()
     products.forEach((product) => {
-      const name = product.category?.trim().replace(/\\s+/g, ' ')
+      const name = product.category?.trim().replace(/\s+/g, ' ')
       const key = categoryKey(name)
       if (!name || !key) return
       const current = counts.get(key)
