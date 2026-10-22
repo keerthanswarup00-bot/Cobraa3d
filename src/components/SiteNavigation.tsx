@@ -25,13 +25,13 @@ export function SiteNavigation({ brandName, whatsappURL }: { brandName: string; 
     return () => observer.disconnect()
   }, [pathname])
 
-  const productsHref = pathname === '/' ? '#products' : '/#products'
+  const productsHref = '/products'
   const customHref = pathname === '/' ? '#custom' : '/#custom'
 
   return <header className={`site-nav connect-nav${scrolled ? ' is-scrolled' : ''}`}>
     <Link href="/" className="site-nav-brand" aria-label={`${brandName} home`}>Cobraa<i>.</i>3D</Link>
     <nav className={open ? 'site-nav-links is-open' : 'site-nav-links'} aria-label="Main navigation">
-      <Link href={productsHref} aria-current={pathname === '/' && active === 'products' ? 'page' : undefined} onClick={() => setOpen(false)}>Products</Link>
+      <Link href={productsHref} aria-current={pathname === '/products' || pathname.startsWith('/products/') ? 'page' : undefined} onClick={() => setOpen(false)}>Products</Link>
       <Link href={customHref} aria-current={pathname === '/' && active === 'custom' ? 'page' : undefined} onClick={() => setOpen(false)}>Custom</Link>
     </nav>
     <div className="site-nav-actions">
