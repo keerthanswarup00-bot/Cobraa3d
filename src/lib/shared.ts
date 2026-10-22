@@ -93,8 +93,8 @@ export function getVisibleCategories<C extends CategoryVisibilityInput>(categori
   const linkedIDs = new Set(products.filter((product) => product.status === 'published' && product._status === 'published').map((product) => {
     if (typeof product.category === 'object' && product.category) return product.category.id
     return product.category
-  }).filter((id): id is number | string => id !== undefined && id !== null))
-  return categories.filter((category) => category.visible === true && category.id != null && linkedIDs.has(category.id))
+  }).filter((id): id is number | string => id !== undefined && id !== null).map((id) => String(id).trim()))
+  return categories.filter((category) => category.visible === true && category.id != null && linkedIDs.has(String(category.id).trim()))
 }
 
 export function getLatestPrintBed<T extends { visible?: boolean | null; postedAt?: string | null }>(posts: T[], now = new Date(), limit = 6): T[] {
