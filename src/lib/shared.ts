@@ -74,6 +74,23 @@ export function buildProductMessage(
   return message.trim()
 }
 
+export function formatProductPrices(product: {
+  price?: number | null
+  originalPrice?: number | null
+  priceMode?: 'show' | 'ask' | null
+  currency?: string | null
+}): { priceLabel: string; originalPriceLabel?: string } {
+  const currency = product.currency || 'INR'
+  const priceLabel = formatPrice(product.price, product.priceMode, currency)
+  const originalPriceLabel = product.priceMode === 'show'
+    && product.price != null
+    && product.originalPrice != null
+    && product.originalPrice > product.price
+    ? formatPrice(product.originalPrice, 'show', currency)
+    : undefined
+  return { priceLabel, ...(originalPriceLabel ? { originalPriceLabel } : {}) }
+}
+
 type DatedActive = { active?: boolean | null; startsAt?: string | null; endsAt?: string | null; priority?: number | null }
 export function isActiveWithinWindow(item: DatedActive, now = new Date()): boolean {
   return Boolean(item.active) && (!item.startsAt || new Date(item.startsAt).getTime() <= now.getTime()) && (!item.endsAt || new Date(item.endsAt).getTime() >= now.getTime())

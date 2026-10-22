@@ -43,9 +43,17 @@ test.describe('Admin Panel', () => {
     await page.goto('/admin/collections/products/create')
     await page.locator('input[name="title"]').fill(sampleProductTitle)
     await page.locator('textarea[name="shortDescription"]').fill('Temporary sample used to verify the product enquiry flow.')
-    await page.locator('#field-status').getByRole('combobox').click()
-    await page.getByRole('option', { name: 'Published' }).click()
+    await page.getByRole('button', { name: 'More details' }).click()
+    const statusSelect = page.locator('#field-status').getByRole('combobox')
+    await statusSelect.fill('Published')
+    await page.getByRole('option', { name: 'Published', exact: true }).click()
+    await expect(page.locator('#field-status').getByText('Published', { exact: true })).toBeVisible()
+    const publishResponsePromise = page.waitForResponse((response) =>
+      response.url().includes('/api/products/') && response.request().method() === 'PATCH',
+    )
     await page.getByRole('button', { name: /publish/i }).click()
+    const publishResponse = await publishResponsePromise
+    expect(publishResponse.status()).toBe(200)
     await expect(page).toHaveURL(/\/admin\/collections\/products\/[a-zA-Z0-9-_]+/)
 
     await page.goto('/products')

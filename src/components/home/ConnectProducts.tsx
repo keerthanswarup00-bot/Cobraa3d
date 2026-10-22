@@ -93,7 +93,7 @@ export function ConnectProducts({ products, total, productsURL = '/products', va
       {variant === 'catalog' ? <div className="studio-product-catalog-footer">
         <span className="studio-product-catalog-price">{product.priceLabel || 'Price on request'}{product.originalPriceLabel && <del>{product.originalPriceLabel}</del>}</span>
         {product.whatsappURL && <a className="studio-product-whatsapp" href={product.whatsappURL} aria-label={`Details for ${product.title} on WhatsApp`} target="_blank" rel="noopener noreferrer">Details</a>}
-      </div> : <div className="studio-product-actions"><span className="studio-product-price">{product.priceLabel || 'Price on request'}</span><Link href={`/products/${product.slug}`}>View product <ArrowUpRight size={15} /></Link></div>}
+      </div> : <div className="studio-product-actions"><span className="studio-product-price">{product.priceLabel || 'Price on request'}{product.originalPriceLabel && <del>{product.originalPriceLabel}</del>}</span><Link href={`/products/${product.slug}`}>View product <ArrowUpRight size={15} /></Link></div>}
     </article>)}</div>
     {variant === 'home' && <Link className="studio-view-all" href={productsURL}><span>View all products <small>{total} pieces</small></span><span className="studio-view-arrow" aria-hidden="true">↗</span></Link>}
   </div>

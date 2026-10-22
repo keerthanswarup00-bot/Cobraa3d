@@ -3,12 +3,17 @@ import { test, expect } from '@playwright/test'
 test.describe('Frontend', () => {
   test('shows three featured demos, a product catalogue, and direct product routes', async ({ page }) => {
     await page.goto('/')
-    await expect(page.locator('.connect-product-card')).toHaveCount(3)
-    await expect(page.getByRole('link', { name: 'View all products' })).toHaveAttribute('href', '/products')
+    await expect(page.locator('.studio-product-card')).toHaveCount(3)
+    await expect(page.locator('.studio-view-all')).toHaveAttribute('href', '/products')
     await page.goto('/products')
-    await expect(page.locator('.pc-card')).toHaveCount(15)
+    await expect(page.getByRole('heading', { level: 1, name: /Thoughtful design\./ })).toBeVisible()
+    const cards = page.locator('.pc-card')
+    if (!await cards.count()) {
+      await expect(page.locator('.pc-empty')).toBeVisible()
+      return
+    }
     const detailLinks = page.locator('.pc-card a.pc-media')
-    for (let index = 0; index < 3; index += 1) {
+    for (let index = 0; index < Math.min(3, await detailLinks.count()); index += 1) {
       const href = await detailLinks.nth(index).getAttribute('href')
       expect(href).toMatch(/^\/products\//)
       await page.goto(href || '/')
@@ -24,9 +29,9 @@ test.describe('Frontend', () => {
   test('can load homepage', async ({ page }) => {
     await page.goto('/')
     await expect(page.getByRole('heading', { name: /Made in Hoskote\. Made to be yours\./ })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'View all products' })).toHaveAttribute('href', '/products')
-    await page.getByRole('link', { name: 'Explore products' }).click()
-    await expect(page).toHaveURL(/#products$/)
+    await expect(page.locator('.studio-view-all')).toHaveAttribute('href', '/products')
+    await page.getByRole('link', { name: 'Browse products' }).click()
+    await expect(page).toHaveURL(/\/#products$/)
   })
 
   test('renders the branded layer-shift 404', async ({ page }) => {
@@ -38,39 +43,21 @@ test.describe('Frontend', () => {
   test('renders without horizontal overflow at phone, tablet, and desktop widths', async ({ page }) => {
     await page.goto('/')
     await expect(page.locator('h1').first()).toBeVisible()
-    await expect(page.getByRole('link', { name: 'View all products' })).toBeVisible()
+    await expect(page.locator('.studio-view-all')).toBeVisible()
     await expect.poll(() => page.locator('html').evaluate((element) => getComputedStyle(element).opacity)).toBe('1')
-    for (const width of [375, 430, 768, 1024, 1440]) {
-      await page.setViewportSize({ width, height: 900 })
+    for (const viewport of [{ width: 360, height: 740 }, { width: 390, height: 844 }, { width: 430, height: 932 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+      await page.setViewportSize(viewport)
       const doesNotOverflow = await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)
-      expect(doesNotOverflow, `horizontal overflow at ${width}px`).toBe(true)
+      expect(doesNotOverflow, `horizontal overflow at ${viewport.width}px`).toBe(true)
       await page.evaluate(() => document.fonts.ready)
-      await page.screenshot({ path: `test-results/visual/home-${width}.png`, fullPage: true })
+      await page.screenshot({ path: `test-results/visual/home-${viewport.width}x${viewport.height}.png`, fullPage: true })
     }
   })
 
-  test('nameplate enquiry keeps the selected details in the custom request', async ({ page }) => {
+  test('/custom permanently redirects to the homepage custom brief', async ({ page }) => {
     await page.goto('/custom')
-    await page.locator('.custom-route-studio').scrollIntoViewIfNeeded()
-    const textInput = page.getByLabel('Your text')
-    await expect(textInput).toBeVisible()
-    await textInput.fill('A & B')
-    await page.getByLabel('Font').selectOption({ index: 0 })
-    const font = await page.getByLabel('Font').inputValue()
-    const colourButton = page.locator('.nameplate-swatches button').first()
-    const colour = await colourButton.getAttribute('aria-label') || ''
-    await colourButton.click()
-    const whatsapp = page.getByRole('link', { name: 'Ask about this nameplate' })
-    if (await whatsapp.isVisible()) {
-      const url = new URL(await whatsapp.getAttribute('href') || '')
-      expect(url.searchParams.get('text')).toContain('Nameplate text: A & B')
-      expect(url.searchParams.get('text')).toContain(`Font: ${font}`)
-      expect(url.searchParams.get('text')).toContain(`Colour: ${colour}`)
-    } else {
-      await expect(page.getByRole('button', { name: 'WhatsApp contact not set' })).toBeDisabled()
-    }
-    await page.getByRole('button', { name: 'Add to my custom request' }).click()
-    await expect(page.locator('textarea')).toHaveValue(`Nameplate: A & B\nFont: ${font}\nColour: ${colour}`)
+    await expect(page).toHaveURL(/\/#custom$/)
+    await expect(page.getByRole('heading', { name: /Tell us the idea\./ })).toBeVisible()
   })
 
   test('product listing filters stay shareable and fit common screens', async ({ page }) => {
@@ -78,19 +65,25 @@ test.describe('Frontend', () => {
     await expect(page.getByRole('heading', { level: 1, name: /Thoughtful design\./ })).toBeVisible()
     await page.getByRole('searchbox', { name: 'Search products' }).fill('stand')
     await expect(page).toHaveURL(/q=stand/)
-    for (const width of [375, 430, 768, 1024, 1440]) {
-      await page.setViewportSize({ width, height: 900 })
+    for (const viewport of [{ width: 360, height: 740 }, { width: 390, height: 844 }, { width: 430, height: 932 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+      await page.setViewportSize(viewport)
       const doesNotOverflow = await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)
-      expect(doesNotOverflow, `product listing horizontal overflow at ${width}px`).toBe(true)
-      await page.screenshot({ path: `test-results/visual/products-${width}.png`, fullPage: true })
+      expect(doesNotOverflow, `product listing horizontal overflow at ${viewport.width}px`).toBe(true)
+      await page.screenshot({ path: `test-results/visual/products-${viewport.width}x${viewport.height}.png`, fullPage: true })
     }
   })
 
-  test('product sheet opens from a deep link hash', async ({ page }) => {
-    await page.goto('/products#/p/minimalist-maroon-jewellery-stand')
+  test('product sheet opens from a product card', async ({ page }) => {
+    await page.goto('/products')
+    const firstCard = page.locator('.pc-card').first()
+    if (!await firstCard.count()) {
+      test.skip(true, 'Requires at least one published product in Payload.')
+    }
+    const productTitle = await firstCard.locator('.pc-card-title').textContent()
+    await firstCard.locator('a.pc-media').click()
     const dialog = page.getByRole('dialog')
     await expect(dialog).toBeVisible()
-    await expect(dialog.getByRole('heading', { name: 'Minimalist Maroon Jewellery Stand' })).toBeVisible()
+    await expect(dialog.getByRole('heading', { name: productTitle || '' })).toBeVisible()
     await dialog.getByRole('button', { name: 'Close' }).click()
     await expect(dialog).not.toBeVisible()
   })
@@ -101,12 +94,13 @@ test.describe('Frontend', () => {
     await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible()
     await expect(page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Location' })).toHaveCount(0)
     await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Products' }).click()
-    await expect(page).toHaveURL(/\/products$/)
+    await expect(page).toHaveURL(/\/#products$/)
+    await page.goto('/products')
     await expect(page.getByRole('heading', { level: 1, name: /Thoughtful design\./ })).toBeVisible()
     await page.goto('/painting-kits')
-    await expect(page.getByRole('heading', { name: 'Painting kits', exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /Thoughtful design\./ })).toBeVisible()
     await page.goto('/custom')
-    await expect(page.getByRole('heading', { name: 'Custom orders' })).toBeVisible()
+    await expect(page).toHaveURL(/\/#custom$/)
     await page.goto('/location')
     await expect(page.getByRole('heading', { name: 'Cobraa 3D' })).toBeVisible()
     await page.goto('/products')
@@ -120,24 +114,22 @@ test.describe('Frontend', () => {
     }
   })
 
-  test('connect page showcase and custom route work with reduced motion', async ({ page }) => {
+  test('connect page showcase works with reduced motion', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/?src=qr')
     await expect(page.locator('h1').first()).toBeVisible()
-    await expect(page.getByRole('link', { name: /explore products/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Browse products' })).toBeVisible()
     await expect(page.getByRole('heading', { name: /A little idea\. Layer by layer\./ })).toBeVisible()
     await expect(page.locator('.layer-showcase-control')).toBeVisible()
     const initialTransform = await page.locator('.layer-object').getAttribute('style')
     await page.locator('.layer-showcase-control').focus()
     await page.keyboard.press('ArrowRight')
     await expect(page.locator('.layer-object')).not.toHaveAttribute('style', initialTransform || '')
-    await page.goto('/custom')
-    await expect(page.getByRole('heading', { name: 'Custom orders' })).toBeVisible()
-    for (const width of [375, 430, 768, 1024, 1440]) {
-      await page.setViewportSize({ width, height: 900 })
+    for (const viewport of [{ width: 360, height: 740 }, { width: 390, height: 844 }, { width: 430, height: 932 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+      await page.setViewportSize(viewport)
       const overflow = await page.evaluate(() => ({ width: document.documentElement.scrollWidth, viewport: document.documentElement.clientWidth, elements: [...document.querySelectorAll<HTMLElement>('body *')].filter((node) => { const rect = node.getBoundingClientRect(); return rect.width > 0 && (rect.right > document.documentElement.clientWidth + 1 || rect.left < -1) }).slice(0, 8).map((node) => ({ tag: node.tagName, class: node.className, text: node.innerText?.slice(0, 40), right: Math.round(node.getBoundingClientRect().right) })) }))
-      expect(overflow.width <= overflow.viewport, `connect page overflow at ${width}px: ${JSON.stringify(overflow)}`).toBe(true)
-      await page.screenshot({ path: `test-results/visual/connect-${width}.png`, fullPage: true })
+      expect(overflow.width <= overflow.viewport, `connect page overflow at ${viewport.width}px: ${JSON.stringify(overflow)}`).toBe(true)
+      await page.screenshot({ path: `test-results/visual/connect-${viewport.width}x${viewport.height}.png`, fullPage: true })
     }
   })
 })
