@@ -390,7 +390,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
               <input type="search" placeholder={copy.searchPlaceholder} autoComplete="off" aria-label="Search products" value={q} onChange={(event) => setQ(event.target.value)} />
             </label>
             <span className="pc-spacer" />
-            <button type="button" className="pc-ctl pc-btn-filter" onClick={() => setDrawer(true)}>{copy.filtersLabel}{activeFilters ? ` · ${activeFilters}` : ''}</button>
+            <button type="button" className="pc-ctl pc-btn-filter" onClick={() => setDrawer(true)}><span>{copy.filtersLabel}</span>{activeFilters > 0 && <span className="pc-filter-count">{activeFilters}</span>}<span aria-hidden="true">☷</span></button>
             <select className="pc-ctl" aria-label="Sort products" value={sort} onChange={(event) => { setSort(event.target.value as (typeof SORTS)[number]['value']); setPage(1) }}>
               {SORTS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
