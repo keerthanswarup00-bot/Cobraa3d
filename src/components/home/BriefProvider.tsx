@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { buildWhatsAppUrl } from '@/lib/shared'
 import { truncateGraphemes } from '@/lib/text'
-import { buildBriefMessage, clampQuantity, type BriefConfig, type BriefFont, type BriefItem } from './briefConfig'
+import { buildBriefMessage, clampQuantity, contrastingColourIndex, type BriefConfig, type BriefFont, type BriefItem } from './briefConfig'
 
 type BriefState = {
   item: string
@@ -11,6 +11,8 @@ type BriefState = {
   font: string
   baseColour: number
   textColour: number
+  /** True once the visitor has chosen a text colour; until then it follows the base colour so the text stays readable. */
+  textColourPicked: boolean
   quantityInput: string
   note: string
   neededBy: string
@@ -55,7 +57,8 @@ export function BriefProvider({ config, whatsappNumber, activeOfferText, childre
     text: '',
     font: config.fonts[0]?.id || 'bold',
     baseColour: 0,
-    textColour: 0,
+    textColour: contrastingColourIndex(config.colours, 0),
+    textColourPicked: false,
     quantityInput: '1',
     note: '',
     neededBy: '',
@@ -81,10 +84,10 @@ export function BriefProvider({ config, whatsappNumber, activeOfferText, childre
     return clampQuantity(parsed)
   }, [state.quantityInput])
 
-  const edit = useCallback((patch: Partial<BriefState>, rebuild = false) => {
+  const edit = useCallback((patch: Partial<BriefState> | ((current: BriefState) => Partial<BriefState>), rebuild = false) => {
     setTouched(true)
     setState((current) => {
-      const next = { ...current, ...patch }
+      const next = { ...current, ...(typeof patch === 'function' ? patch(current) : patch) }
       if (typeof next.text === 'string' && config.maxCharacters) {
         next.text = truncateGraphemes(next.text, config.maxCharacters)
       }
@@ -101,8 +104,12 @@ export function BriefProvider({ config, whatsappNumber, activeOfferText, childre
   }, [])
   const setText = useCallback((value: string) => edit({ text: truncateGraphemes(value, config.maxCharacters) }), [edit, config.maxCharacters])
   const setFont = useCallback((id: string) => edit({ font: id }, true), [edit])
-  const setBaseColour = useCallback((index: number) => edit({ baseColour: index }, true), [edit])
-  const setTextColour = useCallback((index: number) => edit({ textColour: index }, true), [edit])
+  const setBaseColour = useCallback((index: number) => edit((current) => (
+    current.textColourPicked
+      ? { baseColour: index }
+      : { baseColour: index, textColour: contrastingColourIndex(config.colours, index) }
+  ), true), [edit, config.colours])
+  const setTextColour = useCallback((index: number) => edit({ textColour: index, textColourPicked: true }, true), [edit])
   const setQuantityInput = useCallback((value: string) => edit({ quantityInput: value }), [edit])
   const setNote = useCallback((value: string) => edit({ note: value }), [edit])
   const setNeededBy = useCallback((value: string) => edit({ neededBy: value }), [edit])
