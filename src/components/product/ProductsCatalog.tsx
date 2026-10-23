@@ -638,29 +638,29 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
               {copy.filtersLabel}
               {activeFilterCount > 0 && <b>{activeFilterCount}</b>}
             </button>
+            <label className="pc-category-filter">
+              <span>Category</span>
+              <select
+                className="pc-ctl"
+                aria-label="Choose a product category"
+                value={filters.categories.length > 1 ? '__multiple__' : filters.categories[0] || ''}
+                onChange={(event) => updateFilters({ categories: event.target.value ? [event.target.value] : [] })}
+              >
+                <option value="">All categories</option>
+                {filters.categories.length > 1 && <option value="__multiple__" disabled>Multiple categories selected</option>}
+                {categoryOptions.map((category) => (
+                  <option key={category.value} value={category.value} disabled={!category.count && !filters.categories.includes(category.value)}>
+                    {category.label} ({category.count})
+                  </option>
+                ))}
+              </select>
+            </label>
             <label className="pc-sort">
               <span>Sort</span>
               <select className="pc-ctl" aria-label="Sort products" value={filters.sort} onChange={(event) => updateFilters({ sort: event.target.value as CatalogSort })}>
                 {SORT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
               </select>
             </label>
-          </div>
-          <div className="pc-chips" role="group" aria-label="Categories">
-            <button type="button" className="pc-chip" aria-pressed={filters.categories.length === 0} onClick={() => updateFilters({ categories: [] })}>
-              All<small>{products.length}</small>
-            </button>
-            {categoryOptions.map((category) => (
-              <button
-                key={category.value}
-                type="button"
-                className="pc-chip"
-                aria-pressed={filters.categories.includes(category.value)}
-                disabled={!category.count && !filters.categories.includes(category.value)}
-                onClick={() => toggleFilter('categories', category.value)}
-              >
-                {category.label}<small>{category.count}</small>
-              </button>
-            ))}
           </div>
           {(activeChips.length > 0 || filters.q) && (
             <div className="pc-active" aria-label="Active filters">

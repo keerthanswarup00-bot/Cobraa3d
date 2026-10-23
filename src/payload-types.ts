@@ -92,6 +92,9 @@ export interface Config {
     'payload-migrations': PayloadMigration;
   };
   collectionsJoins: {
+    categories: {
+      products: 'products';
+    };
     'payload-folders': {
       documentsAndFolders: 'payload-folders' | 'media';
     };
@@ -183,6 +186,10 @@ export interface Product {
    */
   shortDescription?: string | null;
   /**
+   * Choose a catalogue category for this product.
+   */
+  category?: (number | null) | Category;
+  /**
    * Enter the price in INR. Leave blank to show “Ask for price”.
    */
   price?: number | null;
@@ -203,10 +210,6 @@ export interface Product {
    * Development demonstration record. Never use as confirmed stock or pricing.
    */
   isDemo?: boolean | null;
-  /**
-   * Choose a visible catalogue category.
-   */
-  category?: (number | null) | Category;
   description?: {
     root: {
       type: string;
@@ -307,6 +310,11 @@ export interface Category {
   slug: string;
   description?: string | null;
   coverImage?: (number | null) | Media;
+  products?: {
+    docs?: (number | Product)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   sortOrder?: number | null;
   visible?: boolean | null;
   updatedAt: string;
@@ -961,13 +969,13 @@ export interface PayloadMigration {
 export interface ProductsSelect<T extends boolean = true> {
   title?: T;
   shortDescription?: T;
+  category?: T;
   price?: T;
   salePrice?: T;
   generateSlug?: T;
   slug?: T;
   status?: T;
   isDemo?: T;
-  category?: T;
   description?: T;
   images?:
     | T
@@ -1037,6 +1045,7 @@ export interface CategoriesSelect<T extends boolean = true> {
   slug?: T;
   description?: T;
   coverImage?: T;
+  products?: T;
   sortOrder?: T;
   visible?: T;
   updatedAt?: T;

@@ -29,7 +29,7 @@ export const Products: CollectionConfig = {
       { label: 'Overview', fields: [
         { name: 'title', type: 'text', required: true, admin: { description: 'Product name customers will see.' } },
         { name: 'shortDescription', label: 'Description', type: 'textarea', maxLength: 240, admin: { description: 'The description shown on product cards. Keep it under 240 characters.' } },
-        { name: 'category', type: 'relationship', relationTo: 'categories', admin: { description: 'Choose a catalogue category for this product.' } },
+        { name: 'category', type: 'relationship', relationTo: 'categories', admin: { description: 'Choose a catalogue category for this product.', components: { Cell: '/components/admin/EditableCategoryCell#EditableCategoryCell' } } },
         { name: 'price', type: 'number', min: 0, admin: {
           description: 'Enter the price in INR. Leave blank to show “Ask for price”.',
           components: { Cell: '/components/admin/EditablePriceCell#EditablePriceCell' },
