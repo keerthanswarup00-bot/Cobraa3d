@@ -4,6 +4,7 @@ import { useEffect, useState, type ChangeEvent } from 'react'
 import type { DefaultCellComponentProps } from 'payload'
 
 type CategoryOption = { id: number | string; name: string }
+type PayloadErrorResponse = { errors?: { message?: string }[]; message?: string }
 type ProductRow = {
   id?: number | string
   title?: string
@@ -86,6 +87,7 @@ function EditableCategoryEditor({
 
   const saveCategory = async (event: ChangeEvent<HTMLSelectElement>) => {
     const nextCategory = event.target.value
+    const previousCategory = category
     setCategory(nextCategory)
     setFeedback('')
 
@@ -101,17 +103,21 @@ function EditableCategoryEditor({
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          category: nextCategory || null,
+          category: nextCategory ? (/^\d+$/.test(nextCategory) ? Number(nextCategory) : nextCategory) : null,
           status: productStatus,
           _status: productStatus,
         }),
       })
 
-      if (!response.ok) throw new Error('Could not save category')
+      if (!response.ok) {
+        const payloadError = await response.json().catch(() => null) as PayloadErrorResponse | null
+        const message = payloadError?.errors?.map((error) => error.message).filter(Boolean).join('; ') || payloadError?.message
+        throw new Error(message || `Request failed (${response.status})`)
+      }
       setFeedback('Saved')
-    } catch {
-      setCategory(initialCategory)
-      setFeedback('Save failed. Try again.')
+    } catch (error) {
+      setCategory(previousCategory)
+      setFeedback(error instanceof Error ? `Save failed: ${error.message}` : 'Save failed. Try again.')
     } finally {
       setSaving(false)
     }
@@ -131,7 +137,7 @@ function EditableCategoryEditor({
         <option value="">No Category</option>
         {categories.map((option) => <option key={String(option.id)} value={String(option.id)}>{option.name}</option>)}
       </select>
-      <span aria-live="polite" role="status" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{loading ? 'Loading…' : saving ? 'Saving…' : feedback}</span>
+      <span aria-live="polite" role="status" title={feedback} style={{ fontSize: 12, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{loading ? 'Loading…' : saving ? 'Saving…' : feedback}</span>
     </div>
   )
 }
