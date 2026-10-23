@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Frontend', () => {
-  test('shows three featured demos, a product catalogue, and direct product routes', async ({ page }) => {
+  test('shows featured products, a product catalogue, and direct product routes', async ({ page }) => {
     await page.goto('/')
-    await expect(page.locator('.studio-product-card')).toHaveCount(3)
-    await expect(page.locator('.studio-view-all')).toHaveAttribute('href', '/products')
+    await expect(page.locator('.home-product-section').first().locator('.studio-product-card')).toHaveCount(3)
+    await expect(page.locator('.home-product-section').first().locator('.studio-view-all')).toHaveAttribute('href', '/products')
     await page.goto('/products')
     await expect(page.locator('.pc-card')).toHaveCount(15)
     const detailLinks = page.locator('.pc-card a.pc-media')
@@ -27,10 +27,10 @@ test.describe('Frontend', () => {
 
   test('can load homepage', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: /Personalised 3D prints\. Made in Hoskote\./ })).toBeVisible()
-    await expect(page.locator('.studio-view-all')).toHaveAttribute('href', '/products')
+    await expect(page.locator('#home-title')).toBeVisible()
+    await expect(page.locator('.home-product-section').first().locator('.studio-view-all')).toHaveAttribute('href', '/products')
     await page.getByRole('link', { name: /Browse products/ }).click()
-    await expect(page).toHaveURL(/#products$/)
+    await expect(page).toHaveURL(/\/products$/)
   })
 
   test('renders the branded layer-shift 404', async ({ page }) => {
@@ -42,7 +42,7 @@ test.describe('Frontend', () => {
   test('renders without horizontal overflow at phone, tablet, and desktop widths', async ({ page }) => {
     await page.goto('/')
     await expect(page.locator('h1').first()).toBeVisible()
-    await expect(page.locator('.studio-view-all')).toBeVisible()
+    await expect(page.locator('.home-product-section').first().locator('.studio-view-all')).toBeVisible()
     await expect.poll(() => page.locator('html').evaluate((element) => getComputedStyle(element).opacity)).toBe('1')
     for (const width of [375, 430, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 })
@@ -122,15 +122,14 @@ test.describe('Frontend', () => {
     }
   })
 
-  test('the home hero honours reduced motion and the custom route still works', async ({ page }) => {
+  test('the simplified homepage honours reduced motion and the custom route still works', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/?src=qr')
-    await expect(page.locator('h1').first()).toBeVisible()
+    await expect(page.locator('#home-title')).toBeVisible()
     await expect(page.getByRole('link', { name: /Browse products/ })).toBeVisible()
-    const piece = page.locator('.studio-hero-piece')
-    const first = (await piece.textContent())?.trim()
-    await page.waitForTimeout(4200)
-    expect((await piece.textContent())?.trim(), 'the hero moved despite reduced motion').toBe(first)
+    const motion = await page.locator('.home-hero').evaluate((node) => ({ animation: getComputedStyle(node).animationDuration, transition: getComputedStyle(node).transitionDuration }))
+    expect(motion.animation).toBe('1e-05s')
+    expect(motion.transition).toBe('1e-05s')
     await page.goto('/custom')
     await expect(page.getByRole('heading', { name: 'Custom orders' })).toBeVisible()
     for (const width of [375, 430, 768, 1024, 1440]) {

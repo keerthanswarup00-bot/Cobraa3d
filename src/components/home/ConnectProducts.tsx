@@ -19,6 +19,7 @@ export type ConnectProduct = {
   priceLabel?: string
   originalPriceLabel?: string
   whatsappURL?: string | null
+  categorySlug?: string | null
 }
 
 function shapeWidth(shape: ConnectProduct['visual'], t: number) {

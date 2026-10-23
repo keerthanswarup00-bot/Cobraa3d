@@ -72,13 +72,12 @@ test.describe('Mobile catalogue', () => {
     await skipSplash(page)
     await page.goto('/products')
 
-    const all = page.locator('.pc-chip').first()
-    const total = Number((await all.innerText()).match(/\d+/)?.[0] ?? 0)
+    const total = Number((await page.locator('.pc-meta').innerText()).match(/\d+/)?.[0] ?? 0)
     expect(total, 'the catalogue should have products').toBeGreaterThan(0)
 
-    const lamps = page.locator('.pc-chip', { hasText: 'Lamps & Lighting' })
-    await expect(lamps).toBeVisible()
-    await lamps.click()
+    const category = page.getByRole('combobox', { name: 'Choose a product category' })
+    await expect(category.locator('option', { hasText: 'Lamps & Lighting' })).toBeAttached()
+    await category.selectOption('lamps-lighting')
 
     await expect.poll(() => new URL(page.url()).searchParams.get('category')).toBe('lamps-lighting')
     const filtered = Number((await page.locator('.pc-meta').innerText()).match(/\d+/)?.[0] ?? 0)
