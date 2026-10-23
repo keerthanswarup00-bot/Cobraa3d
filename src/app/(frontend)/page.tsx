@@ -102,7 +102,7 @@ export default async function HomePage() {
         <div className="studio-wrap studio-hero-content">
           <div className="studio-hero-copy">
             <p className="studio-eyebrow"><i aria-hidden="true" />Hoskote, Bengaluru · Printed to order</p>
-            <h1 id="home-title"><span>Made in Hoskote.</span><span className="is-outline">Made to be yours.</span></h1>
+            <h1 id="home-title"><span>Personalised 3D prints.</span><span className="is-outline">Made in Hoskote.</span></h1>
             <p className="studio-lede">{heroLede}</p>
           </div>
           <HomeHero hint={heroHint} />

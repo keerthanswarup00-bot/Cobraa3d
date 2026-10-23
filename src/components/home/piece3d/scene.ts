@@ -99,6 +99,11 @@ export async function createPieceScene(options: SceneOptions): Promise<PieceScen
   let request = 0
   let previousTime = 0
   let disposed = false
+  let building = false
+  let rebuildAgain = false
+  let rebuildQueued = false
+  let pendingAnimate = false
+  let textTimer = 0
 
   function collect(mesh: THREE.Object3D) {
     mesh.traverse((child) => {
@@ -366,12 +371,6 @@ export async function createPieceScene(options: SceneOptions): Promise<PieceScen
   canvas.addEventListener('pointercancel', onPointerUp)
 
   renderer.domElement.style.touchAction = 'pan-y'
-
-  let building = false
-  let rebuildAgain = false
-  let rebuildQueued = false
-  let pendingAnimate = false
-  let textTimer = 0
 
   await runRebuild(true)
   resize()

@@ -112,6 +112,40 @@ export function resolveBriefConfig(settings: {
   return { items: BRIEF_ITEMS, fonts, colours, maxCharacters }
 }
 
+function relativeLuminance(hex: string) {
+  const clean = hex.replace('#', '')
+  const full = clean.length === 3 || clean.length === 4 ? clean.split('').map((char) => char + char).join('') : clean
+  const channels = [0, 2, 4].map((start) => {
+    const value = Number.parseInt(full.slice(start, start + 2), 16) / 255
+    return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * channels[0]! + 0.7152 * channels[1]! + 0.0722 * channels[2]!
+}
+
+export function contrastRatio(a: string, b: string) {
+  const [lighter, darker] = [relativeLuminance(a), relativeLuminance(b)].sort((x, y) => y - x)
+  return (lighter! + 0.05) / (darker! + 0.05)
+}
+
+/**
+ * Picks the text colour to use on a given base colour: the first colour in the
+ * palette order that reads clearly against it (WCAG 4.5:1), otherwise the
+ * highest-contrast one. Keeps the palette order so editors stay in control.
+ */
+export function contrastingColourIndex(colours: BriefColour[], baseIndex: number) {
+  const base = colours[baseIndex]
+  if (!base || colours.length < 2) return baseIndex
+  let best = -1
+  let bestRatio = 0
+  for (let index = 0; index < colours.length; index += 1) {
+    if (index === baseIndex) continue
+    const ratio = contrastRatio(base.hex, colours[index]!.hex)
+    if (ratio >= 4.5) return index
+    if (ratio > bestRatio) { best = index; bestRatio = ratio }
+  }
+  return best === -1 ? baseIndex : best
+}
+
 export function clampQuantity(value: number) {
   return Math.max(1, Math.min(500, Number.isFinite(value) ? Math.floor(value) : 1))
 }

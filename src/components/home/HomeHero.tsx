@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
-import { HeroPiece } from './HeroPiece'
+import { BriefPreview } from './BriefPreview'
 import { useBrief } from './BriefProvider'
 import { CYCLE_ITEM_IDS } from './briefConfig'
 import { detectScript } from '@/lib/text'
@@ -22,7 +22,8 @@ export function HomeHero({ hint = 'Drag the piece sideways to turn it.' }: { hin
   const dragging = useRef(false)
   const fieldId = useId()
   const [dragHintHidden, setDragHintHidden] = useState(false)
-  const scriptNote = brief.item.text && brief.text.trim() && detectScript(brief.text.trim()) === 'other'
+  const text = brief.text.trim()
+  const scriptNote = brief.item.text && text && detectScript(text) === 'other'
     ? 'Preview approximates this script; we’ll confirm the real result on WhatsApp.'
     : null
 
@@ -78,7 +79,7 @@ export function HomeHero({ hint = 'Drag the piece sideways to turn it.' }: { hin
       onPointerCancel={resetTilt}
     >
       <div className="studio-hero-stage-model" style={{ '--fil': brief.baseColourHex } as React.CSSProperties}>
-        <HeroPiece />
+        <BriefPreview />
       </div>
       <p className="studio-hero-piece"><span>{brief.item.label}</span></p>
       {!dragHintHidden && <span className="studio-drag-hint">{hint}</span>}
@@ -86,6 +87,16 @@ export function HomeHero({ hint = 'Drag the piece sideways to turn it.' }: { hin
     {scriptNote && <p className="studio-script-note">{scriptNote}</p>}
 
     <div className="studio-hero-controls">
+      <div className="studio-field">
+        <span className="studio-field-label"><span>What are we making?</span></span>
+        <div className="studio-chip-row" role="group" aria-label="Choose a piece">
+          {brief.config.items.map((entry: any) => <label className="studio-chip" key={entry.id}>
+            <input type="radio" name={`${fieldId}-item`} value={entry.id} checked={brief.item.id === entry.id} onChange={() => brief.setItem(entry.id)} onClick={() => brief.touch()} />
+            <span>{entry.label}</span>
+          </label>)}
+        </div>
+      </div>
+
       {brief.item.text && <div className="studio-field">
         <label className="studio-field-label" htmlFor={`${fieldId}-text`}><span>{brief.item.textLabel || 'Name'}</span><b>{brief.text.length}/{brief.config.maxCharacters}</b></label>
         <input
@@ -119,16 +130,6 @@ export function HomeHero({ hint = 'Drag the piece sideways to turn it.' }: { hin
           </label>)}
         </div>
       </div>}
-
-      <div className="studio-field">
-        <span className="studio-field-label"><span>What are we making?</span></span>
-        <div className="studio-chip-row" role="group" aria-label="Choose a piece">
-          {brief.config.items.map((entry: any) => <label className="studio-chip" key={entry.id}>
-            <input type="radio" name={`${fieldId}-item`} value={entry.id} checked={brief.item.id === entry.id} onChange={() => brief.setItem(entry.id)} onClick={() => brief.touch()} />
-            <span>{entry.label}</span>
-          </label>)}
-        </div>
-      </div>
 
       <div className="studio-hero-actions">
         {brief.whatsappURL

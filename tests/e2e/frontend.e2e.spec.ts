@@ -27,7 +27,7 @@ test.describe('Frontend', () => {
 
   test('can load homepage', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: /Made in Hoskote\. Made to be yours\./ })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Personalised 3D prints\. Made in Hoskote\./ })).toBeVisible()
     await expect(page.locator('.studio-view-all')).toHaveAttribute('href', '/products')
     await page.getByRole('link', { name: /Browse products/ }).click()
     await expect(page).toHaveURL(/#products$/)
@@ -105,8 +105,8 @@ test.describe('Frontend', () => {
     await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible()
     await expect(page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Location' })).toHaveCount(0)
     await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Products' }).click()
-    await expect(page).toHaveURL(/#products$/)
-    await expect(page.locator('#products')).toBeVisible()
+    await expect(page).toHaveURL(/\/products$/)
+    await expect(page.getByRole('heading', { level: 1, name: /Thoughtful design\./ })).toBeVisible()
     await page.goto('/custom')
     await expect(page.getByRole('heading', { name: 'Custom orders' })).toBeVisible()
     await page.goto('/location')

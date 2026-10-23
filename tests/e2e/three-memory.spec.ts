@@ -10,9 +10,8 @@ test('three preview does not grow geometry or texture memory when cycling 40 tim
   await expect(stage).toBeVisible()
   await page.waitForTimeout(4000)
 
-  const samples = await page.evaluate(async () => {
-    const results: { g: number; t: number }[] = []
-    const canvas = document.querySelector('[data-hero-stage] canvas') as HTMLCanvasElement | null
+  const samples = await page.evaluate(`(async () => {
+    const results = []
     const getInfo = () => {
       const piece = document.querySelector('[data-piece3d-memory]')
       const value = piece?.getAttribute('data-piece3d-memory') || ''
@@ -20,12 +19,11 @@ test('three preview does not grow geometry or texture memory when cycling 40 tim
         const [g, t] = value.split(':').map(Number)
         return { g, t }
       }
-      // Fallback: read from the renderer if exposed (not guaranteed)
       return { g: Number.NaN, t: Number.NaN }
     }
     const clicks = document.querySelectorAll('.studio-chip-row .studio-chip input[type=radio]')
     for (let i = 0; i < 40; i += 1) {
-      const input = clicks[i % clicks.length] as HTMLInputElement
+      const input = clicks[i % clicks.length]
       input.click()
       await new Promise((r) => setTimeout(r, 250))
       if (i % 8 === 7) results.push(getInfo())
@@ -34,7 +32,7 @@ test('three preview does not grow geometry or texture memory when cycling 40 tim
     await new Promise((r) => setTimeout(r, 800))
     results.push(getInfo())
     return results
-  })
+  })()`) as { g: number; t: number }[]
 
   const numbers = samples.filter((s) => !Number.isNaN(s.g) && !Number.isNaN(s.t))
   expect(numbers.length).toBeGreaterThan(0)

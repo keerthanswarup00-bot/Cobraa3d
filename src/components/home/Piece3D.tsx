@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import type { StudioFontFamily } from './piece3d/fonts'
 import type { PieceKind } from './piece3d/geometry'
 import type { PieceScene } from './piece3d/scene'
@@ -18,6 +18,7 @@ type Piece3DProps = {
   description: string
   onReady?: () => void
   onInteract?: () => void
+  fallback?: ReactNode
 }
 
 type IdleHandle = { cancel: () => void }
@@ -68,7 +69,7 @@ export function Piece3D(props: Piece3DProps) {
 
   useEffect(() => {
     latest.current = props
-  })
+  }, [props])
 
   useEffect(() => {
     const wrapper = wrapperRef.current
@@ -163,6 +164,7 @@ export function Piece3D(props: Piece3DProps) {
     data-piece3d-memory={memory}
     onKeyDown={onKeyDown}
   >
+    {props.fallback && state !== 'ready' && <div className="studio-piece3d-fallback" aria-hidden="true">{props.fallback}</div>}
     <canvas className="studio-piece3d-canvas" ref={canvasRef} aria-hidden="true" style={{ touchAction: 'pan-y' }} />
     <p className="studio-visually-hidden" id={descriptionId}>{props.description}</p>
   </div>

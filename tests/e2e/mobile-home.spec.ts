@@ -66,6 +66,7 @@ test.describe('Mobile home', () => {
           previewType: model?.getAttribute('data-preview-type') ?? null,
           hasPlate: Boolean(model?.querySelector('.studio-preview-plate')),
           isKeychain: Boolean(model?.querySelector('.studio-preview-plate.is-keychain')),
+          has3DPreview: Boolean(model?.querySelector('.studio-piece3d-canvas')),
           hasLayerRender: Boolean(model?.querySelector('svg.studio-layer-render')),
           layerLabel: layerTag?.textContent?.trim() ?? '',
           contained: models.every((node) => {
@@ -80,8 +81,8 @@ test.describe('Mobile home', () => {
       if (state.previewItem !== item.id) problems.push(`${item.label}: preview reports "${state.previewItem}"`)
       if (state.previewType !== item.shape) problems.push(`${item.label}: preview shape is "${state.previewType}"`)
       if (item.shape === 'plate' || item.shape === 'key') {
-        if (!state.hasPlate) problems.push(`${item.label}: expected a plate preview`)
-        if (item.shape === 'key' && !state.isKeychain) problems.push(`${item.label}: expected a keychain preview`)
+        if (!state.hasPlate && !state.has3DPreview) problems.push(`${item.label}: expected a plate or 3D preview`)
+        if (item.shape === 'key' && state.hasPlate && !state.isKeychain) problems.push(`${item.label}: expected a keychain preview`)
       } else if (!state.hasLayerRender) {
         problems.push(`${item.label}: expected a layered preview`)
       }
