@@ -10,9 +10,11 @@ import { ConnectProducts, type ConnectProduct } from '@/components/home/ConnectP
 import { ConnectHud, ConnectTerrain } from '@/components/home/ConnectTerrain'
 import { resolveBriefConfig } from '@/components/home/briefConfig'
 import { TEMP_PRODUCTS } from '@/lib/tempProducts'
-import { buildWhatsAppUrl, isActiveWithinWindow } from '@/lib/shared'
+import { buildProductMessage, buildWhatsAppUrl, isActiveWithinWindow } from '@/lib/shared'
 import { env } from '@/lib/env'
 import { getSiteSettings } from '@/utilities/getSiteSettings'
+import { getServerSideURL } from '@/utilities/getURL'
+import { getDisplayPrice } from '@/lib/pricing'
 import type { Product } from '@/payload-types'
 import { PushAlerts } from '@/components/PushAlerts'
 
@@ -54,6 +56,7 @@ export default async function HomePage() {
     payload.find({ collection: 'offers', limit: 100, depth: 0 }),
   ])
   const cmsProducts = (result.docs as Product[]).sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)) || (a.sortOrder || 0) - (b.sortOrder || 0))
+  const siteURL = getServerSideURL()
   const usingTemporary = cmsProducts.length === 0
   const allProducts: ConnectProduct[] = usingTemporary ? TEMP_PRODUCTS.map((product) => ({ id: product.id, slug: product.slug, title: product.name, blurb: product.blurb, tag: product.tag, filament: product.fil, visual: product.vis, sample: 'sample' in product ? product.sample : undefined, temporary: true, priceLabel: 'Ask for price' })) : cmsProducts.map((product) => {
     const mediaRow = product.images?.find((row) => row.image && typeof row.image === 'object')
@@ -63,8 +66,19 @@ export default async function HomePage() {
       slug: product.slug || '', title: product.title, blurb: product.shortDescription || '', tag: product.badges?.[0] || (typeof product.category === 'object' && product.category ? product.category.name || 'Made to order' : 'Made to order'),
       filament: product.colourOptions?.[0]?.hex || '#e6dcc6', visual: cmsVisual(product), sample: product.title,
       image: media?.url ? { url: media.url, alt: mediaRow?.alt || media.alt || product.title, width: media.width, height: media.height } : undefined,
-      priceLabel: product.priceMode === 'show' && product.price != null ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: product.currency || 'INR', maximumFractionDigits: 2 }).format(product.price) : 'Ask for price',
-      whatsappURL: buildWhatsAppUrl({ number: settings.whatsappNumber, message: `Hi Cobraa 3D, I would like to enquire about ${product.title}.` }),
+      priceLabel: getDisplayPrice({ id: product.id, price: product.price, salePrice: product.salePrice, priceMode: product.priceMode, currency: product.currency }).priceLabel,
+      whatsappURL: buildWhatsAppUrl({ number: settings.whatsappNumber, message: buildProductMessage({
+        title: product.title,
+        slug: product.slug,
+        price: product.salePrice != null && product.priceMode === 'show' && product.salePrice < (product.price ?? Infinity) ? product.salePrice : product.price,
+        priceMode: product.priceMode,
+        currency: product.currency,
+        whatsappMessageOverride: product.whatsappMessageOverride,
+        ageGroup: product.ageGroup,
+        personalisable: product.personalisable,
+        badges: product.badges,
+        images: product.images?.map((row) => ({ alt: row.alt, image: row.image && typeof row.image === 'object' ? { url: row.image.url } : row.image })) || [],
+      }, { baseURL: siteURL }, { messageTemplates: { product: settings.messageTemplates?.product } }) }),
     }
   })
   const globalOffer = offerResult.docs.find((offer) => isActiveWithinWindow(offer) && !offer.applicableProducts?.length)

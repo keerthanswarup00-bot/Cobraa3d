@@ -7,8 +7,9 @@ import { createPortal } from 'react-dom'
 import { MessageCircle, X } from 'lucide-react'
 
 const LINKS = [
+  { key: 'home', label: 'Home' },
   { key: 'products', label: 'Products' },
-  { key: 'custom', label: 'Custom' },
+  { key: 'custom', label: 'Custom orders' },
 ] as const
 
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
@@ -112,14 +113,14 @@ export function SiteNavigation({ brandName, whatsappURL }: { brandName: string; 
   }, [open, closeMenu])
 
   const activeKey = pathname === '/'
-    ? activeSection
+    ? activeSection || 'home'
     : pathname.startsWith('/products')
       ? 'products'
       : pathname.startsWith('/custom')
         ? 'custom'
         : ''
 
-  const hrefFor = (key: (typeof LINKS)[number]['key']) => key === 'products' ? '/products' : pathname === '/' ? '#custom' : '/#custom'
+  const hrefFor = (key: (typeof LINKS)[number]['key']) => key === 'home' ? '/' : key === 'products' ? '/products' : pathname === '/' ? '#custom' : '/#custom'
 
   const menu = open ? createPortal(
     <div
