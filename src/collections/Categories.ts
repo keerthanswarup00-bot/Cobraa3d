@@ -25,7 +25,7 @@ export const Categories: CollectionConfig = {
     },
     update: editorAccess,
   },
-  admin: { useAsTitle: 'name', defaultColumns: ['name', 'slug', 'visible', 'sortOrder'] },
+  admin: { useAsTitle: 'name', defaultColumns: ['name', 'slug', 'visible', 'sortOrder'], listSearchableFields: ['name', 'slug'] },
   fields: [
     { name: 'name', type: 'text', required: true },
     slugField({ name: 'slug', position: 'sidebar' }),

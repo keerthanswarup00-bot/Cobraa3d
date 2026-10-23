@@ -2,8 +2,27 @@
 
 import Image from 'next/image'
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type TouchEvent as ReactTouchEvent } from 'react'
+import { createPortal } from 'react-dom'
+import { SlidersHorizontal, X } from 'lucide-react'
 import { ProductRender, type ConnectProduct } from '@/components/home/ConnectProducts'
 import { formatPrice } from '@/lib/shared'
+import { PushAlerts } from '@/components/PushAlerts'
+import {
+  buildCatalogFacets,
+  catalogFiltersToSearchParams,
+  countActiveCatalogFilters,
+  EMPTY_FILTERS,
+  filterCatalogProducts,
+  hasActiveCatalogFilters,
+  OPTION_FILTERS,
+  PRICE_BUCKETS,
+  SORT_OPTIONS,
+  sortCatalogProducts,
+  type CatalogFilterState,
+  type CatalogSort,
+  type OptionFilterId,
+  type PriceBucketId,
+} from '@/lib/catalogFilters'
 import './products-catalog.css'
 
 export type CatalogImage = { url: string; alt: string; width?: number | null; height?: number | null }
@@ -14,11 +33,21 @@ export type CatalogProduct = {
   slug: string
   title: string
   category: string | null
+  categorySlug: string | null
   tags: string[]
+  material: string | null
+  materialSlug: string | null
+  colours: { name: string; slug: string; hex: string | null }[]
+  colourSlugs: string[]
+  personalisable: boolean
+  featured: boolean
+  availability: string | null
+  newArrival: boolean
+  searchText: string
   description: string
   priceLabel: string
   hasPrice: boolean
-  price?: number | null
+  price: number | null
   currency: string
   specs: CatalogSpec[]
   images: CatalogImage[]
@@ -45,78 +74,196 @@ export type CatalogCopy = {
   perPage: number
 }
 
+type CategoryOption = { name: string; slug: string }
+
 type Props = {
   products: CatalogProduct[]
-  categories: { name: string }[]
+  categories: CategoryOption[]
   copy: CatalogCopy
   whatsappBase: string | null
   brandName: string
   siteURL: string
   calmMode: boolean
-  initialQuery?: string
-  initialPage?: number
+  pushPublicKey?: string
+  initialFilters: CatalogFilterState
 }
 
+type FacetOption = { value: string; label: string; count: number; hex?: string | null }
+type FilterKey = 'categories' | 'materials' | 'colours' | 'prices' | 'options'
+
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
-const SORTS = [
-  { value: 'new', label: 'Newest' },
-  { value: 'plow', label: 'Price: low to high' },
-  { value: 'phigh', label: 'Price: high to low' },
-  { value: 'az', label: 'Name: A to Z' },
-] as const
 
 function prefersReduced() {
   return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-export function ProductsCatalog({ products, categories, copy, whatsappBase, brandName, siteURL, calmMode, initialQuery = '', initialPage = 1 }: Props) {
+function FilterPanel({
+  categories,
+  materials,
+  colours,
+  prices,
+  options,
+  filters,
+  onToggle,
+  resetLabel,
+  onClear,
+}: {
+  categories: FacetOption[]
+  materials: FacetOption[]
+  colours: FacetOption[]
+  prices: FacetOption[]
+  options: FacetOption[]
+  filters: CatalogFilterState
+  onToggle: (key: FilterKey, value: string) => void
+  resetLabel: string
+  onClear: () => void
+}) {
+  return (
+    <div className="pc-filter-body">
+      <section>
+        <h3>Category</h3>
+        <div className="pc-opt-list">
+          {categories.map((option) => {
+            const selected = filters.categories.includes(option.value)
+            return (
+              <label key={option.value} className={`pc-opt${!option.count && !selected ? ' is-empty' : ''}`}>
+                <input type="checkbox" checked={selected} disabled={!option.count && !selected} onChange={() => onToggle('categories', option.value)} />
+                <span>{option.label}</span>
+                <small>{option.count}</small>
+              </label>
+            )
+          })}
+        </div>
+      </section>
+
+      <section>
+        <h3>Material</h3>
+        <div className="pc-opt-list">
+          {materials.length > 0 ? materials.map((option) => (
+            <label key={option.value} className={`pc-opt${!option.count && !filters.materials.includes(option.value) ? ' is-empty' : ''}`}>
+              <input type="checkbox" checked={filters.materials.includes(option.value)} disabled={!option.count && !filters.materials.includes(option.value)} onChange={() => onToggle('materials', option.value)} />
+              <span>{option.label}</span>
+              <small>{option.count}</small>
+            </label>
+          )) : <p className="pc-opt-empty">No materials listed yet.</p>}
+        </div>
+      </section>
+
+      <section>
+        <h3>Colour</h3>
+        <div className="pc-opt-list">
+          {colours.length > 0 ? colours.map((option) => (
+            <label key={option.value} className="pc-opt pc-opt-colour">
+              <input type="checkbox" checked={filters.colours.includes(option.value)} disabled={!option.count && !filters.colours.includes(option.value)} onChange={() => onToggle('colours', option.value)} />
+              <i style={{ background: option.hex || '#d8d4ca' }} aria-hidden="true" />
+              <span>{option.label}</span>
+              <small>{option.count}</small>
+            </label>
+          )) : <p className="pc-opt-empty">No colours listed yet.</p>}
+        </div>
+      </section>
+
+      {prices.length > 0 && (
+        <section>
+          <h3>Price</h3>
+          <div className="pc-opt-list">
+            {prices.map((option) => (
+              <label key={option.value} className={`pc-opt${!option.count && !filters.prices.includes(option.value as PriceBucketId) ? ' is-empty' : ''}`}>
+                <input type="checkbox" checked={filters.prices.includes(option.value as PriceBucketId)} disabled={!option.count && !filters.prices.includes(option.value as PriceBucketId)} onChange={() => onToggle('prices', option.value)} />
+                <span>{option.label}</span>
+                <small>{option.count}</small>
+              </label>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {options.length > 0 && (
+        <section>
+          <h3>Options</h3>
+          <div className="pc-opt-list">
+            {options.map((option) => (
+              <label key={option.value} className="pc-opt">
+                <input type="checkbox" checked={filters.options.includes(option.value as OptionFilterId)} onChange={() => onToggle('options', option.value)} />
+                <span>{option.label}</span>
+                <small>{option.count}</small>
+              </label>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <button type="button" className="pc-linkbtn pc-filter-reset" onClick={onClear}>{resetLabel}</button>
+    </div>
+  )
+}
+
+export function ProductsCatalog({ products, categories, copy, whatsappBase, brandName, siteURL, calmMode, pushPublicKey, initialFilters }: Props) {
   const perPage = Math.min(48, Math.max(1, copy.perPage || 15))
   const sheetTitleId = useId()
+  const filterTitleId = useId()
 
-  const bySlug = useMemo(() => new Map(products.map((product) => [product.slug, product])), [products])
-  const orderMap = useMemo(() => new Map(products.map((product, index) => [product.id, index])), [products])
-  const chips = useMemo(() => {
-    const counts = new Map<string, number>()
-    products.forEach((product) => {
-      if (product.category) counts.set(product.category, (counts.get(product.category) || 0) + 1)
-    })
-    return [
-      { name: 'All', count: products.length },
-      ...categories.filter((category) => (counts.get(category.name) || 0) > 0).map((category) => ({ name: category.name, count: counts.get(category.name) || 0 })),
-    ]
-  }, [products, categories])
-  const tagList = useMemo(() => [...new Set(products.flatMap((product) => product.tags))].sort((a, b) => a.localeCompare(b)), [products])
-  const priced = useMemo(() => products.filter((product) => product.hasPrice && product.price != null), [products])
-  const maxP = priced.length ? Math.max(...priced.map((product) => product.price as number)) : 0
-  const minP = priced.length ? Math.min(...priced.map((product) => product.price as number)) : 0
-  const priceFloor = Math.floor(minP / 100) * 100
-  const priceEnabled = priced.length >= 2 && minP < maxP
-  const currency = priced[0]?.currency || 'INR'
-
-  const [q, setQ] = useState(initialQuery)
-  const [query, setQuery] = useState(initialQuery.trim().toLowerCase())
-  const [cat, setCat] = useState('All')
-  const [tags, setTags] = useState<string[]>([])
-  const [maxOverride, setMaxOverride] = useState<number | null>(null)
-  const [sort, setSort] = useState<(typeof SORTS)[number]['value']>('new')
-  const [page, setPage] = useState(initialPage)
-  const [drawer, setDrawer] = useState(false)
+  const [filters, setFilters] = useState<CatalogFilterState>(initialFilters)
+  const [search, setSearch] = useState(initialFilters.q)
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [openSlug, setOpenSlug] = useState<string | null>(null)
   const [lastProduct, setLastProduct] = useState<CatalogProduct | null>(null)
   const [qty, setQty] = useState(1)
   const [note, setNote] = useState('')
   const [slide, setSlide] = useState(0)
-  const max = maxOverride == null ? maxP : Math.min(maxOverride, maxP)
+
+  const bySlug = useMemo(() => new Map(products.map((product) => [product.slug, product])), [products])
+  const filtered = useMemo(() => sortCatalogProducts(filterCatalogProducts(products, filters), filters.sort), [products, filters])
+  const facets = useMemo(() => buildCatalogFacets(products, filters), [products, filters])
+  const pages = Math.max(1, Math.ceil(filtered.length / perPage))
+  const safePage = Math.min(filters.page, pages)
+  const start = (safePage - 1) * perPage
+  const slice = filtered.slice(start, start + perPage)
+
+  const categoryLabels = useMemo(() => new Map(categories.map((category) => [category.slug, category.name])), [categories])
+  const materialLabels = useMemo(() => {
+    const map = new Map<string, string>()
+    products.forEach((product) => { if (product.materialSlug && product.material) map.set(product.materialSlug, product.material) })
+    return map
+  }, [products])
+  const colourLabels = useMemo(() => {
+    const map = new Map<string, { label: string; hex: string | null }>()
+    products.forEach((product) => product.colours.forEach((colour) => { if (!map.has(colour.slug)) map.set(colour.slug, { label: colour.name, hex: colour.hex }) }))
+    return map
+  }, [products])
+
+  const categoryOptions: FacetOption[] = categories.map((category) => ({
+    value: category.slug,
+    label: category.name,
+    count: facets.categories.get(category.slug) || 0,
+  }))
+  const materialOptions: FacetOption[] = [...facets.materials.entries()]
+    .map(([value, count]) => ({ value, label: materialLabels.get(value) || value, count }))
+    .sort((a, b) => a.label.localeCompare(b.label))
+  const colourOptions: FacetOption[] = [...facets.colours.entries()]
+    .map(([value, count]) => ({ value, label: colourLabels.get(value)?.label || value, count, hex: colourLabels.get(value)?.hex || null }))
+    .sort((a, b) => a.label.localeCompare(b.label))
+  const priceOptions: FacetOption[] = PRICE_BUCKETS
+    .map((bucket) => ({ value: bucket.id, label: bucket.label, count: facets.prices.get(bucket.id) || 0 }))
+    .filter((option) => option.count > 0 || filters.prices.includes(option.value as PriceBucketId))
+  const optionOptions: FacetOption[] = OPTION_FILTERS
+    .map((option) => ({ value: option.id, label: option.label, count: facets.options.get(option.id) || 0 }))
+    .filter((option) => option.count > 0 || filters.options.includes(option.value as OptionFilterId))
 
   const resultsRef = useRef<HTMLElement>(null)
   const sheetRef = useRef<HTMLElement>(null)
-  const grabRef = useRef<HTMLDivElement>(null)
+  const filterSheetRef = useRef<HTMLElement>(null)
+  const filterCloseRef = useRef<HTMLButtonElement>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
+  const filterTriggerRef = useRef<HTMLButtonElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const lastFocusRef = useRef<HTMLElement | null>(null)
+  const filterLastFocusRef = useRef<HTMLElement | null>(null)
   const pushedRef = useRef(false)
   const dragY = useRef<number | null>(null)
   const dragDist = useRef(0)
+  const filterDragY = useRef<number | null>(null)
+  const filterDragDist = useRef(0)
 
   const openProduct = useCallback((slug: string, fromPop = false) => {
     const product = bySlug.get(slug)
@@ -135,7 +282,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
     const target = `#/p/${encodeURIComponent(slug)}`
     if (!fromPop && location.hash !== target) {
       try {
-        history.pushState({ pcSheet: slug }, '', target)
+        history.pushState({ pcSheet: slug }, '', `${location.pathname}${location.search}${target}`)
         pushedRef.current = true
       } catch {
         // history can be unavailable in restricted contexts
@@ -165,15 +312,56 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
     lastFocusRef.current?.focus?.({ preventScroll: true })
   }, [])
 
-  const resetAll = useCallback(() => {
-    setQ('')
-    setQuery('')
-    setCat('All')
-    setTags([])
-    setMaxOverride(null)
-    setSort('new')
-    setPage(1)
+  const updateFilters = useCallback((patch: Partial<CatalogFilterState>, resetPage = true) => {
+    setFilters((current) => ({ ...current, ...patch, ...(resetPage ? { page: 1 } : {}) }))
   }, [])
+
+  const toggleFilter = useCallback((key: FilterKey, value: string) => {
+    setFilters((current) => {
+      const list = current[key] as string[]
+      const next = list.includes(value) ? list.filter((entry) => entry !== value) : [...list, value]
+      return { ...current, [key]: next, page: 1 } as CatalogFilterState
+    })
+  }, [])
+
+  const resetAll = useCallback(() => {
+    setFilters(EMPTY_FILTERS)
+    setSearch('')
+  }, [])
+
+  const removeFilter = toggleFilter
+
+  const openFilters = useCallback(() => {
+    filterLastFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : filterTriggerRef.current
+    if (filterSheetRef.current) {
+      filterSheetRef.current.classList.remove('drag')
+      filterSheetRef.current.style.transform = ''
+    }
+    setFiltersOpen(true)
+  }, [])
+
+  const closeFilters = useCallback((restoreFocus = true) => {
+    setFiltersOpen(false)
+    if (restoreFocus) filterLastFocusRef.current?.focus?.({ preventScroll: true })
+  }, [])
+
+  const onFilterTouchStart = (event: ReactTouchEvent<HTMLDivElement>) => {
+    filterDragY.current = event.touches[0]!.clientY
+    filterDragDist.current = 0
+    filterSheetRef.current?.classList.add('drag')
+  }
+  const onFilterTouchMove = (event: ReactTouchEvent<HTMLDivElement>) => {
+    if (filterDragY.current == null) return
+    filterDragDist.current = Math.max(0, event.touches[0]!.clientY - filterDragY.current)
+    if (filterSheetRef.current) filterSheetRef.current.style.transform = `translateY(${filterDragDist.current}px)`
+  }
+  const onFilterTouchEnd = () => {
+    if (filterDragY.current == null) return
+    filterDragY.current = null
+    filterSheetRef.current?.classList.remove('drag')
+    if (filterDragDist.current > 110) closeFilters()
+    else if (filterSheetRef.current) filterSheetRef.current.style.transform = ''
+  }
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -188,15 +376,21 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
   }, [openProduct])
 
   useEffect(() => {
+    if (search === filters.q) return
     const timer = window.setTimeout(() => {
-      const next = q.trim().toLowerCase()
-      if (next !== query) {
-        setQuery(next)
-        setPage(1)
-      }
-    }, 140)
+      setFilters((current) => ({ ...current, q: search.trim(), page: 1 }))
+    }, 220)
     return () => window.clearTimeout(timer)
-  }, [q, query])
+  }, [search, filters.q])
+
+  useEffect(() => {
+    try {
+      const query = catalogFiltersToSearchParams({ ...filters, page: safePage }).toString()
+      history.replaceState(history.state, '', `${location.pathname}${query ? `?${query}` : ''}${location.hash}`)
+    } catch {
+      // history can be unavailable in restricted contexts
+    }
+  }, [filters, safePage])
 
   useEffect(() => {
     const onPop = () => {
@@ -248,48 +442,69 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
     return () => document.removeEventListener('keydown', onKey)
   }, [openSlug, closeProduct, lastProduct, calmMode])
 
+  useEffect(() => {
+    if (!filtersOpen) return
+    const scrollY = window.scrollY
+    const { body, documentElement } = document
+    const previous = { overflow: body.style.overflow, position: body.style.position, top: body.style.top, width: body.style.width, paddingRight: body.style.paddingRight }
+    const scrollbarWidth = window.innerWidth - documentElement.clientWidth
+
+    body.style.overflow = 'hidden'
+    body.style.position = 'fixed'
+    body.style.top = `-${scrollY}px`
+    body.style.width = '100%'
+    if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`
+
+    const focusTimer = window.setTimeout(() => filterCloseRef.current?.focus({ preventScroll: true }), 30)
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        closeFilters()
+        return
+      }
+      if (event.key !== 'Tab' || !filterSheetRef.current) return
+      const items = Array.from(filterSheetRef.current.querySelectorAll<HTMLElement>(FOCUSABLE))
+      if (!items.length) {
+        event.preventDefault()
+        return
+      }
+      const first = items[0]!
+      const last = items[items.length - 1]!
+      const inside = filterSheetRef.current.contains(document.activeElement)
+      if (!inside || (event.shiftKey && document.activeElement === first)) {
+        event.preventDefault()
+        first.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        last.focus()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      window.clearTimeout(focusTimer)
+      document.removeEventListener('keydown', onKey)
+      body.style.overflow = previous.overflow
+      body.style.position = previous.position
+      body.style.top = previous.top
+      body.style.width = previous.width
+      body.style.paddingRight = previous.paddingRight
+      window.scrollTo(0, scrollY)
+    }
+  }, [filtersOpen, closeFilters])
+
   useEffect(() => () => { document.body.classList.remove('pc-locked') }, [])
 
-  const filtered = useMemo(() => {
-    const list = products.filter((product) =>
-      (cat === 'All' || product.category === cat)
-      && (!query || `${product.title} ${product.category || ''} ${product.tags.join(' ')}`.toLowerCase().includes(query))
-      && (!tags.length || tags.every((tag) => product.tags.includes(tag)))
-      && (!product.hasPrice || (product.price as number) <= max))
-    const priceAsc = (a: CatalogProduct, b: CatalogProduct) => {
-      if (a.hasPrice && b.hasPrice) return (a.price as number) - (b.price as number)
-      if (a.hasPrice) return -1
-      if (b.hasPrice) return 1
-      return 0
-    }
-    if (sort === 'az') list.sort((a, b) => a.title.localeCompare(b.title))
-    else if (sort === 'plow') list.sort((a, b) => priceAsc(a, b) || (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
-    else if (sort === 'phigh') list.sort((a, b) => (a.hasPrice && b.hasPrice ? (b.price as number) - (a.price as number) : priceAsc(a, b)) || (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
-    else list.sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
-    return list
-  }, [products, orderMap, cat, query, tags, max, sort])
+  const activeChips = useMemo(() => {
+    const chips: { key: FilterKey; value: string; label: string }[] = []
+    filters.categories.forEach((value) => chips.push({ key: 'categories', value, label: categoryLabels.get(value) || value }))
+    filters.materials.forEach((value) => chips.push({ key: 'materials', value, label: materialLabels.get(value) || value }))
+    filters.colours.forEach((value) => chips.push({ key: 'colours', value, label: colourLabels.get(value)?.label || value }))
+    filters.prices.forEach((value) => chips.push({ key: 'prices', value, label: PRICE_BUCKETS.find((bucket) => bucket.id === value)?.label || value }))
+    filters.options.forEach((value) => chips.push({ key: 'options', value, label: OPTION_FILTERS.find((option) => option.id === value)?.label || value }))
+    return chips
+  }, [filters, categoryLabels, materialLabels, colourLabels])
 
-  const pages = Math.max(1, Math.ceil(filtered.length / perPage))
-  const safePage = Math.min(page, pages)
-
-  useEffect(() => {
-    try {
-      const url = new URL(window.location.href)
-      const trimmed = q.trim()
-      if (trimmed) url.searchParams.set('q', trimmed)
-      else url.searchParams.delete('q')
-      if (safePage > 1) url.searchParams.set('page', String(safePage))
-      else url.searchParams.delete('page')
-      history.replaceState(history.state, '', url)
-    } catch {
-      // history can be unavailable in restricted contexts
-    }
-  }, [q, safePage])
-
-  const start = (safePage - 1) * perPage
-  const slice = filtered.slice(start, start + perPage)
-  const activeFilters = tags.length + (max < maxP ? 1 : 0)
-  const money = (value: number) => formatPrice(value, 'show', currency)
+  const activeFilterCount = countActiveCatalogFilters(filters)
 
   const pageNumbers = (() => {
     const set = new Set([1, pages, safePage, safePage - 1, safePage + 1])
@@ -299,7 +514,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
   })()
 
   const gotoPage = (next: number) => {
-    setPage(next)
+    updateFilters({ page: next }, false)
     const target = resultsRef.current
     if (!target) return
     const top = target.getBoundingClientRect().top + window.scrollY - 150
@@ -363,6 +578,46 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
 
   const slideCount = lastProduct ? Math.max(1, lastProduct.images.length) : 1
 
+  const filterPanel = (
+    <FilterPanel
+      categories={categoryOptions}
+      materials={materialOptions}
+      colours={colourOptions}
+      prices={priceOptions}
+      options={optionOptions}
+      filters={filters}
+      onToggle={toggleFilter}
+      resetLabel={copy.resetLabel}
+      onClear={resetAll}
+    />
+  )
+
+  const filterSheet = filtersOpen ? createPortal(
+    <div className="pc-filter-layer">
+      <button type="button" className="pc-filter-scrim" aria-label="Close filters" onClick={() => closeFilters()} />
+      <section className="pc-filter-sheet" ref={filterSheetRef} role="dialog" aria-modal="true" aria-labelledby={filterTitleId}>
+        <div className="pc-filter-grab" onTouchStart={onFilterTouchStart} onTouchMove={onFilterTouchMove} onTouchEnd={onFilterTouchEnd}><i /></div>
+        <div className="pc-filter-head">
+          <div>
+            <p>Refine</p>
+            <h2 id={filterTitleId}>{copy.filtersLabel}</h2>
+          </div>
+          <button ref={filterCloseRef} type="button" className="pc-filter-close" aria-label="Close filters" onClick={() => closeFilters()}>
+            <X size={20} aria-hidden="true" />
+          </button>
+        </div>
+        <div className="pc-filter-scroll">
+          <button type="button" className="pc-filter-clear-top" onClick={resetAll} disabled={!hasActiveCatalogFilters(filters)}>{copy.resetLabel}</button>
+          {filterPanel}
+        </div>
+        <div className="pc-filter-foot">
+          <button type="button" onClick={() => closeFilters()}>Show {filtered.length} {filtered.length === 1 ? 'product' : 'products'}</button>
+        </div>
+      </section>
+    </div>,
+    document.body,
+  ) : null
+
   return (
     <div className={`pc-page${calmMode ? ' pc-calm' : ''}`}>
       <div className="pc-wrap">
@@ -375,52 +630,68 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
           <div className="pc-row">
             <label className="pc-search">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-              <input type="search" placeholder={copy.searchPlaceholder} autoComplete="off" aria-label="Search products" value={q} onChange={(event) => setQ(event.target.value)} />
+              <input type="search" placeholder={copy.searchPlaceholder} autoComplete="off" aria-label="Search products" value={search} onChange={(event) => setSearch(event.target.value)} />
             </label>
             <span className="pc-spacer" />
-            <button type="button" className="pc-ctl pc-btn-filter" onClick={() => setDrawer(true)}>{copy.filtersLabel}{activeFilters ? ` · ${activeFilters}` : ''}</button>
-            <select className="pc-ctl" aria-label="Sort products" value={sort} onChange={(event) => { setSort(event.target.value as (typeof SORTS)[number]['value']); setPage(1) }}>
-              {SORTS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-            </select>
+            <button ref={filterTriggerRef} type="button" className="pc-ctl pc-btn-filter" aria-haspopup="dialog" aria-expanded={filtersOpen} onClick={openFilters}>
+              <SlidersHorizontal size={16} aria-hidden="true" />
+              {copy.filtersLabel}
+              {activeFilterCount > 0 && <b>{activeFilterCount}</b>}
+            </button>
+            <label className="pc-sort">
+              <span>Sort</span>
+              <select className="pc-ctl" aria-label="Sort products" value={filters.sort} onChange={(event) => updateFilters({ sort: event.target.value as CatalogSort })}>
+                {SORT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+            </label>
           </div>
           <div className="pc-chips" role="group" aria-label="Categories">
-            {chips.map((chip) => (
-              <button key={chip.name} type="button" className="pc-chip" aria-pressed={cat === chip.name} onClick={() => { setCat(chip.name); setPage(1) }}>
-                {chip.name}<small>{chip.count}</small>
+            <button type="button" className="pc-chip" aria-pressed={filters.categories.length === 0} onClick={() => updateFilters({ categories: [] })}>
+              All<small>{products.length}</small>
+            </button>
+            {categoryOptions.map((category) => (
+              <button
+                key={category.value}
+                type="button"
+                className="pc-chip"
+                aria-pressed={filters.categories.includes(category.value)}
+                disabled={!category.count && !filters.categories.includes(category.value)}
+                onClick={() => toggleFilter('categories', category.value)}
+              >
+                {category.label}<small>{category.count}</small>
               </button>
             ))}
           </div>
+          {(activeChips.length > 0 || filters.q) && (
+            <div className="pc-active" aria-label="Active filters">
+              <span className="pc-active-label">Active</span>
+              {filters.q && (
+                <button type="button" className="pc-active-chip" onClick={() => { setSearch(''); updateFilters({ q: '' }) }}>
+                  “{filters.q}” <X size={12} aria-hidden="true" />
+                </button>
+              )}
+              {activeChips.map((chip) => (
+                <button key={`${chip.key}-${chip.value}`} type="button" className="pc-active-chip" onClick={() => removeFilter(chip.key, chip.value)}>
+                  {chip.label} <X size={12} aria-hidden="true" />
+                </button>
+              ))}
+              <button type="button" className="pc-active-clear" onClick={resetAll}>{copy.resetLabel}</button>
+            </div>
+          )}
         </div>
 
         <div className="pc-layout">
-          <aside className={`pc-side${drawer ? ' open' : ''}`} aria-label={copy.filtersLabel}>
-            <div className="pc-side-head"><span>{copy.filtersLabel}</span><button type="button" className="pc-linkbtn" onClick={() => setDrawer(false)}>Done</button></div>
-            {priceEnabled && (
-              <section>
-                <h3>{copy.maxPriceLabel}</h3>
-                <input type="range" min={priceFloor} max={maxP} step={50} value={max} aria-label={copy.maxPriceLabel} onChange={(event) => { setMaxOverride(Number(event.target.value)); setPage(1) }} />
-                <div className="pc-range-val"><span>{money(priceFloor)}</span><span>{max >= maxP ? 'Any' : `Up to ${money(max)}`}</span></div>
-              </section>
-            )}
-            {tagList.length > 0 && (
-              <section>
-                <h3>{copy.goodForLabel}</h3>
-                <div>
-                  {tagList.map((tag) => (
-                    <label key={tag} className="pc-opt">
-                      <input type="checkbox" checked={tags.includes(tag)} onChange={(event) => { setTags((current) => event.target.checked ? [...current, tag] : current.filter((value) => value !== tag)); setPage(1) }} />
-                      {' '}{tag}
-                    </label>
-                  ))}
-                </div>
-              </section>
-            )}
-            <button type="button" className="pc-linkbtn" onClick={resetAll}>{copy.resetLabel}</button>
+          <aside className="pc-side" aria-label={copy.filtersLabel}>
+            <div className="pc-side-title">
+              <span>{copy.filtersLabel}</span>
+              {activeFilterCount > 0 && <b>{activeFilterCount}</b>}
+            </div>
+            {filterPanel}
           </aside>
 
           <main id="pc-results" ref={resultsRef}>
             <div className="pc-meta">
-              <span>{filtered.length} product{filtered.length === 1 ? '' : 's'}</span>
+              <span>{filtered.length} {filtered.length === 1 ? 'product' : 'products'}</span>
               <span>{filtered.length ? `Page ${safePage} of ${pages}` : ''}</span>
             </div>
             <div className="pc-grid">
@@ -467,7 +738,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
         </div>
       </div>
 
-      <div className={`pc-scrim${drawer ? ' open' : ''}`} onClick={() => setDrawer(false)} />
+      {filterSheet}
 
       <div className={`pc-overlay${openSlug ? ' open' : ''}`} onClick={() => closeProduct()} />
       <section
@@ -478,8 +749,9 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
         aria-labelledby={sheetTitleId}
         aria-hidden={openSlug ? undefined : true}
         inert={!openSlug}
+        tabIndex={-1}
       >
-        <div className="pc-grab" ref={grabRef} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}><i /></div>
+        <div className="pc-grab" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}><i /></div>
         <button ref={closeRef} type="button" className="pc-close" aria-label="Close" onClick={() => closeProduct()}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
         </button>
@@ -519,6 +791,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
               )}
               <label className="pc-field" htmlFor="pc-note">{copy.noteLabel}</label>
               <textarea className="pc-note" id="pc-note" placeholder={copy.notePlaceholder} value={note} onChange={(event) => setNote(event.target.value)} />
+              <PushAlerts publicKey={pushPublicKey} source="product-sheet" />
             </div>
           )}
         </div>

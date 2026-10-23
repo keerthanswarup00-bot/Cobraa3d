@@ -13,6 +13,7 @@ import {
   getVisibleCategories,
   isExperienceEnabled,
 } from '@/lib/shared'
+import { getDisplayPrice } from '@/lib/pricing'
 
 describe('shared business helpers', () => {
   it('encodes WhatsApp messages and normalizes the configured number to digits', () => {
@@ -91,6 +92,20 @@ describe('shared business helpers', () => {
     expect(formatPrice()).toBe('Ask for price')
     expect(formatPrice(250, 'ask')).toBe('Ask for price')
     expect(formatPrice(250, 'show', 'INR')).toBe('₹250.00')
+  })
+
+  it('applies valid sale pricing only when an active offer matches the product', () => {
+    const now = new Date('2026-10-19T12:00:00.000Z')
+    const product = { id: 7, price: 2500, salePrice: 2000, priceMode: 'show' as const, currency: 'INR' }
+    const offer = { title: 'Festive launch', discountText: '20% off', active: true, startsAt: '2026-10-18T00:00:00Z', endsAt: '2026-10-20T00:00:00Z', applicableProducts: [7] }
+    const display = getDisplayPrice(product, offer, now)
+    expect(display.hasOffer).toBe(true)
+    expect(display.showOffer).toBe(true)
+    expect(display.priceLabel).toBe('₹2,000.00')
+    expect(display.regularPriceLabel).toBe('₹2,500.00')
+    expect(display.badge).toBe('-20%')
+    expect(getDisplayPrice({ ...product, salePrice: 3000 }, offer, now).showOffer).toBe(false)
+    expect(getDisplayPrice({ ...product, salePrice: 2000 }, { ...offer, active: false }, now).showOffer).toBe(false)
   })
 
   it('builds a nameplate enquiry URL and a valid vCard', () => {

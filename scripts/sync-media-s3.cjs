@@ -1,9 +1,9 @@
-const { S3Client, PutObjectCommand, HeadObjectCommand } = require('@aws-sdk/client-s3')
-const fs = require('fs')
-const path = require('path')
-const { Client } = require('pg')
-
 async function main() {
+  const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3')
+  const fs = await import('node:fs')
+  const path = await import('node:path')
+  const { Client } = await import('pg')
+
   const c = new Client({ connectionString: process.env.DATABASE_URI_MIGRATE })
   await c.connect()
   const { rows } = await c.query('SELECT filename, mime_type FROM media ORDER BY id')

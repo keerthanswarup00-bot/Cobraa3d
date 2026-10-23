@@ -15,6 +15,8 @@ import { revalidateDeletedSiteContent, revalidateSite } from '../hooks/revalidat
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+const webp = { format: 'webp' as const, options: { quality: 82 } }
+
 export const Media: CollectionConfig = {
   slug: 'media',
   hooks: { afterChange: [revalidateSite], afterDelete: [revalidateDeletedSiteContent] },
@@ -46,38 +48,47 @@ export const Media: CollectionConfig = {
     staticDir: path.resolve(dirname, '../../public/media'),
     adminThumbnail: 'thumbnail',
     focalPoint: true,
+    resizeOptions: { width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true },
+    formatOptions: webp,
     mimeTypes: ['image/*', 'video/mp4', 'video/webm', 'model/gltf-binary', 'model/gltf+json', 'model/stl', 'application/sla', 'application/vnd.ms-3mfdocument'],
     imageSizes: [
       {
         name: 'thumbnail',
         width: 300,
+        formatOptions: webp,
       },
       {
         name: 'square',
         width: 500,
         height: 500,
+        formatOptions: webp,
       },
       {
         name: 'small',
         width: 600,
+        formatOptions: webp,
       },
       {
         name: 'medium',
         width: 900,
+        formatOptions: webp,
       },
       {
         name: 'large',
         width: 1400,
+        formatOptions: webp,
       },
       {
         name: 'xlarge',
-        width: 1920,
+        width: 1600,
+        formatOptions: webp,
       },
       {
         name: 'og',
         width: 1200,
         height: 630,
         crop: 'center',
+        formatOptions: webp,
       },
     ],
   },

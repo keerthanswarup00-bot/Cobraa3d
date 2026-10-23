@@ -2,9 +2,10 @@
 
 import { useEffect, useId, useRef, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
-import { BriefPreview } from './BriefPreview'
+import { HeroPiece } from './HeroPiece'
 import { useBrief } from './BriefProvider'
 import { CYCLE_ITEM_IDS } from './briefConfig'
+import { detectScript } from '@/lib/text'
 
 const CYCLE_MS = 3500
 
@@ -12,7 +13,7 @@ const CYCLE_MS = 3500
  * The hero stage cycles through the pieces we make until the visitor touches
  * anything, then it stays on their choice for good.
  */
-export function HomeHero() {
+export function HomeHero({ hint = 'Drag the piece sideways to turn it.' }: { hint?: string }) {
   const brief = useBrief()
   const { touched, cycleItem } = brief
   const currentItem = brief.item.id
@@ -20,6 +21,10 @@ export function HomeHero() {
   const stageRef = useRef<HTMLDivElement>(null)
   const dragging = useRef(false)
   const fieldId = useId()
+  const [dragHintHidden, setDragHintHidden] = useState(false)
+  const scriptNote = brief.item.text && brief.text.trim() && detectScript(brief.text.trim()) === 'other'
+    ? 'Preview approximates this script; we’ll confirm the real result on WhatsApp.'
+    : null
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -49,6 +54,7 @@ export function HomeHero() {
     dragging.current = true
     brief.touch()
     tilt(event)
+    if (!dragHintHidden) setDragHintHidden(true)
   }
   const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!dragging.current) return
@@ -72,10 +78,12 @@ export function HomeHero() {
       onPointerCancel={resetTilt}
     >
       <div className="studio-hero-stage-model" style={{ '--fil': brief.baseColourHex } as React.CSSProperties}>
-        <BriefPreview />
+        <HeroPiece />
       </div>
       <p className="studio-hero-piece"><span>{brief.item.label}</span></p>
+      {!dragHintHidden && <span className="studio-drag-hint">{hint}</span>}
     </div>
+    {scriptNote && <p className="studio-script-note">{scriptNote}</p>}
 
     <div className="studio-hero-controls">
       {brief.item.text && <div className="studio-field">
@@ -95,7 +103,7 @@ export function HomeHero() {
       <div className="studio-field">
         <span className="studio-field-label"><span>Base colour</span><b>{brief.baseColourName}</b></span>
         <div className="studio-swatches">
-          {brief.config.colours.map((entry, index) => <label className="studio-swatch" key={entry.name} title={entry.name}>
+          {brief.config.colours.map((entry: any, index: number) => <label className="studio-swatch" key={entry.name} title={entry.name}>
             <input type="radio" name={`${fieldId}-base`} value={index} checked={brief.baseColourName === entry.name} onChange={() => brief.setBaseColour(index)} onClick={() => brief.touch()} aria-label={entry.name} />
             <i style={{ '--swatch': entry.hex } as React.CSSProperties} />
           </label>)}
@@ -105,7 +113,7 @@ export function HomeHero() {
       {brief.item.text && <div className="studio-field">
         <span className="studio-field-label"><span>Text colour</span><b>{brief.textColourName}</b></span>
         <div className="studio-swatches">
-          {brief.config.colours.map((entry, index) => <label className="studio-swatch" key={entry.name} title={entry.name}>
+          {brief.config.colours.map((entry: any, index: number) => <label className="studio-swatch" key={entry.name} title={entry.name}>
             <input type="radio" name={`${fieldId}-text-colour`} value={index} checked={brief.textColourName === entry.name} onChange={() => brief.setTextColour(index)} onClick={() => brief.touch()} aria-label={`Text colour ${entry.name}`} />
             <i style={{ '--swatch': entry.hex } as React.CSSProperties} />
           </label>)}
@@ -115,7 +123,7 @@ export function HomeHero() {
       <div className="studio-field">
         <span className="studio-field-label"><span>What are we making?</span></span>
         <div className="studio-chip-row" role="group" aria-label="Choose a piece">
-          {brief.config.items.map((entry) => <label className="studio-chip" key={entry.id}>
+          {brief.config.items.map((entry: any) => <label className="studio-chip" key={entry.id}>
             <input type="radio" name={`${fieldId}-item`} value={entry.id} checked={brief.item.id === entry.id} onChange={() => brief.setItem(entry.id)} onClick={() => brief.touch()} />
             <span>{entry.label}</span>
           </label>)}

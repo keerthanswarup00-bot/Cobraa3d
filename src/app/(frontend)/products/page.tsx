@@ -3,10 +3,13 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { ProductsCatalog, type CatalogCopy, type CatalogProduct, type CatalogSpec } from '@/components/product/ProductsCatalog'
 import type { ConnectProduct } from '@/components/home/ConnectProducts'
-import { buildWhatsAppUrl, formatPrice, getVisibleCategories } from '@/lib/shared'
+import { getDisplayPrice } from '@/lib/pricing'
+import { buildWhatsAppUrl, getVisibleCategories } from '@/lib/shared'
 import { getSiteSettings } from '@/utilities/getSiteSettings'
 import { getServerSideURL } from '@/utilities/getURL'
 import type { Product } from '@/payload-types'
+import { env } from '@/lib/env'
+import { normalizeSearch, parseCatalogFilters, slugifyFilterValue } from '@/lib/catalogFilters'
 
 export const metadata: Metadata = { title: 'Products', alternates: { canonical: '/products' } }
 
@@ -51,11 +54,9 @@ function byRecency(a: Product, b: Product): number {
   return b.id - a.id
 }
 
-export default async function ProductsPage({ searchParams }: { searchParams: Promise<{ q?: string | string[]; page?: string | string[] }> }) {
+export default async function ProductsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const params = await searchParams
-  const initialQuery = typeof params.q === 'string' ? params.q : ''
-  const pageValue = Number(typeof params.page === 'string' ? params.page : Number.NaN)
-  const initialPage = Number.isFinite(pageValue) && pageValue > 1 ? Math.floor(pageValue) : 1
+  const initialFilters = parseCatalogFilters(params)
   const payload = await getPayload({ config })
   const [result, categoryResult, settings] = await Promise.all([
     payload.find({ collection: 'products', where: { and: [{ status: { equals: 'published' } }, { _status: { equals: 'published' } }, { isDemo: { not_equals: true } }] }, depth: 1, pagination: false }),
@@ -70,9 +71,16 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       if (!row.image || typeof row.image !== 'object' || !row.image.url) return []
       return [{ url: row.image.url, alt: row.alt || row.image.alt || product.title, width: row.image.width, height: row.image.height }]
     })
-    const category = typeof product.category === 'object' && product.category ? product.category.name : null
+    const categoryDoc = typeof product.category === 'object' && product.category ? product.category : null
+    const category = categoryDoc?.name || null
+    const categorySlug = categoryDoc ? categoryDoc.slug || slugifyFilterValue(categoryDoc.name) : null
     const tags = [...new Set((product.seasonalTags || []).map((row) => row.tag).filter((tag): tag is string => Boolean(tag)))]
-    const hasPrice = product.priceMode === 'show' && product.price != null
+    const colours = (product.colourOptions || []).flatMap((row) => row.name ? [{ name: row.name, slug: slugifyFilterValue(row.name), hex: row.hex || null }] : [])
+    const material = product.material?.trim() || null
+    const materialSlug = material ? slugifyFilterValue(material) : null
+    const searchText = normalizeSearch([product.title, product.shortDescription || '', category || '', material || '', ...colours.map((colour) => colour.name), ...tags].join(' '))
+    const display = getDisplayPrice({ id: product.id, price: product.price, salePrice: product.salePrice, priceMode: product.priceMode, currency: product.currency })
+    const hasPrice = display.regularPrice != null && product.priceMode === 'show'
     const render: ConnectProduct = {
       id: String(product.id),
       slug,
@@ -88,11 +96,21 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       slug,
       title: product.title,
       category,
+      categorySlug,
       tags,
+      material,
+      materialSlug,
+      colours,
+      colourSlugs: colours.map((colour) => colour.slug),
+      personalisable: product.personalisable === true,
+      featured: product.featured === true,
+      availability: product.availability || null,
+      newArrival: (product.badges || []).includes('new'),
+      searchText,
       description: product.shortDescription || '',
-      priceLabel: formatPrice(product.price, product.priceMode, product.currency || 'INR'),
+      priceLabel: display.priceLabel,
       hasPrice,
-      price: product.price,
+      price: display.regularPrice ?? product.price ?? null,
       currency: product.currency || 'INR',
       specs: specsFor(product),
       images,
@@ -100,7 +118,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     }
   })
 
-  const categories = getVisibleCategories(categoryResult.docs, result.docs).map((category) => ({ name: category.name }))
+  const categories = getVisibleCategories(categoryResult.docs, result.docs).map((category) => ({ name: category.name, slug: category.slug || slugifyFilterValue(category.name) }))
   const productsPage = settings.productsPage
   const copy: CatalogCopy = {
     eyebrow: productsPage?.eyebrow ?? 'Objects, made differently',
@@ -131,8 +149,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       brandName={settings.brandName || 'Cobraa 3D'}
       siteURL={getServerSideURL()}
       calmMode={settings.experience?.calmMode === true}
-      initialQuery={initialQuery}
-      initialPage={initialPage}
+      pushPublicKey={env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || env.VAPID_PUBLIC_KEY}
+      initialFilters={initialFilters}
     />
   )
 }

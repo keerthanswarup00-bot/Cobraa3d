@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import { ConnectTerrain } from '@/components/home/ConnectTerrain'
 import { ProductRender, type ConnectProduct } from '@/components/home/ConnectProducts'
+import { getDisplayPrice } from '@/lib/pricing'
 import { TEMP_PRODUCTS } from '@/lib/tempProducts'
 import type { Product } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
@@ -79,18 +80,19 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   })
   const productData = {
     title: product.title, slug: product.slug || slug, shortDescription: product.shortDescription,
-    descriptionText: textFromLexical(product.description?.root), price: product.price, originalPrice: product.originalPrice,
+    descriptionText: textFromLexical(product.description?.root), price: product.price, salePrice: product.salePrice, originalPrice: product.originalPrice,
     currency: product.currency, priceMode: product.priceMode, availability: product.availability, images: photos,
     includedItems: product.includedItems?.map((item) => item.item), colourOptions: product.colourOptions?.map(({ name, hex }) => ({ name, hex })),
     dimensions: product.dimensions, material: product.material, ageGroup: product.ageGroup, personalisable: product.personalisable,
     personalisationNotes: product.personalisationNotes, careNotes: product.careNotes, productionNote: product.productionNote,
     badges: product.badges, whatsappMessageOverride: product.whatsappMessageOverride, isDemo: product.isDemo,
   }
-  const hasStructuredOffer = product.priceMode === 'show' && typeof product.price === 'number' && Boolean(product.availability)
+  const displayPrice = getDisplayPrice({ id: product.id, price: product.price, salePrice: product.salePrice, priceMode: product.priceMode, currency: product.currency })
+  const hasStructuredOffer = product.priceMode === 'show' && typeof product.price === 'number' && product.availability && !product.isDemo && displayPrice.showOffer
   const schema = product.isDemo ? null : {
     '@context': 'https://schema.org', '@type': 'Product', name: product.title, description: product.seoDescription || product.shortDescription || undefined,
     image: photos.map((photo) => photo.url), sku: undefined,
-    ...(hasStructuredOffer ? { offers: { '@type': 'Offer', priceCurrency: product.currency || 'INR', price: product.price, availability: product.availability === 'in_stock' ? 'https://schema.org/InStock' : product.availability === 'out_of_stock' ? 'https://schema.org/OutOfStock' : 'https://schema.org/PreOrder', url: `${siteURL}/products/${product.slug}` } } : {}),
+    ...(hasStructuredOffer ? { offers: { '@type': 'Offer', priceCurrency: product.currency || 'INR', price: displayPrice.offerPrice ?? product.price, availability: product.availability === 'in_stock' ? 'https://schema.org/InStock' : product.availability === 'out_of_stock' ? 'https://schema.org/OutOfStock' : 'https://schema.org/PreOrder', url: `${siteURL}/products/${product.slug}` } } : product.priceMode === 'show' && typeof product.price === 'number' ? { offers: { '@type': 'Offer', priceCurrency: product.currency || 'INR', price: product.price, availability: product.availability === 'in_stock' ? 'https://schema.org/InStock' : product.availability === 'out_of_stock' ? 'https://schema.org/OutOfStock' : 'https://schema.org/PreOrder', url: `${siteURL}/products/${product.slug}` } } : {}),
   }
   const breadcrumb = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: siteURL }, { '@type': 'ListItem', position: 2, name: 'Products', item: `${siteURL}/products` },

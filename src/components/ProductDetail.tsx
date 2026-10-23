@@ -3,11 +3,12 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
+import { getDisplayPrice } from '@/lib/pricing'
 import { buildProductMessage, buildWhatsAppUrl, formatPrice } from '@/lib/shared'
 
 type Photo = { url: string; alt: string }
 type ProductData = {
-  title: string; slug: string; shortDescription?: string | null; descriptionText?: string; price?: number | null; originalPrice?: number | null
+  title: string; slug: string; shortDescription?: string | null; descriptionText?: string; price?: number | null; salePrice?: number | null; originalPrice?: number | null
   currency?: string; priceMode?: 'show' | 'ask' | null; availability?: string | null; images: Photo[]; includedItems?: string[]
   colourOptions?: { name: string; hex?: string | null }[]; dimensions?: string | null; material?: string | null; ageGroup?: string | null
   personalisable?: boolean | null; personalisationNotes?: string | null; careNotes?: string | null; productionNote?: string | null
@@ -25,12 +26,15 @@ export function ProductDetail({ product, brandName, whatsappNumber, productTempl
   const [colour, setColour] = useState('')
   const [kind, setKind] = useState<'product' | 'custom'>('product')
   const [notice, setNotice] = useState('')
+  const displayPrice = getDisplayPrice({ id: product.slug, price: product.price, salePrice: product.salePrice, priceMode: product.priceMode, currency: product.currency })
   const message = useMemo(() => buildProductMessage({
     ...product, images: product.images.map((image) => ({ alt: image.alt, image: { url: image.url } })),
     badges: product.badges,
+    price: displayPrice.showOffer ? displayPrice.offerPrice ?? product.price : product.price,
+    priceMode: product.priceMode,
   }, { quantity, colour, kind, baseURL: siteURL }, {
     whatsappNumber, productMessageTemplate: productTemplate,
-  }), [product, quantity, colour, kind, siteURL, whatsappNumber, productTemplate])
+  }), [product, displayPrice.showOffer, displayPrice.offerPrice, quantity, colour, kind, siteURL, whatsappNumber, productTemplate])
   const waURL = buildWhatsAppUrl({ message, number: whatsappNumber })
   const share = async () => {
     const url = `${siteURL}/products/${product.slug}`
@@ -51,9 +55,10 @@ export function ProductDetail({ product, brandName, whatsappNumber, productTempl
       <div className="detail-copy">
         <p className="detail-kicker">{brandName}</p><h1>{product.title}</h1>{product.isDemo && <p className="demo-detail-note">TEMPORARY DEMO LISTING · Image and product information will be replaced before launch.</p>}
         {product.shortDescription && <p className="detail-summary">{product.shortDescription}</p>}
-        {!product.isDemo && <p className="detail-price">{formatPrice(product.price, product.priceMode, product.currency || 'INR')}{product.originalPrice && product.price && product.originalPrice > product.price && <del>{formatPrice(product.originalPrice, 'show', product.currency || 'INR')}</del>}</p>}
+        {!product.isDemo && <p className="detail-price">{displayPrice.showOffer ? <><span>{displayPrice.priceLabel}</span>{displayPrice.regularPrice != null && <del>{displayPrice.regularPriceLabel}</del>}</> : formatPrice(product.price, product.priceMode, product.currency || 'INR')}{displayPrice.badge && <span className="offer-badge">{displayPrice.badge}</span>}</p>}
         {!product.isDemo && product.availability === 'made_to_order' && <p className="made-to-order-note">Availability and final price confirmed on WhatsApp.</p>}
         {!product.isDemo && product.availability && <p className="detail-availability">{product.availability.replaceAll('_', ' ')}</p>}
+        {displayPrice.offerText && <p className="detail-offer-text">{displayPrice.offerText}</p>}
         {product.colourOptions?.length ? <fieldset className="colour-picker"><legend>Colour or design</legend><div>{product.colourOptions.map((option) => <button type="button" key={option.name} aria-pressed={colour === option.name} onClick={() => setColour(option.name)}>{option.hex && <i style={{ backgroundColor: option.hex }} />} {option.name}</button>)}</div></fieldset> : null}
         <div className="quantity-row"><span>Quantity</span><div><button aria-label="Decrease quantity" disabled={quantity <= 1} onClick={() => setQuantity((n) => Math.max(1, n - 1))}>−</button><output>{quantity}</output><button aria-label="Increase quantity" disabled={quantity >= 99} onClick={() => setQuantity((n) => Math.min(99, n + 1))}>+</button></div></div>
         {product.personalisable && <button className="customise-link" onClick={() => setKind((v) => v === 'custom' ? 'product' : 'custom')}>{kind === 'custom' ? 'Customisation message selected' : 'Ask about customisation'}</button>}

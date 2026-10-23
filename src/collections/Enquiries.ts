@@ -3,7 +3,7 @@ import { adminOnly, editorAccess } from '../access/roles'
 import { revalidateDeletedSiteContent, revalidateSite } from '../hooks/revalidateSite'
 
 export const Enquiries: CollectionConfig = {
-  slug: 'enquiries', access: { create: () => true, delete: adminOnly, read: editorAccess, update: editorAccess }, admin: { useAsTitle: 'name', defaultColumns: ['name', 'type', 'status', 'createdAt'] },
+  slug: 'enquiries', access: { create: () => true, delete: adminOnly, read: editorAccess, update: editorAccess }, admin: { useAsTitle: 'name', defaultColumns: ['name', 'type', 'status', 'createdAt'], listSearchableFields: ['name', 'phone', 'message'], pagination: { defaultLimit: 25 } }, defaultSort: '-createdAt',
   fields: [
     { name: 'replyTools', type: 'ui', admin: { components: { Field: '@/components/EnquiryReplyLink#EnquiryReplyLink' } } },
     { name: 'type', type: 'select', required: true, options: ['custom', 'bulk', 'product'].map((value) => ({ label: value, value })) },

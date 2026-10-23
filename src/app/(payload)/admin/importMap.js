@@ -18,6 +18,7 @@ import { AnnouncementPreview as AnnouncementPreview_6d370bdd91b16883d32c1fb7fa98
 import { EnquiryReplyLink as EnquiryReplyLink_7dd7b12eeafc59af6ac9756c7ba1a864 } from '@/components/EnquiryReplyLink'
 import { ExportListMenuItem as ExportListMenuItem_cdf7e044479f899a31f804427d568b36 } from '@payloadcms/plugin-import-export/rsc'
 import { ImportListMenuItem as ImportListMenuItem_cdf7e044479f899a31f804427d568b36 } from '@payloadcms/plugin-import-export/rsc'
+import { PushNotificationComposer as PushNotificationComposer_db48fc134a2950392bb3ed4f79d65bd8 } from '@/components/PushNotificationComposer'
 import { InlineToolbarFeatureClient as InlineToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { FixedToolbarFeatureClient as FixedToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { FolderTableCell as FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
@@ -65,6 +66,7 @@ export const importMap = {
   "@/components/EnquiryReplyLink#EnquiryReplyLink": EnquiryReplyLink_7dd7b12eeafc59af6ac9756c7ba1a864,
   "@payloadcms/plugin-import-export/rsc#ExportListMenuItem": ExportListMenuItem_cdf7e044479f899a31f804427d568b36,
   "@payloadcms/plugin-import-export/rsc#ImportListMenuItem": ImportListMenuItem_cdf7e044479f899a31f804427d568b36,
+  "@/components/PushNotificationComposer#PushNotificationComposer": PushNotificationComposer_db48fc134a2950392bb3ed4f79d65bd8,
   "@payloadcms/richtext-lexical/client#InlineToolbarFeatureClient": InlineToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#FixedToolbarFeatureClient": FixedToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/next/rsc#FolderTableCell": FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1,

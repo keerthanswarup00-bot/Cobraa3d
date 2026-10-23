@@ -5,6 +5,8 @@ import * as migration_20261020_164300_products_page_settings from './20261020_16
 import * as migration_20261020_164400_locked_docs_rels from './20261020_164400_locked_docs_rels';
 import * as migration_20261020_164500_upload_object_key from './20261020_164500_upload_object_key';
 import * as migration_20261021_090000_delivery_line from './20261021_090000_delivery_line';
+import * as migration_20261022_193100_push_alerts_and_sale_price from './20261022_193100_push_alerts_and_sale_price';
+import * as migration_20261023_090000_version_sale_price from './20261023_090000_version_sale_price';
 
 export const migrations = [
   {
@@ -41,5 +43,15 @@ export const migrations = [
     up: migration_20261021_090000_delivery_line.up,
     down: migration_20261021_090000_delivery_line.down,
     name: '20261021_090000_delivery_line'
+  },
+  {
+    up: migration_20261022_193100_push_alerts_and_sale_price.up,
+    down: migration_20261022_193100_push_alerts_and_sale_price.down,
+    name: '20261022_193100_push_alerts_and_sale_price'
+  },
+  {
+    up: migration_20261023_090000_version_sale_price.up,
+    down: migration_20261023_090000_version_sale_price.down,
+    name: '20261023_090000_version_sale_price'
   },
 ];

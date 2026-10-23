@@ -16,6 +16,7 @@ import '@/components/home/studio-home.css'
 import '@/components/home/home-c3.css'
 import '@/components/product/product-sheet.css'
 import '@/components/Splash/splash.css'
+import '@/components/site-navigation.css'
 
 const instrumentSerif = localFont({ src: '../../../public/fonts/instrument-serif-regular.ttf', weight: '400', style: 'normal', variable: '--font-instrument-serif', display: 'swap' })
 const bricolage = Bricolage_Grotesque({ weight: 'variable', axes: ['opsz'], subsets: ['latin'], display: 'swap', preload: true, variable: '--font-bricolage' })
@@ -34,6 +35,7 @@ export default async function RootLayout({ children, modal }: { children: React.
   return <html className={cn(GeistSans.variable, GeistMono.variable, instrumentSerif.variable, bricolage.variable, dmSans.variable, dmMono.variable, dmSerif.variable)} lang="en" suppressHydrationWarning>
     <head>
       <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
+      <link href="/apple-touch-icon.png" rel="apple-touch-icon" />
     </head>
     <body>
       <AccentScript />

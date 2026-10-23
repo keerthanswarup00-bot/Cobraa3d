@@ -2,7 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { buildWhatsAppUrl } from '@/lib/shared'
-import { clampQuantity, formatNeededBy, type BriefConfig, type BriefFont, type BriefItem } from './briefConfig'
+import { truncateGraphemes } from '@/lib/text'
+import { buildBriefMessage, clampQuantity, type BriefConfig, type BriefFont, type BriefItem } from './briefConfig'
 
 type BriefState = {
   item: string
@@ -48,7 +49,7 @@ export type BriefValue = {
 
 const BriefContext = createContext<BriefValue | null>(null)
 
-export function BriefProvider({ config, whatsappNumber, children }: { config: BriefConfig; whatsappNumber?: string | null; children: React.ReactNode }) {
+export function BriefProvider({ config, whatsappNumber, activeOfferText, children }: { config: BriefConfig; whatsappNumber?: string | null; activeOfferText?: string | null; children: React.ReactNode }) {
   const [state, setState] = useState<BriefState>(() => ({
     item: config.items[0]?.id || 'nameplate',
     text: '',
@@ -72,13 +73,25 @@ export function BriefProvider({ config, whatsappNumber, children }: { config: Br
   )
   const baseColour = config.colours[state.baseColour] || config.colours[0]!
   const textColour = config.colours[state.textColour] || config.colours[0]!
-  const quantity = useMemo(() => clampQuantity(Number.parseInt(state.quantityInput, 10)), [state.quantityInput])
+  const quantity = useMemo(() => {
+    const raw = state.quantityInput
+    if (raw === '' || raw == null) return 1
+    const parsed = Number.parseInt(raw, 10)
+    if (Number.isNaN(parsed)) return 1
+    return clampQuantity(parsed)
+  }, [state.quantityInput])
 
   const edit = useCallback((patch: Partial<BriefState>, rebuild = false) => {
     setTouched(true)
-    setState((current) => ({ ...current, ...patch }))
+    setState((current) => {
+      const next = { ...current, ...patch }
+      if (typeof next.text === 'string' && config.maxCharacters) {
+        next.text = truncateGraphemes(next.text, config.maxCharacters)
+      }
+      return next
+    })
     if (rebuild) setPreviewKey((value) => value + 1)
-  }, [])
+  }, [config.maxCharacters])
 
   const setItem = useCallback((id: string) => edit({ item: id }, true), [edit])
   const touch = useCallback(() => setTouched(true), [])
@@ -86,7 +99,7 @@ export function BriefProvider({ config, whatsappNumber, children }: { config: Br
     setState((current) => (current.item === id ? current : { ...current, item: id }))
     setPreviewKey((value) => value + 1)
   }, [])
-  const setText = useCallback((value: string) => edit({ text: value }), [edit])
+  const setText = useCallback((value: string) => edit({ text: truncateGraphemes(value, config.maxCharacters) }), [edit, config.maxCharacters])
   const setFont = useCallback((id: string) => edit({ font: id }, true), [edit])
   const setBaseColour = useCallback((index: number) => edit({ baseColour: index }, true), [edit])
   const setTextColour = useCallback((index: number) => edit({ textColour: index }, true), [edit])
@@ -112,17 +125,18 @@ export function BriefProvider({ config, whatsappNumber, children }: { config: Br
   }, [config.items, setItem])
 
   const message = useMemo(() => {
-    const rows = [`Hi Cobraa 3D! I'd like to start a custom order.`, '', `• Item: ${item.label}`]
-    if (item.text) rows.push(`• Text: ${state.text.trim() ? `"${state.text.trim()}"` : 'not decided yet'}`, `• Font: ${font.label}`)
-    if (item.photo) rows.push("• Photo: I'll share it in this chat")
-    rows.push(`• Colour: ${baseColour.name}`)
-    if (item.text) rows.push(`• Text colour: ${textColour.name}`)
-    rows.push(`• Quantity: ${quantity}`)
-    if (state.note.trim()) rows.push(`• ${item.id === 'other' ? 'Idea' : item.photo ? 'Photo size' : 'Notes'}: ${state.note.trim()}`)
-    if (state.neededBy.trim()) rows.push(`• Needed by: ${formatNeededBy(state.neededBy)}`)
-    rows.push('', 'Could you confirm feasibility, price and timeline?')
-    return rows.join('\n')
-  }, [item, state.text, state.note, state.neededBy, font.label, baseColour.name, textColour.name, quantity])
+    return buildBriefMessage({
+      item,
+      text: state.text,
+      font: font.label,
+      baseColour: baseColour.name,
+      textColour: textColour.name,
+      quantity,
+      note: state.note,
+      neededBy: state.neededBy,
+      activeOfferText,
+    })
+  }, [item, state.text, state.note, state.neededBy, font.label, baseColour.name, textColour.name, quantity, activeOfferText])
 
   const whatsappURL = useMemo(() => buildWhatsAppUrl({ number: whatsappNumber, message }), [whatsappNumber, message])
   const ready = item.text ? Boolean(state.text.trim()) : item.id === 'other' ? Boolean(state.note.trim()) : true

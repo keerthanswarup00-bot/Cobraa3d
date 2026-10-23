@@ -6,6 +6,7 @@ import { generatePreviewPath } from '../utilities/generatePreviewPath'
 
 export const Products: CollectionConfig = {
   slug: 'products',
+  defaultSort: '-updatedAt',
   access: {
     create: editorAccess,
     delete: editorAccess,
@@ -17,7 +18,9 @@ export const Products: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'shortDescription', 'price'],
+    defaultColumns: ['title', 'category', 'price', 'salePrice', 'status', 'updatedAt'],
+    listSearchableFields: ['title', 'shortDescription', 'material', 'slug'],
+    pagination: { defaultLimit: 20 },
     livePreview: { url: ({ data, req }) => generatePreviewPath({ slug: data?.slug, collection: 'products', req }) },
     preview: (data, { req }) => generatePreviewPath({ slug: data?.slug as string, collection: 'products', req }),
   },
@@ -30,17 +33,24 @@ export const Products: CollectionConfig = {
           description: 'Enter the price in INR. Leave blank to show “Ask for price”.',
           components: { Cell: '/components/admin/EditablePriceCell#EditablePriceCell' },
         } },
+        { name: 'salePrice', type: 'number', min: 0, admin: { description: 'Optional one-time offer price for active seasonal promotions. It must be lower than the regular price.' }, validate: (value: unknown, { data }: { data?: { price?: number | null } }) => {
+          if (value == null || value === '') return true
+          if (typeof value !== 'number' || !Number.isFinite(value)) return 'Enter a valid offer price.'
+          if (typeof data?.price === 'number' && Number.isFinite(data.price) && value >= data.price) return 'Offer price must be lower than the regular price.'
+          if (typeof data?.price !== 'number' || !Number.isFinite(data.price)) return 'Choose a regular price before setting an offer price.'
+          return true
+        } },
       ] },
       { label: 'More details', fields: [
         slugField({ name: 'slug', required: false }),
-        { name: 'status', type: 'select', defaultValue: 'draft', options: [{ label: 'Draft', value: 'draft' }, { label: 'Published', value: 'published' }] },
+        { name: 'status', type: 'select', defaultValue: 'draft', admin: { description: 'Published makes the product visible on the storefront. Keep this in sync with the publish button.' }, options: [{ label: 'Draft', value: 'draft' }, { label: 'Published', value: 'published' }] },
         { name: 'isDemo', type: 'checkbox', defaultValue: false, admin: { description: 'Development demonstration record. Never use as confirmed stock or pricing.' } },
         { name: 'category', type: 'relationship', relationTo: 'categories', admin: { description: 'Choose a visible catalogue category.' } },
         { name: 'description', label: 'Full description', type: 'richText' },
         { name: 'images', type: 'array', label: 'Photos (first photo is the main image)', admin: { description: 'Add useful alt text for every photo. The first photo is used as the main image.' }, fields: [
           { name: 'image', type: 'upload', relationTo: 'media', required: true }, { name: 'alt', type: 'text', required: true },
         ] },
-        { name: 'originalPrice', type: 'number', min: 0 }, { name: 'currency', type: 'text', defaultValue: 'INR', required: true },
+        { name: 'originalPrice', type: 'number', min: 0, admin: { description: 'Hidden from the public storefront. Use only for internal bookkeeping or migration if needed.' } }, { name: 'currency', type: 'text', defaultValue: 'INR', required: true },
         { name: 'priceMode', type: 'select', defaultValue: 'ask', options: [{ label: 'Ask for price', value: 'ask' }, { label: 'Show price', value: 'show' }] },
       ] },
       { label: 'Details', fields: [

@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useDragControls, useReducedMotion } from "motion/react";
+import { PushAlerts } from "@/components/PushAlerts";
 import "./product-sheet.css";
 
 export type SheetProduct = {
@@ -18,7 +19,7 @@ export type SheetHrefs = { base: string; byColor: Record<string, string> };
 
 const FOCUSABLE = 'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
-export function ProductSheet({ product, hrefs }: { product: SheetProduct; hrefs: SheetHrefs }) {
+export function ProductSheet({ product, hrefs, pushPublicKey }: { product: SheetProduct; hrefs: SheetHrefs; pushPublicKey?: string }) {
   const router = useRouter();
   const reduce = useReducedMotion();
   const controls = useDragControls();
@@ -104,6 +105,7 @@ export function ProductSheet({ product, hrefs }: { product: SheetProduct; hrefs:
                 ))}
               </div>
             )}
+            <PushAlerts publicKey={pushPublicKey} source="product-sheet" />
           </div>
 
           <div className="ps-cta">

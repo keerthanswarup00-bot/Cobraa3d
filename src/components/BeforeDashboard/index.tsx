@@ -14,7 +14,7 @@ const configuredBase = process.env.NEXT_PUBLIC_SERVER_URL || process.env.NEXT_PU
 
 export default async function BeforeDashboard({ req }: Props) {
   const payload = req?.payload || await getPayload({ config })
-  const [enquiries, drafts, products, offers, festiveOffers, festiveAnnouncements, printBed, settings, legal] = await Promise.all([
+  const [enquiries, drafts, products, offers, festiveOffers, festiveAnnouncements, printBed, settings, legal, pushSubscribers] = await Promise.all([
     payload.find({ collection: 'enquiries', where: { status: { equals: 'new' } }, limit: 0, overrideAccess: true }),
     payload.find({ collection: 'products', where: { status: { equals: 'draft' } }, limit: 0, overrideAccess: true }),
     payload.find({ collection: 'products', limit: 1000, depth: 0, overrideAccess: true }),
@@ -24,6 +24,7 @@ export default async function BeforeDashboard({ req }: Props) {
     payload.find({ collection: 'print-bed', where: { visible: { equals: true } }, limit: 1, depth: 0, overrideAccess: true }),
     payload.findGlobal({ slug: 'site-settings', depth: 0, overrideAccess: true }),
     payload.findGlobal({ slug: 'legal-pages', depth: 0, overrideAccess: true }),
+    payload.find({ collection: 'push-subscriptions', where: { and: [{ active: { equals: true } }, { isTest: { equals: false } }] }, limit: 0, overrideAccess: true }),
   ])
   const missing = products.docs.filter((p) => !p.images?.length || p.images.some((i) => !i.alt?.trim())).length
   // eslint-disable-next-line react-hooks/purity
@@ -56,6 +57,7 @@ export default async function BeforeDashboard({ req }: Props) {
   return <main className="cobraa-dashboard">
     <header className="cobraa-welcome"><p className="cobraa-eyebrow">COBRAA 3D · STUDIO ADMIN</p><h1>Welcome back</h1><p>Manage products, enquiries and your storefront.</p></header>
     <section aria-labelledby="attention-heading"><div className="cobraa-section-heading"><div><h2 id="attention-heading">Operational summary</h2><p>A quick view of what needs attention.</p></div></div>
+      <p className="cobraa-dashboard-push-count">Offer alerts: {pushSubscribers.totalDocs} active subscribers</p>
       <div className="cobraa-cards">{cards.map(({ label, count, href, icon: Icon, hint, warning }) => <Link className={`cobraa-card${warning ? ' is-warning' : ''}`} href={href} key={label}>
         <span className="cobraa-card-icon"><Icon size={17} aria-hidden="true" /></span><span className="cobraa-card-label">{label}</span><strong>{count}</strong><small>{hint}<ArrowUpRight size={13} aria-hidden="true" /></small>
       </Link>)}</div>
