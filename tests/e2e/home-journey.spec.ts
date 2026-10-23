@@ -36,7 +36,11 @@ test.describe('Homepage product journey', () => {
     expect(sequence.at(-1)).toBe('footer')
 
     const cardCounts = await page.locator('.home-product-section .studio-product-grid').evaluateAll((grids) => grids.map((grid) => grid.querySelectorAll('.studio-product-card').length))
-    for (const count of cardCounts) expect(count).toBeLessThanOrEqual(3)
+    expect(cardCounts[0]).toBe(4)
+    for (const count of cardCounts) expect(count).toBeLessThanOrEqual(4)
+    const featured = page.locator('.home-product-section').first()
+    await expect(featured.getByRole('heading', { name: 'Warm Ghost Lamp' })).toBeAttached()
+    await expect(featured.getByRole('heading', { name: 'Autumn Jack-o’-Lantern Lamp' })).toBeAttached()
 
     const gallery = page.locator('.home-product-section').first().locator('.studio-product-grid')
     const peek = await gallery.evaluate((node) => {

@@ -83,7 +83,7 @@ function ProductSection({ title, eyebrow, description, products, href, categoryS
         <div>{eyebrow && <p className="home-eyebrow">{eyebrow}</p>}<h2>{title}</h2></div>
         {description && <p className="home-section-description">{description}</p>}
       </header>
-      <HomeProductGrid products={products.slice(0, 3)} productsURL={href || '/products'} viewAllLabel={viewMore} eagerFirstImage={eagerFirstImage} />
+      <HomeProductGrid products={products.slice(0, 4)} productsURL={href || '/products'} viewAllLabel={viewMore} eagerFirstImage={eagerFirstImage} />
     </div>
   </section>
 }
@@ -105,7 +105,12 @@ export default async function HomePage() {
     return product ? [product] : []
   })
   const featuredCandidates = [...new Map([...featuredFromSettings, ...allProducts.filter((_, index) => Boolean(cmsProducts[index]?.featured))].map((product) => [product.id, product])).values()]
-  const featured = [...featuredCandidates, ...allProducts.filter((product) => !featuredCandidates.some((selected) => selected.id === product.id))].slice(0, 3)
+  const featuredLampSlugs = ['warm-ghost-lamp', 'autumn-jack-o-lantern-lamp']
+  const featuredLamps = featuredLampSlugs.flatMap((slug) => allProducts.filter((product) => product.slug === slug))
+  const existingFeatured = [...featuredCandidates, ...allProducts.filter((product) => !featuredCandidates.some((selected) => selected.id === product.id))]
+    .filter((product) => !featuredLampSlugs.includes(product.slug))
+    .slice(0, 2)
+  const featured = [...new Map([...existingFeatured, ...featuredLamps, ...allProducts].map((product) => [product.id, product])).values()].slice(0, 4)
 
   const categoryMap = new Map<string, HomeCategory>()
   for (const product of cmsProducts) {

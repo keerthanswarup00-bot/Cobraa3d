@@ -474,20 +474,20 @@ body:has(.pc-page) .connect-nav button:focus-visible { outline: 2px solid #fff; 
 /* ============ mobile ============ */
 @media (max-width: 860px) {
   .pc-wrap { padding: 0 16px; }
-  .pc-toolbar { top: 56px; }
+  .pc-toolbar { position: static; top: auto; z-index: auto; }
   .pc-head { padding: 36px 0 20px; }
   .pc-layout { grid-template-columns: 1fr; gap: 0; padding-top: 20px; }
   .pc-btn-filter { display: inline-flex; }
   .pc-side { display: none; }
-  .pc-row { flex-wrap: wrap; }
-  .pc-search { max-width: none; flex: 1 1 100%; }
+  .pc-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .pc-search { max-width: none; grid-column: 1 / -1; }
   .pc-search input { height: 46px; font-size: 16px; }
   .pc-spacer { display: none; }
   .pc-btn-filter { flex: 1; justify-content: center; height: 46px; font-size: 14px; }
-  .pc-sort { flex: 1; }
+  .pc-sort { grid-column: 1 / -1; }
   .pc-sort > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .pc-sort select { width: 100%; height: 46px; font-size: 16px; }
-  .pc-category-filter { flex: 1 1 100%; }
+  .pc-category-filter { min-width: 0; }
   .pc-category-filter > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .pc-category-filter select { width: 100%; height: 46px; font-size: 16px; }
   .pc-chips { padding: 12px 0; margin-inline: -16px; padding-inline: 16px; }

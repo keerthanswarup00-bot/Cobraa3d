@@ -11,7 +11,7 @@ export function HomeProductGrid({ products, productsURL, viewAllLabel, eagerFirs
 }) {
   return <div className="studio-product-wrap">
     <div className="studio-product-grid" role="region" aria-label="Products, scroll horizontally" tabIndex={0}>
-      {products.slice(0, 3).map((product, index) => <article className="studio-product-card" key={`${product.id}-${product.slug}`}>
+      {products.slice(0, 4).map((product, index) => <article className="studio-product-card" key={`${product.id}-${product.slug}`}>
         <Link className="studio-product-photo" href={`/products/${product.slug}`} aria-label={`View ${product.title}`}>
           {product.image?.url
             ? <Image src={product.image.url} alt={product.image.alt || product.title} fill sizes="(max-width: 370px) 90vw, (max-width: 760px) 44vw, (max-width: 1020px) 48vw, 30vw" loading={eagerFirstImage && index === 0 ? 'eager' : 'lazy'} unoptimized={!product.image.url.startsWith('/')} />

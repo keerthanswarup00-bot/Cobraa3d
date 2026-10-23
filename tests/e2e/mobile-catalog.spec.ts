@@ -23,6 +23,33 @@ async function openFilters(page: Page) {
 }
 
 test.describe('Mobile catalogue', () => {
+  test('the filter toolbar stays in document flow above the product grid', async ({ page }) => {
+    await skipSplash(page)
+    await page.goto('/products')
+
+    const toolbar = page.locator('.pc-toolbar')
+    const grid = page.locator('.pc-grid')
+    const layout = await page.evaluate(() => {
+      const toolbarNode = document.querySelector('.pc-toolbar')!
+      const gridNode = document.querySelector('.pc-grid')!
+      const toolbarBox = toolbarNode.getBoundingClientRect()
+      const gridBox = gridNode.getBoundingClientRect()
+      return {
+        position: getComputedStyle(toolbarNode).position,
+        toolbarBottom: toolbarBox.bottom + window.scrollY,
+        gridTop: gridBox.top + window.scrollY,
+      }
+    })
+
+    await expect(toolbar).toBeVisible()
+    await expect(grid.locator('.pc-card').first()).toBeVisible()
+    expect(layout.position).toBe('static')
+    expect(layout.gridTop).toBeGreaterThanOrEqual(layout.toolbarBottom)
+
+    await page.evaluate(() => window.scrollTo(0, 400))
+    await expect.poll(() => toolbar.evaluate((node) => node.getBoundingClientRect().bottom)).toBeLessThan(0)
+  })
+
   test('the filter sheet is a portaled 85dvh bottom sheet with every facet and a clear CTA', async ({ page }) => {
     await skipSplash(page)
     const sheet = await openFilters(page)
