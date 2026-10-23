@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: '20'
       - run: npm install -g pnpm@9
-      - run: pnpm install --frozen-lockfile || pnpm install
+      - run: pnpm install --frozen-lockfile --prod=false
       - run: pnpm run typecheck
       - run: pnpm run lint
       - run: pnpm run migrate

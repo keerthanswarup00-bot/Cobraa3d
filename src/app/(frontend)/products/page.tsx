@@ -118,7 +118,20 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     }
   })
 
-  const categories = getVisibleCategories(categoryResult.docs, result.docs).map((category) => ({ name: category.name, slug: category.slug || slugifyFilterValue(category.name) }))
+  const categories = getVisibleCategories(categoryResult.docs, result.docs).map((category) => ({
+    name: category.name.trim().replace(/\s+/g, ' '),
+    slug: category.slug || slugifyFilterValue(category.name),
+  }))
+  const categorySlugs = new Set(categories.map((category) => category.slug))
+  for (const product of result.docs as Product[]) {
+    const category = typeof product.category === 'object' && product.category ? product.category : null
+    if (!category || category.visible !== true || !category.name?.trim()) continue
+    const name = category.name.trim().replace(/\s+/g, ' ')
+    const slug = category.slug || slugifyFilterValue(name)
+    if (!slug || categorySlugs.has(slug)) continue
+    categorySlugs.add(slug)
+    categories.push({ name, slug })
+  }
   const productsPage = settings.productsPage
   const copy: CatalogCopy = {
     eyebrow: productsPage?.eyebrow ?? 'Objects, made differently',

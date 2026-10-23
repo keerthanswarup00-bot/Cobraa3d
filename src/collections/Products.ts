@@ -18,7 +18,7 @@ export const Products: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'category', 'price', 'salePrice', 'status', 'updatedAt'],
+    defaultColumns: ['images', 'title', 'category', 'price', 'salePrice', 'status', 'updatedAt'],
     listSearchableFields: ['title', 'shortDescription', 'material', 'slug'],
     pagination: { defaultLimit: 20 },
     livePreview: { url: ({ data, req }) => generatePreviewPath({ slug: data?.slug, collection: 'products', req }) },
@@ -29,6 +29,7 @@ export const Products: CollectionConfig = {
       { label: 'Overview', fields: [
         { name: 'title', type: 'text', required: true, admin: { description: 'Product name customers will see.' } },
         { name: 'shortDescription', label: 'Description', type: 'textarea', maxLength: 240, admin: { description: 'The description shown on product cards. Keep it under 240 characters.' } },
+        { name: 'category', type: 'relationship', relationTo: 'categories', admin: { description: 'Choose a catalogue category for this product.' } },
         { name: 'price', type: 'number', min: 0, admin: {
           description: 'Enter the price in INR. Leave blank to show “Ask for price”.',
           components: { Cell: '/components/admin/EditablePriceCell#EditablePriceCell' },
@@ -45,9 +46,8 @@ export const Products: CollectionConfig = {
         slugField({ name: 'slug', required: false }),
         { name: 'status', type: 'select', defaultValue: 'draft', admin: { description: 'Published makes the product visible on the storefront. Keep this in sync with the publish button.' }, options: [{ label: 'Draft', value: 'draft' }, { label: 'Published', value: 'published' }] },
         { name: 'isDemo', type: 'checkbox', defaultValue: false, admin: { description: 'Development demonstration record. Never use as confirmed stock or pricing.' } },
-        { name: 'category', type: 'relationship', relationTo: 'categories', admin: { description: 'Choose a visible catalogue category.' } },
         { name: 'description', label: 'Full description', type: 'richText' },
-        { name: 'images', type: 'array', label: 'Photos (first photo is the main image)', admin: { description: 'Add useful alt text for every photo. The first photo is used as the main image.' }, fields: [
+        { name: 'images', type: 'array', label: 'Photos (first photo is the main image)', admin: { description: 'Add useful alt text for every photo. The first photo is used as the main image.', components: { Cell: '/components/admin/ProductImageCell#ProductImageCell' } }, fields: [
           { name: 'image', type: 'upload', relationTo: 'media', required: true }, { name: 'alt', type: 'text', required: true },
         ] },
         { name: 'originalPrice', type: 'number', min: 0, admin: { description: 'Hidden from the public storefront. Use only for internal bookkeeping or migration if needed.' } }, { name: 'currency', type: 'text', defaultValue: 'INR', required: true },
