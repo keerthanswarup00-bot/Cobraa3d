@@ -1,0 +1,143 @@
+{
+  "products": [
+    {
+      "title": "Glowing Ghost and Puppy Halloween Scene",
+      "slug": "glowing-ghost-and-puppy-halloween-scene",
+      "category": "home-decor",
+      "description": "A decorative Halloween scene featuring a glowing ghost, a puppy with a green collar and leash, and a warm candle on a shared black base.",
+      "fullDescription": "A glowing ghost and a small puppy create a playful Halloween display. The scene pairs the ghost’s warm glow with a candle and a puppy wearing a green collar and leash, arranged together on a black base.\n\nA seasonal decorative piece for a Halloween display.",
+      "price": null,
+      "priceMode": "ask",
+      "images": [{ "path": "/Users/aryan/Downloads/new listing/Glowing Ghost and Puppy Halloween Scene.png", "alt": "Glowing ghost and puppy with a candle on a shared black base" }]
+    },
+    {
+      "title": "Pumpkin Parade by Candlelight",
+      "slug": "pumpkin-parade-by-candlelight",
+      "category": "home-decor",
+      "description": "A row of expressive orange pumpkin figures displayed on rustic wooden tiers in a candlelit Halloween setting.",
+      "fullDescription": "A parade of orange pumpkins with varied carved expressions is arranged across rustic wooden tiers. The image presents the figures in a warm, candlelit Halloween scene.",
+      "price": null,
+      "priceMode": "ask",
+      "images": [{ "path": "/Users/aryan/Downloads/new listing/Pumpkin Parade by Candlelight.png", "alt": "Orange pumpkin figures with varied expressions arranged on wooden tiers" }]
+    },
+    {
+      "title": "Cute Ghost Cat Figurine",
+      "slug": "cute-ghost-cat-figurine",
+      "category": "charms-figures",
+      "description": "A simple cat-eared ghost figurine with a softly draped silhouette, set against a dark background.",
+      "fullDescription": "This character combines a rounded ghostly drape with pointed cat ears and a small friendly face. Its smooth pale form is shown against a dark backdrop.",
+      "price": null,
+      "priceMode": "ask",
+      "images": [{ "path": "/Users/aryan/Downloads/new listing/Cute Ghost Cat Figurine.png", "alt": "Pale ghost figurine with pointed cat ears and a small face" }]
+    },
+    {
+      "title": "Six Cartoon Monsters Craft Set",
+      "slug": "six-cartoon-monsters-craft-set",
+      "category": "kids-colouring-kits",
+      "description": "Six playful cartoon monster outlines arranged as a creative craft set, with small crystal accents around them.",
+      "fullDescription": "The set features six distinct cartoon monster outlines, including one-eyed, horned, striped, and shaggy characters. The pieces are shown uncoloured, ready for a creative activity.",
+      "price": null,
+      "priceMode": "ask",
+      "images": [{ "path": "/Users/aryan/Downloads/new listing/Six Cartoon Monsters Craft Set.png", "alt": "Six outlined cartoon monsters with different shapes and expressions" }]
+    },
+    {
+      "title": "Kawaii Halloween Character Set",
+      "slug": "kawaii-halloween-character-set",
+      "category": "kids-colouring-kits",
+      "description": "A collection of uncoloured Halloween character outlines featuring a ghost, bat, cat, Frankenstein-style character, and castle.",
+      "fullDescription": "This playful Halloween collection includes outlined characters and a castle motif. The pieces are shown in black and white with open areas for colour or decoration.",
+      "price": null,
+      "priceMode": "ask",
+      "images": [{ "path": "/Users/aryan/Downloads/new listing/Kawaii Halloween Character Sticker Set.png", "alt": "Outlined Halloween characters including a ghost, bat, cat, monster, and castle" }]
+    },
+    {
+      "title": "Warm Ghost Lamp",
+      "slug": "warm-ghost-lamp",
+      "category": "lamps-lighting",
+      "description": "A softly glowing ghost-shaped lamp with a warm amber look and a simple draped silhouette.",
+      "fullDescription": "A ghost-shaped shade glows with a warm amber tone. Its smooth, flowing outline and softly lit eyes create a gentle decorative accent.",
+      "price": 300,
+      "priceMode": "show",
+      "images": [{ "path": "/Users/aryan/Downloads/new listing/Warm Ghost Lamp Glow.png", "alt": "Ghost-shaped lamp glowing with warm amber light" }]
+    },
+    {
+      "title": "White Mummy Halloween Figurines",
+      "slug": "white-mummy-halloween-figurines",
+      "category": "charms-figures",
+      "description": "Three pale Halloween figures styled as a waving mummy, a wrapped pumpkin, and a wrapped pig character.",
+      "fullDescription": "This trio brings together three playful wrapped characters: a waving mummy, a pumpkin figure, and a small pig with wrapped details. Each has a rounded, friendly expression.",
+      "price": null,
+      "priceMode": "ask",
+      "images": [{ "path": "/Users/aryan/Downloads/new listing/White Mummy Halloween Figurines.png", "alt": "Three pale Halloween figures styled as a mummy, pumpkin, and pig" }]
+    },
+    {
+      "title": "Autumn Jack-o’-Lantern Lamp",
+      "slug": "autumn-jack-o-lantern-lamp",
+      "category": "lamps-lighting",
+      "description": "An orange jack-o’-lantern with a carved smiling face and a warm light glowing from within.",
+      "fullDescription": "A sculpted orange pumpkin features a carved jack-o’-lantern face, curved green stem, and warm light visible through its openings. The image shows it as a glowing seasonal accent.",
+      "price": 300,
+      "priceMode": "show",
+      "images": [{ "path": "/Users/aryan/Downloads/new listing/Warmly Glowing Autumn Jack-o’-Lantern.png", "alt": "Orange jack-o’-lantern lamp glowing through its carved face" }]
+    },
+    {
+      "title": "Woodland Animal Colouring Set",
+      "slug": "woodland-animal-colouring-set",
+      "category": "kids-colouring-kits",
+      "description": "Six black-and-white woodland animal outlines, including a raccoon, fox, deer, hedgehog, squirrel, and bear.",
+      "fullDescription": "The collection shows six woodland animal outlines arranged on a wooden surface. Characters include a raccoon, fox, deer, hedgehog, squirrel, and bear, each with open areas for colouring.",
+      "price": null,
+      "priceMode": "ask",
+      "images": [{ "path": "/Users/aryan/Downloads/new listing/Cute Woodland Animal Cutouts on Oak.png", "alt": "Six outlined woodland animals: raccoon, fox, deer, hedgehog, squirrel, and bear" }]
+    },
+    {
+      "title": "Mandala Coaster Set",
+      "slug": "mandala-coaster-set",
+      "category": "home-decor",
+      "description": "A set of round, black-outlined mandala designs arranged as decorative coasters in a warm flat lay.",
+      "fullDescription": "These circular pieces feature varied mandala patterns with floral, leaf, and peacock-inspired details. They are shown together in a warm neutral setting.",
+      "price": null,
+      "priceMode": "ask",
+      "images": [{ "path": "/Users/aryan/Downloads/new listing/Mandala Coasters in a Warm Flat Lay.png", "alt": "Round outlined mandala designs with floral and peacock-inspired details" }]
+    },
+    {
+      "title": "Halloween Colouring Kit",
+      "slug": "halloween-colouring-kit",
+      "category": "kids-colouring-kits",
+      "description": "A Halloween colouring collection with outlined characters including a ghost, witch cat, bat, Frankenstein-style figure, and haunted house.",
+      "fullDescription": "This Halloween-themed colouring collection features outlined characters and seasonal motifs, including a ghost, a witch-hat cat, a bat, a Frankenstein-style figure, pumpkins, and a haunted house. The companion image shows the set with colourful sketch pens.",
+      "price": null,
+      "priceMode": "ask",
+      "images": [
+        { "path": "/Users/aryan/Downloads/new listing/Halloween Colouring Kit Display.png", "alt": "Halloween colouring figures displayed with the kit title" },
+        { "path": "/Users/aryan/Downloads/new listing/Halloween Colouring Kit Poster.png", "alt": "Halloween colouring kit with sketch pens and outlined seasonal characters" }
+      ]
+    },
+    {
+      "title": "Kawaii Animal Colouring Craft Set",
+      "slug": "kawaii-animal-colouring-craft-set",
+      "category": "kids-colouring-kits",
+      "description": "Six cheerful animal outlines, including a lion, hippo, monkey, elephant, tiger, and giraffe, shown with paints and markers.",
+      "fullDescription": "This colouring craft scene shows six outlined animals: a lion, hippo, monkey, elephant, tiger, and giraffe. Paint pots, markers, and brushes are arranged around the figures.",
+      "price": null,
+      "priceMode": "ask",
+      "images": [{ "path": "/Users/aryan/Downloads/new listing/Kawaii Animal Colouring Craft Set.png", "alt": "Six outlined animal characters with paints, markers, and brushes" }]
+    }
+  ],
+  "appendImages": [
+    {
+      "productSlug": "wave-ribbed-tripod-lamp",
+      "image": { "path": "/Users/aryan/Downloads/new listing/Warm Ribbed Lamp Interior.png", "alt": "Wave-ribbed tripod lamp glowing with its cord and plug visible" }
+    }
+  ],
+  "setLampPrices": [
+    "spiral-helix-table-lamp",
+    "ribbed-glow-table-lamp",
+    "faceted-tripod-table-lamp",
+    "wave-ribbed-tripod-lamp",
+    "petal-ribbed-tripod-lamp",
+    "glowing-ghost-tree-lamp",
+    "warm-ghost-lamp",
+    "autumn-jack-o-lantern-lamp"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "products": [
+    {
+      "title": "Glowing Ghost Tree Lamp",
+      "description": "Bring a little Halloween magic to your space with this glowing ghost lamp. Featuring a ghost with a luminous patterned body, a sculptural black tree stand and a warm amber glow, it adds charm to your Halloween decorations.",
+      "price": 299,
+      "priceMode": "show",
+      "category": "lamps-lighting",
+      "status": "published",
+      "images": [
+        {
+          "path": "/Users/aryan/Downloads/new listing/Glowing Ghost Tree Lamp in Halloween Ambience.png",
+          "alt": "Glowing ghost lamp on a sculptural black tree stand, lit with a warm amber glow"
+        }
+      ]
+    }
+  ]
+}
