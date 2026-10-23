@@ -10,7 +10,7 @@ async function skipSplash(page: import('@playwright/test').Page) {
 }
 
 test.describe('Homepage product journey', () => {
-  test('shows the requested sections in order and no more than three cards per row', async ({ page }) => {
+  test('shows the requested sections in order and a 70/30 product gallery peek', async ({ page }) => {
     await skipSplash(page)
     await page.goto('/')
 
@@ -22,6 +22,7 @@ test.describe('Homepage product journey', () => {
         if (node.matches('.home-product-section')) return node.querySelector('h2')?.textContent?.trim() || 'products'
         if (node.matches('.home-custom-teaser')) return 'custom idea'
         if (node.matches('.home-info')) return 'information'
+        if (node.matches('.home-reviews')) return 'reviews'
         if (node.matches('.home-about')) return 'about'
         if (node.matches('.home-footer')) return 'footer'
         return 'other'
@@ -30,11 +31,42 @@ test.describe('Homepage product journey', () => {
     expect(sequence[0]).toBe('hero')
     expect(sequence.indexOf('custom idea')).toBeGreaterThan(sequence.indexOf('Featured products'))
     expect(sequence.indexOf('information')).toBeGreaterThan(sequence.indexOf('custom idea'))
-    expect(sequence.indexOf('about')).toBeGreaterThan(sequence.indexOf('information'))
+    expect(sequence.indexOf('reviews')).toBeGreaterThan(sequence.indexOf('information'))
+    expect(sequence.indexOf('about')).toBeGreaterThan(sequence.indexOf('reviews'))
     expect(sequence.at(-1)).toBe('footer')
 
     const cardCounts = await page.locator('.home-product-section .studio-product-grid').evaluateAll((grids) => grids.map((grid) => grid.querySelectorAll('.studio-product-card').length))
     for (const count of cardCounts) expect(count).toBeLessThanOrEqual(3)
+
+    const gallery = page.locator('.home-product-section').first().locator('.studio-product-grid')
+    const peek = await gallery.evaluate((node) => {
+      const card = node.querySelector('.studio-product-card')!
+      return { card: card.getBoundingClientRect().width, viewport: node.getBoundingClientRect().width, scrollable: node.scrollWidth > node.clientWidth }
+    })
+    expect(peek.card / peek.viewport).toBeGreaterThanOrEqual(.69)
+    expect(peek.card / peek.viewport).toBeLessThanOrEqual(.75)
+    expect(peek.scrollable).toBe(true)
+  })
+
+  test('uses the provided About copy and keeps all ten reviews controllable', async ({ page }) => {
+    await skipSplash(page)
+    await page.goto('/')
+
+    const about = page.locator('.home-about')
+    await expect(about.getByRole('heading', { name: 'About Cobraa 3D' })).toBeVisible()
+    await expect(about.getByText('At Cobraa 3D, we turn creativity into something you can touch!', { exact: false })).toBeVisible()
+    await expect(about.locator('a, button')).toHaveCount(0)
+
+    const reviews = page.locator('.home-reviews')
+    await expect(reviews.locator('.home-review-card')).toHaveCount(10)
+    await expect(reviews.getByText('Priya', { exact: true })).toBeVisible()
+    const pause = reviews.getByRole('button', { name: 'Pause reviews' })
+    await pause.click()
+    await expect(reviews.getByRole('button', { name: 'Play reviews' })).toHaveAttribute('aria-pressed', 'true')
+    const track = reviews.locator('.home-reviews-track')
+    const before = await track.evaluate((node) => node.scrollLeft)
+    await reviews.getByRole('button', { name: 'Next review' }).click()
+    await expect.poll(() => track.evaluate((node) => node.scrollLeft)).toBeGreaterThan(before)
   })
 
   test('product enquiry links open clean product-specific WhatsApp messages', async ({ page }) => {
@@ -63,7 +95,8 @@ test.describe('Homepage product journey', () => {
     for (let index = 0; index < count; index += 1) {
       const section = categorySections.nth(index)
       const viewMore = section.locator('.studio-view-all')
-      await expect(viewMore).toHaveAttribute('href', /\/products\?category=/)
+      const categorySlug = await section.getAttribute('data-category-slug')
+      await expect(viewMore).toHaveAttribute('href', `/products?category=${encodeURIComponent(categorySlug || '')}`)
     }
   })
 

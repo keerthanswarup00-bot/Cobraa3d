@@ -6,6 +6,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import type { ConnectProduct } from '@/components/home/ConnectProducts'
 import { HomeProductGrid } from '@/components/home/HomeProductGrid'
+import { HomeReviews } from '@/components/home/HomeReviews'
 import { buildProductMessage, buildWhatsAppUrl } from '@/lib/shared'
 import { slugifyFilterValue } from '@/lib/catalogFilters'
 import { getDisplayPrice } from '@/lib/pricing'
@@ -25,12 +26,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 type HomeCategory = { id: number | string; name: string; slug: string; sortOrder: number }
-
-function textFromRichText(value: unknown): string {
-  if (!value || typeof value !== 'object') return ''
-  const item = value as { text?: string; children?: unknown[] }
-  return [item.text || '', ...(item.children || []).map(textFromRichText)].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
-}
 
 function visualFor(product: Product): ConnectProduct['visual'] {
   const category = typeof product.category === 'object' && product.category ? product.category.name || '' : ''
@@ -78,11 +73,11 @@ function asHomeProduct(product: Product, siteURL: string, productTemplate?: stri
   }
 }
 
-function ProductSection({ title, eyebrow, description, products, href, viewMore = 'View more products', eagerFirstImage = false }: {
-  title: string; eyebrow?: string; description?: string; products: ConnectProduct[]; href?: string; viewMore?: string; eagerFirstImage?: boolean
+function ProductSection({ title, eyebrow, description, products, href, categorySlug, viewMore = 'View more products', eagerFirstImage = false }: {
+  title: string; eyebrow?: string; description?: string; products: ConnectProduct[]; href?: string; categorySlug?: string; viewMore?: string; eagerFirstImage?: boolean
 }) {
   if (!products.length) return null
-  return <section className="home-section home-product-section" aria-label={title}>
+  return <section className="home-section home-product-section" aria-label={title} data-category-slug={categorySlug}>
     <div className="home-section-inner">
       <header className="home-section-heading">
         <div>{eyebrow && <p className="home-eyebrow">{eyebrow}</p>}<h2>{title}</h2></div>
@@ -132,11 +127,8 @@ export default async function HomePage() {
   const lightingProducts = lightingCategory ? productGroups.get(lightingCategory.slug) || [] : []
   const otherProducts = otherCategory ? productGroups.get(otherCategory.slug) || [] : []
   const heroProduct = featured[0] || allProducts[0]
-  const heroHeadline = settings.hero?.headline?.trim() || 'Thoughtful 3D prints, made in Hoskote.'
-  const heroDescription = settings.hero?.description?.trim() || 'Explore our products or tell us what you would like to make.'
-  const aboutText = textFromRichText(settings.brandStory).slice(0, 260)
-  const studioPhotos = settings.studioPhotos || []
-  const studioPhoto = studioPhotos.find((photo) => typeof photo === 'object' && photo.url)
+  const heroHeadline = settings.hero?.headline?.trim() || 'Creative 3D prints for curious minds.'
+  const heroDescription = settings.hero?.description?.trim() || 'Colouring kits, thoughtful gifts and playful designs made to bring imagination to life.'
   const whatsAppURL = buildWhatsAppUrl({ number: settings.whatsappNumber, message: 'Hi Cobraa 3D, I would like to ask about your products.' })
   const instagram = settings.instagram?.trim()
     ? (/^https?:\/\//i.test(settings.instagram) ? settings.instagram : `https://instagram.com/${settings.instagram.replace(/^@/, '')}`)
@@ -165,7 +157,7 @@ export default async function HomePage() {
 
     <ProductSection eyebrow="Selected for you" title="Featured products" description="A few pieces from the studio." products={featured} href="/products" viewMore="View all products" eagerFirstImage />
 
-    {lightingCategory && <ProductSection eyebrow="Explore by category" title={lightingCategory.name} products={lightingProducts} href={`/products?category=${encodeURIComponent(lightingCategory.slug)}`} viewMore={`View more ${lightingCategory.name.toLowerCase()}`} />}
+    {lightingCategory && <ProductSection eyebrow="Explore by category" title={lightingCategory.name} products={lightingProducts} categorySlug={lightingCategory.slug} href={`/products?category=${encodeURIComponent(lightingCategory.slug)}`} viewMore={`View more ${lightingCategory.name.toLowerCase()}`} />}
 
     <section className="home-custom-teaser" id="custom" aria-labelledby="nfc-title">
       <div className="home-custom-icon"><Nfc size={35} strokeWidth={1.5} aria-hidden="true" /></div>
@@ -173,7 +165,7 @@ export default async function HomePage() {
       <span className="home-coming-soon">Coming later</span>
     </section>
 
-    {otherCategory && <ProductSection eyebrow="More to explore" title={otherCategory.name} products={otherProducts} href={`/products?category=${encodeURIComponent(otherCategory.slug)}`} viewMore={`View more ${otherCategory.name.toLowerCase()}`} />}
+    {otherCategory && <ProductSection eyebrow="More to explore" title={otherCategory.name} products={otherProducts} categorySlug={otherCategory.slug} href={`/products?category=${encodeURIComponent(otherCategory.slug)}`} viewMore={`View more ${otherCategory.name.toLowerCase()}`} />}
 
     <section className="home-info" aria-label="Studio information">
       <div className="home-info-item"><MapPin size={19} aria-hidden="true" /><div><h3>Made in Hoskote</h3><p>Based in Bengaluru, Karnataka.</p></div></div>
@@ -181,9 +173,10 @@ export default async function HomePage() {
       <div className="home-info-item"><Box size={19} aria-hidden="true" /><div><h3>Made in 3D</h3><p>Explore the catalogue to see each piece and its details.</p></div></div>
     </section>
 
+    <HomeReviews />
+
     <section className="home-about" aria-labelledby="about-title">
-      {studioPhoto && typeof studioPhoto === 'object' && studioPhoto.url && <div className="home-about-photo"><Image src={studioPhoto.url} alt={studioPhoto.alt || 'Cobraa 3D studio'} fill sizes="(max-width: 760px) 100vw, 40vw" unoptimized={!studioPhoto.url.startsWith('/')} /></div>}
-      <div className="home-about-copy"><p className="home-eyebrow">A little about us</p><h2 id="about-title">Small ideas,<br /><em>made real.</em></h2><p>{aboutText || `${settings.brandName || 'Cobraa 3D'} is based in Hoskote, Bengaluru. Explore our work and get in touch with an idea.`}</p><Link href="/location" className="home-text-link">Meet the studio <ArrowRight size={16} /></Link></div>
+      <div className="home-about-copy"><p className="home-eyebrow">A little about us</p><h2 id="about-title">About Cobraa 3D</h2><p>At Cobraa 3D, we turn creativity into something you can touch! We create fun, thoughtfully designed 3D-printed products that inspire kids to explore, colour, create, and learn. From unique colouring kits to creative gifts, every product is made to bring imagination to life, one creation at a time.</p></div>
     </section>
 
     <footer className="home-footer">

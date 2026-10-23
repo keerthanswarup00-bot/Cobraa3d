@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowUpRight, Box } from 'lucide-react'
+import { ArrowRight, Box, MessageCircle } from 'lucide-react'
 import type { ConnectProduct } from './ConnectProducts'
 
 export function HomeProductGrid({ products, productsURL, viewAllLabel, eagerFirstImage = false }: {
@@ -10,7 +10,7 @@ export function HomeProductGrid({ products, productsURL, viewAllLabel, eagerFirs
   eagerFirstImage?: boolean
 }) {
   return <div className="studio-product-wrap">
-    <div className="studio-product-grid">
+    <div className="studio-product-grid" role="region" aria-label="Products, scroll horizontally" tabIndex={0}>
       {products.slice(0, 3).map((product, index) => <article className="studio-product-card" key={`${product.id}-${product.slug}`}>
         <Link className="studio-product-photo" href={`/products/${product.slug}`} aria-label={`View ${product.title}`}>
           {product.image?.url
@@ -19,16 +19,13 @@ export function HomeProductGrid({ products, productsURL, viewAllLabel, eagerFirs
           <small className="studio-product-tag">{product.tag}</small>
           <small className="studio-product-number">{String(index + 1).padStart(2, '0')}</small>
         </Link>
-        <div className="studio-product-copy"><h3>{product.title}</h3>{product.blurb && <p>{product.blurb}</p>}</div>
+        <div className="studio-product-copy"><h3><Link href={`/products/${product.slug}`}>{product.title}</Link></h3></div>
         <div className="studio-product-actions">
           <span className="studio-product-price">{product.priceLabel || 'Ask for price'}</span>
-          <div className="studio-product-links">
-            <Link className="studio-product-view" href={`/products/${product.slug}`}>View <ArrowUpRight size={15} aria-hidden="true" /></Link>
-            {product.whatsappURL && <a className="studio-product-ask" href={product.whatsappURL} data-wa-source="card" target="_blank" rel="noopener noreferrer">Ask on WhatsApp</a>}
-          </div>
+          {product.whatsappURL && <a className="studio-product-ask" href={product.whatsappURL} aria-label={`Ask about ${product.title} on WhatsApp`} data-wa-source="card" target="_blank" rel="noopener noreferrer"><MessageCircle size={19} strokeWidth={1.8} aria-hidden="true" /></a>}
         </div>
       </article>)}
+      <Link className="studio-view-all" href={productsURL}><span>{viewAllLabel}</span><ArrowRight size={16} aria-hidden="true" /></Link>
     </div>
-    <Link className="studio-view-all" href={productsURL}><span>{viewAllLabel}</span><span className="studio-view-arrow" aria-hidden="true">↗</span></Link>
   </div>
 }
