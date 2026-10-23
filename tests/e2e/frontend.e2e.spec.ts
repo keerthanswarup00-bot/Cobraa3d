@@ -27,7 +27,7 @@ test.describe('Frontend', () => {
 
   test('can load homepage', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: /Made in Hoskote\. Made to be yours\./ })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Personalised 3D prints\. Made in Hoskote\./ })).toBeVisible()
     await expect(page.locator('.studio-view-all')).toHaveAttribute('href', '/products')
     await page.getByRole('link', { name: /Browse products/ }).click()
     await expect(page).toHaveURL(/#products$/)
