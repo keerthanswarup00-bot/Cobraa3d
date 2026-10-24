@@ -8,6 +8,7 @@ export type WhatsAppSettings = {
 export type ProductMessageInput = {
   title: string
   slug?: string | null
+  updatedAt?: string | null
   price?: number | null
   priceMode?: 'show' | 'ask' | null
   currency?: string | null
@@ -19,6 +20,11 @@ export type ProductMessageInput = {
   images?: Array<{ alt?: string | null; image?: { url?: string | null } | string | number | null }> | null
 }
 export type ProductMessageOptions = { quantity?: number; colour?: string; kind?: 'custom' | 'bulk' | 'product'; baseURL?: string }
+
+function getProductShareVersion(updatedAt?: string | null): number {
+  const version = Date.parse(updatedAt || '')
+  return Number.isFinite(version) ? version : 0
+}
 
 export function buildWhatsAppUrl({ message, number }: { message: string; number?: string | null }): string | null {
   if (number && !/^\+?[\d\s().-]+$/.test(number)) return null
@@ -54,7 +60,9 @@ export function buildProductMessage(
 ): string {
   const firstImage = product.images?.[0]?.image
   const imageUrl = typeof firstImage === 'object' && firstImage ? firstImage.url || '' : ''
-  const url = options.baseURL && product.slug ? `${options.baseURL.replace(/\/$/, '')}/products/${encodeURIComponent(product.slug)}` : ''
+  const url = options.baseURL && product.slug
+    ? `${options.baseURL.replace(/\/$/, '')}/products/${encodeURIComponent(product.slug)}?v=${getProductShareVersion(product.updatedAt)}`
+    : ''
   const template = product.whatsappMessageOverride || settings.messageTemplates?.product || settings.productMessageTemplate || 'Hi, I would like to enquire about {{title}}. Price: {{price}}. {{url}}'
   let message = template
     .replaceAll('{{title}}', product.title)

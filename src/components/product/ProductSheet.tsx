@@ -4,22 +4,19 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useDragControls, useReducedMotion } from "motion/react";
-import { PushAlerts } from "@/components/PushAlerts";
 import "./product-sheet.css";
 
 export type SheetProduct = {
+  slug: string;
   name: string;
-  shortDescription?: string;
+  shortDescription?: string | null;
   price?: string;
   images: { url: string; alt?: string }[];
-  colors?: { name: string; hex?: string }[];
 };
-// Hrefs are built on the server with your existing buildProductMessage, so no server code is imported here.
-export type SheetHrefs = { base: string; byColor: Record<string, string> };
 
 const FOCUSABLE = 'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
-export function ProductSheet({ product, hrefs, pushPublicKey }: { product: SheetProduct; hrefs: SheetHrefs; pushPublicKey?: string }) {
+export function ProductSheet({ product, href }: { product: SheetProduct; href: string }) {
   const router = useRouter();
   const reduce = useReducedMotion();
   const controls = useDragControls();
@@ -27,7 +24,6 @@ export function ProductSheet({ product, hrefs, pushPublicKey }: { product: Sheet
   const titleId = useId();
   const [open, setOpen] = useState(true);
   const [slide, setSlide] = useState(0);
-  const [color, setColor] = useState<string | null>(null);
   const close = useCallback(() => setOpen(false), []);
 
   // scroll lock, focus in, focus restore, Escape, Tab trap
@@ -55,7 +51,6 @@ export function ProductSheet({ product, hrefs, pushPublicKey }: { product: Sheet
     };
   }, [close]);
 
-  const href = (color && hrefs.byColor[color]) || hrefs.base;
   const spring = reduce ? { duration: 0.01 } : { type: "spring" as const, damping: 32, stiffness: 380 };
 
   return (
@@ -93,24 +88,13 @@ export function ProductSheet({ product, hrefs, pushPublicKey }: { product: Sheet
             )}
 
             <h2 id={titleId} className="ps-title">{product.name}</h2>
+            {product.price && <p className="ps-price">{product.price}</p>}
             {product.shortDescription && <p className="ps-desc">{product.shortDescription}</p>}
-
-            {!!product.colors?.length && (
-              <div className="ps-colors" role="group" aria-label="Colour">
-                {product.colors.map((c) => (
-                  <button key={c.name} type="button" className="ps-chip" aria-pressed={color === c.name}
-                    onClick={() => setColor(color === c.name ? null : c.name)}>
-                    {c.hex && <i style={{ background: c.hex }} />}{c.name}
-                  </button>
-                ))}
-              </div>
-            )}
-            <PushAlerts publicKey={pushPublicKey} source="product-sheet" />
           </div>
 
           <div className="ps-cta">
-            <p className="ps-price">{product.price ?? "Ask for price"}</p>
-            <a className="ps-wa" href={href} target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>
+            <a className="ps-wa" href={href} target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>
+            <a className="ps-details" href={`/products/${encodeURIComponent(product.slug)}`}>View full details →</a>
           </div>
         </motion.div>
       )}

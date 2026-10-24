@@ -47,6 +47,7 @@ function asHomeProduct(product: Product, siteURL: string, productTemplate?: stri
   const message = buildProductMessage({
     title: product.title,
     slug: product.slug,
+    updatedAt: product.updatedAt,
     price: messagePrice,
     priceMode: product.priceMode,
     currency: product.currency,

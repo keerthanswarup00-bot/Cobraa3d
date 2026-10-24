@@ -79,7 +79,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     return { slug: item.slug || '', title: item.title, image: media?.url ? { url: media.url, alt: item.images?.[0]?.alt || item.title } : undefined }
   })
   const productData = {
-    title: product.title, slug: product.slug || slug, shortDescription: product.shortDescription,
+    title: product.title, slug: product.slug || slug, updatedAt: product.updatedAt, shortDescription: product.shortDescription,
     descriptionText: textFromLexical(product.description?.root), price: product.price, salePrice: product.salePrice, originalPrice: product.originalPrice,
     currency: product.currency, priceMode: product.priceMode, availability: product.availability, images: photos,
     includedItems: product.includedItems?.map((item) => item.item), colourOptions: product.colourOptions?.map(({ name, hex }) => ({ name, hex })),
