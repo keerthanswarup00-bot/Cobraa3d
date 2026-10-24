@@ -62,7 +62,7 @@ export const SiteSettings: GlobalConfig = {
       ] },
     ] },
     { label: 'Contact and Social', fields: [
-    { name: 'whatsappNumber', type: 'text', defaultValue: '916364224230', validate: (value: unknown) => value == null || value === '' || /^\d{8,15}$/.test(String(value)) || 'Enter digits only, including country code.' },
+    { name: 'whatsappNumber', type: 'text', defaultValue: '917019433035', validate: (value: unknown) => value == null || value === '' || /^\d{8,15}$/.test(String(value)) || 'Enter digits only, including country code.' },
       { name: 'phone', type: 'text' }, { name: 'email', type: 'email' }, { name: 'instagram', type: 'text' },
       { name: 'socialLinks', type: 'array', fields: [{ name: 'label', type: 'text', required: true }, { name: 'url', type: 'text', required: true }, { name: 'icon', type: 'text' }] },
       { name: 'linkTests', type: 'ui', admin: { components: { Field: '@/components/SettingsLinkTests#SettingsLinkTests' } } },
