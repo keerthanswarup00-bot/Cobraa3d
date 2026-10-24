@@ -29,7 +29,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     if (source.length > MAX_SOURCE_BYTES) return fallback()
     const jpeg = await composeShareImage(source)
     return new Response(new Uint8Array(jpeg), {
-      headers: { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800' },
+      headers: { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, s-maxage=31536000, immutable' },
     })
   } catch {
     return fallback()

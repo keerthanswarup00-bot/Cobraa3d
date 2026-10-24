@@ -16,12 +16,26 @@ import {
   isRemoteImage,
 } from '@/lib/shared'
 import { getDisplayPrice } from '@/lib/pricing'
+import { getProductShareImageURL, getProductShareVersion } from '@/lib/shareImage-constants'
 
 describe('shared business helpers', () => {
   it('encodes WhatsApp messages and normalizes the configured number to digits', () => {
     expect(buildWhatsAppUrl({ number: '+91 98765 43210', message: 'Hi & hello' })).toBe('https://wa.me/919876543210?text=Hi%20%26%20hello')
     expect(buildWhatsAppUrl({ number: '12abc', message: 'Hi' })).toBeNull()
     expect(buildWhatsAppUrl({ number: '+91 abc 98765 43210', message: 'Hi' })).toBeNull()
+  })
+
+  it('uses the product updatedAt timestamp as the shared image and enquiry-link version', () => {
+    const updatedAt = '2026-10-24T09:55:35.667Z'
+    const version = Date.parse(updatedAt)
+    expect(getProductShareVersion(updatedAt)).toBe(version)
+    expect(getProductShareVersion('invalid')).toBe(0)
+    expect(getProductShareImageURL('https://shop.test/', 'lamp', updatedAt)).toBe(`https://shop.test/products/lamp/share.jpg?v=${version}`)
+    const message = buildProductMessage(
+      { title: 'Lamp', slug: 'lamp', updatedAt },
+      { baseURL: 'https://shop.test' },
+    )
+    expect(message.endsWith(`https://shop.test/products/lamp?v=${version}`)).toBe(true)
   })
 
   it('builds customer-number reply messages for enquiries', () => {
@@ -81,18 +95,18 @@ describe('shared business helpers', () => {
 
   it('writes a clean default product message with the product link on its own last line', () => {
     const message = buildProductMessage({ title: 'Cute Ghost Cat Figurine', slug: 'cute-ghost-cat-figurine', price: 299, priceMode: 'show', currency: 'INR' }, { baseURL: 'https://shop.test/' })
-    expect(message).toBe("Hi, I'm interested in Cute Ghost Cat Figurine.\nPrice: ₹299.00\n\nhttps://shop.test/products/cute-ghost-cat-figurine")
+    expect(message).toBe("Hi, I'm interested in Cute Ghost Cat Figurine.\nPrice: ₹299.00\n\nhttps://shop.test/products/cute-ghost-cat-figurine?v=0")
   })
 
   it('places chosen quantity and colour above the product link', () => {
     const message = buildProductMessage({ title: 'Lamp', slug: 'lamp', priceMode: 'ask' }, { baseURL: 'https://shop.test', quantity: 2, colour: 'Black' })
-    expect(message).toBe("Hi, I'm interested in Lamp.\nPrice: Ask for price\nQuantity: 2\nColour: Black\n\nhttps://shop.test/products/lamp")
-    expect(message.endsWith('https://shop.test/products/lamp')).toBe(true)
+    expect(message).toBe("Hi, I'm interested in Lamp.\nPrice: Ask for price\nQuantity: 2\nColour: Black\n\nhttps://shop.test/products/lamp?v=0")
+    expect(message.endsWith('https://shop.test/products/lamp?v=0')).toBe(true)
   })
 
   it('keeps older custom templates working and appends the chosen options after them', () => {
     const message = buildProductMessage({ title: 'Lamp', slug: 'lamp', priceMode: 'ask' }, { baseURL: 'https://shop.test', colour: 'Black' }, { messageTemplates: { product: 'Hi, I would like to enquire about {{title}}. Price: {{price}}. {{url}}' } })
-    expect(message).toBe('Hi, I would like to enquire about Lamp. Price: Ask for price. https://shop.test/products/lamp\n\nColour: Black')
+    expect(message).toBe('Hi, I would like to enquire about Lamp. Price: Ask for price. https://shop.test/products/lamp?v=0\n\nColour: Black')
   })
 
   it('does not mangle product names that contain replacement-pattern characters', () => {

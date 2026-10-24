@@ -8,7 +8,7 @@ import { buildProductMessage, buildWhatsAppUrl, formatPrice, isRemoteImage } fro
 
 type Photo = { url: string; alt: string }
 type ProductData = {
-  title: string; slug: string; shortDescription?: string | null; descriptionText?: string; price?: number | null; salePrice?: number | null; originalPrice?: number | null
+  title: string; slug: string; updatedAt?: string | null; shortDescription?: string | null; descriptionText?: string; price?: number | null; salePrice?: number | null; originalPrice?: number | null
   currency?: string; priceMode?: 'show' | 'ask' | null; availability?: string | null; images: Photo[]; includedItems?: string[]
   colourOptions?: { name: string; hex?: string | null }[]; dimensions?: string | null; material?: string | null; ageGroup?: string | null
   personalisable?: boolean | null; personalisationNotes?: string | null; careNotes?: string | null; productionNote?: string | null
