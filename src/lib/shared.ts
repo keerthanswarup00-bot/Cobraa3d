@@ -56,6 +56,15 @@ export function formatPrice(price?: number | null, priceMode?: string | null, cu
   }
 }
 
+/** Name, price and any chosen options (quantity, colour), then the product link on its own last line. */
+export const DEFAULT_PRODUCT_MESSAGE_TEMPLATE = "Hi, I'm interested in {{title}}.\nPrice: {{price}}{{details}}\n\n{{url}}"
+
+/** Opening message for WhatsApp buttons that are not about one specific product (header, home page). */
+export function buildGeneralMessage(brandName?: string | null): string {
+  const brand = brandName?.trim()
+  return `Hi${brand ? ` ${brand}` : ''}, I'd like to know more about your products.`
+}
+
 export function buildProductMessage(
   product: ProductMessageInput,
   options: ProductMessageOptions = {},
@@ -64,23 +73,29 @@ export function buildProductMessage(
   const firstImage = product.images?.[0]?.image
   const imageUrl = typeof firstImage === 'object' && firstImage ? firstImage.url || '' : ''
   const url = options.baseURL && product.slug ? `${options.baseURL.replace(/\/$/, '')}/products/${encodeURIComponent(product.slug)}` : ''
-  const template = product.whatsappMessageOverride || settings.messageTemplates?.product || settings.productMessageTemplate || 'Hi, I would like to enquire about {{title}}. Price: {{price}}. {{url}}'
-  let message = template
-    .replaceAll('{{title}}', product.title)
-    .replaceAll('{{price}}', displayPrice(product))
-    .replaceAll('{{url}}', url)
-    .replaceAll('{{imageUrl}}', imageUrl)
+  const template = product.whatsappMessageOverride || settings.messageTemplates?.product || settings.productMessageTemplate || DEFAULT_PRODUCT_MESSAGE_TEMPLATE
 
+  // The raw image URL is never added to the message. A wa.me link can only carry text, and a long storage URL
+  // looks like spam; WhatsApp shows the product photo itself as a preview card built from the product link.
   const details: string[] = []
   if (options.quantity && options.quantity > 1) details.push(`Quantity: ${Math.floor(options.quantity)}`)
   if (options.colour) details.push(`Colour: ${options.colour}`)
   if (options.kind === 'bulk') details.push('Please let me know about quantity and bulk pricing.')
-  if (imageUrl) details.push(`Product image: ${imageUrl}`)
   if (product.ageGroup?.toLowerCase().includes('kid')) details.push('Could you tell me the recommended age group for this kit?')
   if (product.personalisable || product.badges?.includes('customisable')) details.push('Can this product be personalised?')
   if (product.badges?.includes('festive')) details.push('Is this product currently available?')
-  if (details.length) message += `\n\n${details.join('\n')}`
-  return message.trim()
+  const detailLines = details.join('\n')
+
+  // Function replacers keep "$" in a product name from being read as a replacement pattern.
+  let message = template
+    .replaceAll('{{title}}', () => product.title)
+    .replaceAll('{{price}}', () => displayPrice(product))
+    .replaceAll('{{url}}', () => url)
+    .replaceAll('{{imageUrl}}', () => imageUrl)
+    .replaceAll('{{details}}', () => (detailLines ? `\n${detailLines}` : ''))
+  // Custom templates written before {{details}} existed still get the extra lines, after the template text.
+  if (detailLines && !template.includes('{{details}}')) message += `\n\n${detailLines}`
+  return message.replace(/\n{3,}/g, '\n\n').trim()
 }
 
 export type DatedActive = { active?: boolean | null; startsAt?: string | null; endsAt?: string | null; priority?: number | null }

@@ -7,7 +7,8 @@ import config from '@payload-config'
 import type { ConnectProduct } from '@/components/home/ConnectProducts'
 import { HomeProductGrid } from '@/components/home/HomeProductGrid'
 import { HomeReviews } from '@/components/home/HomeReviews'
-import { buildProductMessage, buildWhatsAppUrl } from '@/lib/shared'
+import { buildGeneralMessage, buildProductMessage, buildWhatsAppUrl } from '@/lib/shared'
+import { DEFAULT_SITE_DESCRIPTION, defaultShareImage } from '@/lib/siteMeta'
 import { slugifyFilterValue } from '@/lib/catalogFilters'
 import { getDisplayPrice } from '@/lib/pricing'
 import { getServerSideURL } from '@/utilities/getURL'
@@ -16,12 +17,16 @@ import type { Product } from '@/payload-types'
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings(0)
-  const description = settings.seoDefaults?.description || settings.hero?.description || settings.tagline || undefined
+  const description = settings.seoDefaults?.description?.trim() || settings.hero?.description?.trim() || settings.tagline?.trim() || DEFAULT_SITE_DESCRIPTION
+  const title = settings.seoDefaults?.title || settings.brandName || 'Cobraa 3D'
+  // An image chosen in Site Settings → SEO and Sharing wins; otherwise the branded default (never a missing image).
+  const image = settings.ogImage && typeof settings.ogImage === 'object' && settings.ogImage.url ? { url: settings.ogImage.url } : defaultShareImage(title)
   return {
-    title: { absolute: settings.seoDefaults?.title || settings.brandName || 'Cobraa 3D' },
+    title: { absolute: title },
     description,
     alternates: { canonical: '/' },
-    openGraph: { title: settings.seoDefaults?.title || settings.brandName || 'Cobraa 3D', description, images: settings.ogImage && typeof settings.ogImage === 'object' && settings.ogImage.url ? [{ url: settings.ogImage.url }] : undefined },
+    openGraph: { type: 'website', siteName: settings.brandName || 'Cobraa 3D', title, description, url: '/', images: [image] },
+    twitter: { card: 'summary_large_image', title, description, images: [image.url] },
   }
 }
 
@@ -133,8 +138,8 @@ export default async function HomePage() {
   const otherProducts = otherCategory ? productGroups.get(otherCategory.slug) || [] : []
   const heroProduct = featured[0] || allProducts[0]
   const heroHeadline = settings.hero?.headline?.trim() || 'Creative 3D prints for curious minds.'
-  const heroDescription = settings.hero?.description?.trim() || 'Colouring kits, thoughtful gifts and playful designs made to bring imagination to life.'
-  const whatsAppURL = buildWhatsAppUrl({ number: settings.whatsappNumber, message: 'Hi Cobraa 3D, I would like to ask about your products.' })
+  const heroDescription = settings.hero?.description?.trim() || DEFAULT_SITE_DESCRIPTION
+  const whatsAppURL = buildWhatsAppUrl({ number: settings.whatsappNumber, message: buildGeneralMessage(settings.brandName) })
   const instagram = settings.instagram?.trim()
     ? (/^https?:\/\//i.test(settings.instagram) ? settings.instagram : `https://instagram.com/${settings.instagram.replace(/^@/, '')}`)
     : null
