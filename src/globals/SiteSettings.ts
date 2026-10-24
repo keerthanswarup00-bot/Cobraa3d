@@ -1,6 +1,7 @@
 import type { GlobalConfig } from 'payload'
 import { isAdmin } from '../access/roles'
 import { revalidateSiteGlobal } from '../hooks/revalidateSite'
+import { DEFAULT_PRODUCT_MESSAGE_TEMPLATE } from '../lib/shared'
 
 const toggle = (name: string, description: string, defaultValue = true) => ({ name, type: 'checkbox' as const, defaultValue, admin: { description } })
 
@@ -76,7 +77,7 @@ export const SiteSettings: GlobalConfig = {
     // copied into messageTemplates.product after the additive sync completes.
     { name: 'productMessageTemplate', type: 'textarea', admin: { hidden: true } },
     { name: 'messageTemplates', type: 'group', fields: [
-      { name: 'product', type: 'textarea', defaultValue: 'Hi, I would like to enquire about {{title}}. Price: {{price}}. {{url}}' },
+      { name: 'product', type: 'textarea', defaultValue: DEFAULT_PRODUCT_MESSAGE_TEMPLATE, admin: { description: 'Placeholders: {{title}}, {{price}}, {{details}} (quantity, colour and other options the customer picked), {{url}}. Keep {{url}} last so WhatsApp can show the product photo as a preview card.' } },
       { name: 'custom', type: 'textarea', defaultValue: 'Hi, I have an idea for a custom 3D print. {{details}}' },
       { name: 'bulk', type: 'textarea', defaultValue: 'Hi, I would like to discuss a bulk order. Product: {{product}}. Quantity: {{quantity}}. Date: {{date}}. Personalisation: {{personalisation}}.' },
       { name: 'festive', type: 'textarea' },

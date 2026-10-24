@@ -8,6 +8,7 @@ import * as migration_20261021_090000_delivery_line from './20261021_090000_deli
 import * as migration_20261022_193100_push_alerts_and_sale_price from './20261022_193100_push_alerts_and_sale_price';
 import * as migration_20261023_090000_version_sale_price from './20261023_090000_version_sale_price';
 import * as migration_20261024_160000_update_whatsapp_number from './20261024_160000_update_whatsapp_number';
+import * as migration_20261024_190000_clean_product_message_template from './20261024_190000_clean_product_message_template';
 
 export const migrations = [
   {
@@ -59,5 +60,10 @@ export const migrations = [
     up: migration_20261024_160000_update_whatsapp_number.up,
     down: migration_20261024_160000_update_whatsapp_number.down,
     name: '20261024_160000_update_whatsapp_number'
+  },
+  {
+    up: migration_20261024_190000_clean_product_message_template.up,
+    down: migration_20261024_190000_clean_product_message_template.down,
+    name: '20261024_190000_clean_product_message_template'
   },
 ];

@@ -1599,6 +1599,9 @@ export interface SiteSetting {
   openingHours?: string | null;
   productMessageTemplate?: string | null;
   messageTemplates?: {
+    /**
+     * Placeholders: {{title}}, {{price}}, {{details}} (quantity, colour and other options the customer picked), {{url}}. Keep {{url}} last so WhatsApp can show the product photo as a preview card.
+     */
     product?: string | null;
     custom?: string | null;
     bulk?: string | null;

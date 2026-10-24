@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildNameplateMessage,
   buildCustomerReplyUrl,
+  buildGeneralMessage,
   getCloseButtonDestination,
   buildProductMessage,
   buildVCard,
@@ -71,9 +72,38 @@ describe('shared business helpers', () => {
     expect(buildWhatsAppUrl({ number: null, message: 'test' })).toBeNull()
   })
 
-  it('includes a public image URL as text in product enquiries', () => {
-    const message = buildProductMessage({ title: 'A', images: [{ image: { url: 'https://cdn.test/a.jpg' } }] })
-    expect(message).toContain('Product image: https://cdn.test/a.jpg')
+  it('never puts the raw storage image URL in a product enquiry', () => {
+    const message = buildProductMessage({ title: 'A', slug: 'a', images: [{ image: { url: 'https://abc.supabase.co/storage/v1/object/public/media/a.webp' } }] }, { baseURL: 'https://shop.test' })
+    expect(message).not.toContain('supabase')
+    expect(message).not.toContain('.webp')
+    expect(message).not.toContain('Product image')
+  })
+
+  it('writes a clean default product message with the product link on its own last line', () => {
+    const message = buildProductMessage({ title: 'Cute Ghost Cat Figurine', slug: 'cute-ghost-cat-figurine', price: 299, priceMode: 'show', currency: 'INR' }, { baseURL: 'https://shop.test/' })
+    expect(message).toBe("Hi, I'm interested in Cute Ghost Cat Figurine.\nPrice: ₹299.00\n\nhttps://shop.test/products/cute-ghost-cat-figurine")
+  })
+
+  it('places chosen quantity and colour above the product link', () => {
+    const message = buildProductMessage({ title: 'Lamp', slug: 'lamp', priceMode: 'ask' }, { baseURL: 'https://shop.test', quantity: 2, colour: 'Black' })
+    expect(message).toBe("Hi, I'm interested in Lamp.\nPrice: Ask for price\nQuantity: 2\nColour: Black\n\nhttps://shop.test/products/lamp")
+    expect(message.endsWith('https://shop.test/products/lamp')).toBe(true)
+  })
+
+  it('keeps older custom templates working and appends the chosen options after them', () => {
+    const message = buildProductMessage({ title: 'Lamp', slug: 'lamp', priceMode: 'ask' }, { baseURL: 'https://shop.test', colour: 'Black' }, { messageTemplates: { product: 'Hi, I would like to enquire about {{title}}. Price: {{price}}. {{url}}' } })
+    expect(message).toBe('Hi, I would like to enquire about Lamp. Price: Ask for price. https://shop.test/products/lamp\n\nColour: Black')
+  })
+
+  it('does not mangle product names that contain replacement-pattern characters', () => {
+    const message = buildProductMessage({ title: 'Mug $& Co $1', slug: 'mug', priceMode: 'ask' }, { baseURL: 'https://shop.test' })
+    expect(message).toContain('Mug $& Co $1')
+  })
+
+  it('opens general WhatsApp chats with a clean brand greeting', () => {
+    expect(buildGeneralMessage('Cobraa 3D')).toBe("Hi Cobraa 3D, I'd like to know more about your products.")
+    expect(buildGeneralMessage('  ')).toBe("Hi, I'd like to know more about your products.")
+    expect(buildGeneralMessage(null)).not.toMatch(/connect page/i)
   })
 
   it('only returns offers and announcements in their active date window', () => {

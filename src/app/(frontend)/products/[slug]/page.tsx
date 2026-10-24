@@ -11,6 +11,8 @@ import { getDisplayPrice } from '@/lib/pricing'
 import { TEMP_PRODUCTS } from '@/lib/tempProducts'
 import type { Product } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
+import { SHARE_IMAGE_HEIGHT, SHARE_IMAGE_WIDTH } from '@/lib/shareImage-constants'
+import { defaultShareImage } from '@/lib/siteMeta'
 
 export const revalidate = 60
 
@@ -36,9 +38,8 @@ function urlForMedia(image: Product['images'] extends (infer _T)[] | null | unde
   return media.url ? { url: media.url, alt: media.alt || '' } : undefined
 }
 
-function absoluteURL(url: string | null | undefined, base: string): string | undefined {
-  if (!url) return undefined
-  try { return new URL(url, base).toString() } catch { return undefined }
+function truncate(text: string, max: number): string {
+  return text.length <= max ? text : `${text.slice(0, max - 1).trimEnd()}…`
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -52,14 +53,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const media = typeof mainImage === 'object' && mainImage ? mainImage : null
   const canonical = `/products/${product.slug}`
   const title = product.seoTitle || product.meta?.title || product.title
-  const description = product.seoDescription || product.meta?.description || product.shortDescription || undefined
-  // WhatsApp, iMessage and other crawlers need an absolute image URL; relative ones silently produce a text-only preview.
-  const imageURL = absoluteURL(media?.url, getServerSideURL())
-  const image = imageURL ? { url: imageURL, alt: product.images?.[0]?.alt || product.title, ...(media?.width && media?.height ? { width: media.width, height: media.height } : {}) } : undefined
+  const description = product.seoDescription || product.meta?.description || product.shortDescription || truncate(textFromLexical(product.description?.root), 160) || undefined
+  // Previews use a composed 1200x630 JPEG (see share.jpg/route.ts), not the raw upload: uploads are WebP, which not every
+  // crawler renders, and a portrait photo would show as a tiny thumbnail. ?v= changes when the product is edited.
+  const image = media?.url
+    ? { url: `${getServerSideURL()}/products/${encodeURIComponent(product.slug || slug)}/share.jpg?v=${Date.parse(product.updatedAt) || 0}`, width: SHARE_IMAGE_WIDTH, height: SHARE_IMAGE_HEIGHT, type: 'image/jpeg', alt: product.images?.[0]?.alt || product.title }
+    : defaultShareImage(settings.brandName || 'Cobraa 3D')
   return {
     title, description, alternates: { canonical }, robots: product.isDemo ? { index: false, follow: false } : undefined,
-    openGraph: { type: 'website', siteName: settings.brandName, title, description, url: canonical, images: image ? [image] : undefined },
-    twitter: { card: image ? 'summary_large_image' : 'summary', title, description, images: image ? [image.url] : undefined },
+    openGraph: { type: 'website', siteName: settings.brandName, title, description, url: canonical, images: [image] },
+    twitter: { card: 'summary_large_image', title, description, images: [image.url] },
   }
 }
 

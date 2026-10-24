@@ -1,18 +1,17 @@
+// Builds public/share-default.jpg: the 1200x630 preview shown when the home page (or any page without its own
+// image) is shared. Brand logo on the site's off-white, so it is readable, unlike a black logo on a dark background.
+// Run: node scripts/make-og.mjs
 import sharp from 'sharp'
-import { readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 
-const logoPath = join('public', 'c3d-logo.svg')
-const outPath = join('public', 'og-default.png')
+const W = 1200
+const H = 630
+const logo = await sharp(join('public', 'cobraa-studio-logo.png'))
+  .resize({ width: 600, height: 320, fit: 'inside' })
+  .toBuffer()
 
-try {
-  const logo = readFileSync(logoPath)
-  const svgBuf = Buffer.from(logo)
-  const img = sharp({ create: { width: 1200, height: 630, channels: 4, background: { r: 20, g: 20, b: 20, alpha: 1 } } })
-  const resized = await sharp(svgBuf).resize(240, 240, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).toBuffer()
-  img.composite([{ input: resized, gravity: 'center' }])
-  await img.png().toFile(outPath)
-  console.log('created', outPath)
-} catch (e) {
-  console.error('failed', e)
-}
+await sharp({ create: { width: W, height: H, channels: 3, background: '#f6f5f1' } })
+  .composite([{ input: logo, gravity: 'centre' }])
+  .jpeg({ quality: 88, mozjpeg: true })
+  .toFile(join('public', 'share-default.jpg'))
+console.log('created public/share-default.jpg')
