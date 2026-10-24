@@ -29,7 +29,7 @@ export default async function ProductSheetPage({ params }: { params: Promise<{ s
     colors: p.colors?.map((c: any) => ({ name: c.name, hex: c.hex })),
   };
   const url = (color?: string) =>
-    buildWhatsAppUrl({ number: settings.whatsappNumber, message: buildProductMessage({ ...p, title: p.title, slug: p.slug, images: p.images }, { colour: color }, settings) });
+    buildWhatsAppUrl({ number: settings.whatsappNumber, message: buildProductMessage({ ...p, title: p.title, slug: p.slug, updatedAt: p.updatedAt, images: p.images }, { colour: color }, settings) });
   const baseUrl = url();
   const byColor = Object.fromEntries((product.colors ?? []).map((c) => [c.name, url(c.name)]).filter(([, v]) => v != null)) as Record<string, string>;
   if (!baseUrl) notFound();

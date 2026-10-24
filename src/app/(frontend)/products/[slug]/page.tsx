@@ -11,7 +11,7 @@ import { getDisplayPrice } from '@/lib/pricing'
 import { TEMP_PRODUCTS } from '@/lib/tempProducts'
 import type { Product } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
-import { SHARE_IMAGE_HEIGHT, SHARE_IMAGE_WIDTH } from '@/lib/shareImage-constants'
+import { getProductShareImageURL, SHARE_IMAGE_HEIGHT, SHARE_IMAGE_WIDTH } from '@/lib/shareImage-constants'
 import { defaultShareImage } from '@/lib/siteMeta'
 
 export const revalidate = 60
@@ -57,11 +57,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // Previews use a composed 1200x630 JPEG (see share.jpg/route.ts), not the raw upload: uploads are WebP, which not every
   // crawler renders, and a portrait photo would show as a tiny thumbnail. ?v= changes when the product is edited.
   const image = media?.url
-    ? { url: `${getServerSideURL()}/products/${encodeURIComponent(product.slug || slug)}/share.jpg?v=${Date.parse(product.updatedAt) || 0}`, width: SHARE_IMAGE_WIDTH, height: SHARE_IMAGE_HEIGHT, type: 'image/jpeg', alt: product.images?.[0]?.alt || product.title }
-    : defaultShareImage(settings.brandName || 'Cobraa 3D')
+    ? { url: getProductShareImageURL(getServerSideURL(), product.slug || slug, product.updatedAt), width: SHARE_IMAGE_WIDTH, height: SHARE_IMAGE_HEIGHT, type: 'image/jpeg', alt: product.title }
+    : defaultShareImage(product.title)
   return {
     title, description, alternates: { canonical }, robots: product.isDemo ? { index: false, follow: false } : undefined,
-    openGraph: { type: 'website', siteName: settings.brandName, title, description, url: canonical, images: [image] },
+    openGraph: { siteName: settings.brandName, title, description, url: canonical, images: [image] },
     twitter: { card: 'summary_large_image', title, description, images: [image.url] },
   }
 }
@@ -91,7 +91,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     return { slug: item.slug || '', title: item.title, image: media?.url ? { url: media.url, alt: item.images?.[0]?.alt || item.title } : undefined }
   })
   const productData = {
-    title: product.title, slug: product.slug || slug, shortDescription: product.shortDescription,
+    title: product.title, slug: product.slug || slug, updatedAt: product.updatedAt, shortDescription: product.shortDescription,
     descriptionText: textFromLexical(product.description?.root), price: product.price, salePrice: product.salePrice, originalPrice: product.originalPrice,
     currency: product.currency, priceMode: product.priceMode, availability: product.availability, images: photos,
     includedItems: product.includedItems?.map((item) => item.item), colourOptions: product.colourOptions?.map(({ name, hex }) => ({ name, hex })),
@@ -111,6 +111,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     { '@type': 'ListItem', position: 3, name: product.title, item: `${siteURL}/products/${product.slug}` },
   ] }
   return <>
+    <meta property="og:type" content="product" />
     {schema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, '\\u003c') }} />}
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb).replace(/</g, '\\u003c') }} />
     <ProductDetail product={productData} brandName={settings.brandName} whatsappNumber={settings.whatsappNumber} productTemplate={settings.messageTemplates?.product} siteURL={siteURL} ctaLabel={settings.productEnquiryCtaLabel || 'Ask on WhatsApp'} related={related} />

@@ -1,4 +1,5 @@
 import type { Payload } from 'payload'
+import { getProductShareVersion } from './shareImage-constants'
 
 export type WhatsAppSettings = {
   whatsappNumber?: string | null
@@ -8,6 +9,7 @@ export type WhatsAppSettings = {
 export type ProductMessageInput = {
   title: string
   slug?: string | null
+  updatedAt?: string | null
   price?: number | null
   priceMode?: 'show' | 'ask' | null
   currency?: string | null
@@ -72,7 +74,9 @@ export function buildProductMessage(
 ): string {
   const firstImage = product.images?.[0]?.image
   const imageUrl = typeof firstImage === 'object' && firstImage ? firstImage.url || '' : ''
-  const url = options.baseURL && product.slug ? `${options.baseURL.replace(/\/$/, '')}/products/${encodeURIComponent(product.slug)}` : ''
+  const url = options.baseURL && product.slug
+    ? `${options.baseURL.replace(/\/$/, '')}/products/${encodeURIComponent(product.slug)}?v=${getProductShareVersion(product.updatedAt)}`
+    : ''
   const template = product.whatsappMessageOverride || settings.messageTemplates?.product || settings.productMessageTemplate || DEFAULT_PRODUCT_MESSAGE_TEMPLATE
 
   // The raw image URL is never added to the message. A wa.me link can only carry text, and a long storage URL
