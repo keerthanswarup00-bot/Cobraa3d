@@ -36,9 +36,14 @@ function urlForMedia(image: Product['images'] extends (infer _T)[] | null | unde
   return media.url ? { url: media.url, alt: media.alt || '' } : undefined
 }
 
+function absoluteURL(url: string | null | undefined, base: string): string | undefined {
+  if (!url) return undefined
+  try { return new URL(url, base).toString() } catch { return undefined }
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
-  const { product } = await loadProduct(slug)
+  const { product, settings } = await loadProduct(slug)
   if (!product) {
     const temporary = TEMP_PRODUCTS.find((item) => item.slug === slug)
     return temporary ? { title: temporary.name, description: temporary.blurb, robots: { index: false, follow: true } } : { title: 'Product not found' }
@@ -48,9 +53,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const canonical = `/products/${product.slug}`
   const title = product.seoTitle || product.meta?.title || product.title
   const description = product.seoDescription || product.meta?.description || product.shortDescription || undefined
+  // WhatsApp, iMessage and other crawlers need an absolute image URL; relative ones silently produce a text-only preview.
+  const imageURL = absoluteURL(media?.url, getServerSideURL())
+  const image = imageURL ? { url: imageURL, alt: product.images?.[0]?.alt || product.title, ...(media?.width && media?.height ? { width: media.width, height: media.height } : {}) } : undefined
   return {
     title, description, alternates: { canonical }, robots: product.isDemo ? { index: false, follow: false } : undefined,
-    openGraph: { title, description, url: canonical, images: media?.url ? [{ url: media.url, alt: product.images?.[0]?.alt || product.title }] : undefined },
+    openGraph: { type: 'website', siteName: settings.brandName, title, description, url: canonical, images: image ? [image] : undefined },
+    twitter: { card: image ? 'summary_large_image' : 'summary', title, description, images: image ? [image.url] : undefined },
   }
 }
 

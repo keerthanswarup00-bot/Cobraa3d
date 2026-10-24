@@ -20,6 +20,15 @@ export type ProductMessageInput = {
 }
 export type ProductMessageOptions = { quantity?: number; colour?: string; kind?: 'custom' | 'bulk' | 'product'; baseURL?: string }
 
+/**
+ * Uploads served from cloud storage are absolute URLs on a host that next/image's optimizer rejects
+ * (images.remotePatterns in next.config.ts only allows the site's own host), so those must render with
+ * `unoptimized`. Local `/api/media/file/...` paths are safe to optimize. Same rule the catalogue and home grids use.
+ */
+export function isRemoteImage(url: string): boolean {
+  return !url.startsWith('/')
+}
+
 export function buildWhatsAppUrl({ message, number }: { message: string; number?: string | null }): string | null {
   if (number && !/^\+?[\d\s().-]+$/.test(number)) return null
   const digits = number?.replace(/\D/g, '')

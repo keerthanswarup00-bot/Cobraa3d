@@ -12,6 +12,7 @@ import {
   getLatestPrintBed,
   getVisibleCategories,
   isExperienceEnabled,
+  isRemoteImage,
 } from '@/lib/shared'
 import { getDisplayPrice } from '@/lib/pricing'
 
@@ -136,6 +137,13 @@ describe('shared business helpers', () => {
       { id: 'hidden', visible: false, postedAt: '2026-10-19T11:30:00Z' },
     ]
     expect(getLatestPrintBed(posts, now).map(({ id }) => id)).toEqual(['new', 'old'])
+  })
+
+  it('treats only absolute media URLs as remote images that must skip the image optimizer', () => {
+    expect(isRemoteImage('https://abc.supabase.co/storage/v1/object/public/media/lamp.webp')).toBe(true)
+    expect(isRemoteImage('http://localhost:3000/api/media/file/lamp.webp')).toBe(true)
+    expect(isRemoteImage('/api/media/file/lamp.webp')).toBe(false)
+    expect(isRemoteImage('/sample-images/led-lamp.svg')).toBe(false)
   })
 
   it('chooses a safe close destination from same-origin history, parent, or top', () => {
