@@ -1,4 +1,5 @@
 .ps-backdrop { position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,.55); }
+.ps-loading-backdrop { position: fixed; inset: 0; z-index: 80; width: 100%; border: 0; background: rgba(0,0,0,.55); }
 .ps-sheet {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 81; margin: 0 auto;
   width: 100%; max-width: 520px; max-height: 90svh; display: flex; flex-direction: column;
@@ -27,5 +28,21 @@
   background: #25d366; color: #fff; font-size: 1rem; font-weight: 700; text-decoration: none; }
 .ps-details { display: flex; flex: 0 0 31%; align-items: center; justify-content: center; min-width: 88px; min-height: 52px; border: 1px solid rgba(255,255,255,.28); border-radius: 14px; color: inherit; font-size: .85rem; font-weight: 600; line-height: 1.05; text-align: center; text-decoration: none; }
 .ps-notice { margin: 0; text-align: center; font-size: .8rem; overflow-wrap: anywhere; }
+.ps-loading-sheet { z-index: 81; animation: ps-loading-in .12s ease-out both; }
+.ps-loading-image, .ps-loading-title, .ps-loading-price, .ps-loading-description, .ps-loading-wa, .ps-loading-details {
+  background: linear-gradient(100deg, #242426 20%, #333336 38%, #242426 56%); background-size: 220% 100%; animation: ps-loading-shimmer 1s linear infinite;
+}
+.ps-loading-image { aspect-ratio: 1 / 1; border-radius: 14px; }
+.ps-loading-title, .ps-loading-price, .ps-loading-description { height: 18px; border-radius: 6px; }
+.ps-loading-title { width: 78%; height: 30px; margin-top: 18px; }
+.ps-loading-price { width: 36%; margin-top: 12px; }
+.ps-loading-description { width: 94%; margin-top: 16px; }
+.ps-loading-wa, .ps-loading-details { display: block; height: 52px; border-radius: 14px; }
+.ps-loading-wa { flex: 1 1 0; }
+.ps-loading-details { flex: 0 0 31%; }
+.ps-loading-share { pointer-events: none; }
+@keyframes ps-loading-shimmer { to { background-position-x: -220%; } }
+@keyframes ps-loading-in { from { transform: translateY(12px); opacity: .8; } to { transform: translateY(0); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .ps-loading-sheet, .ps-loading-image, .ps-loading-title, .ps-loading-price, .ps-loading-description, .ps-loading-wa, .ps-loading-details { animation: none; } }
 .ps-wa:focus-visible, .ps-details:focus-visible, .ps-close:focus-visible, .ps-share:focus-visible { outline: 2px solid var(--accent, #ff5a1f); outline-offset: 3px; }
 @media (min-width: 768px) { .ps-sheet { bottom: 24px; border-radius: 22px; } }
