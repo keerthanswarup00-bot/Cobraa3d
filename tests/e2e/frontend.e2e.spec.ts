@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test'
+import { getPayload } from 'payload'
+import config from '../../src/payload.config.js'
 
 test.describe('Frontend', () => {
   test('shows featured products, a product catalogue, and direct product routes', async ({ page }) => {
@@ -90,13 +92,69 @@ test.describe('Frontend', () => {
     }
   })
 
-  test('product sheet opens from a deep link hash', async ({ page }) => {
-    await page.goto('/products#/p/minimalist-maroon-jewellery-stand')
-    const dialog = page.getByRole('dialog')
-    await expect(dialog).toBeVisible()
-    await expect(dialog.getByRole('heading', { name: 'Minimalist Maroon Jewellery Stand' })).toBeVisible()
-    await dialog.getByRole('button', { name: 'Close' }).click()
-    await expect(dialog).not.toBeVisible()
+  test('product-card navigation opens the preview sheet and full details bypasses interception', async ({ page }) => {
+    const payload = await getPayload({ config })
+    const slug = 'preview-sheet-regression-product'
+    await payload.delete({
+      collection: 'products',
+      where: { slug: { equals: slug } },
+      overrideAccess: true,
+      context: { disableRevalidate: true },
+    })
+    const product = await payload.create({
+      collection: 'products',
+      overrideAccess: true,
+      context: { disableRevalidate: true },
+      data: {
+        title: 'Preview Sheet Regression Product',
+        slug,
+        shortDescription: 'A published product used by the preview-sheet browser regression.',
+        status: 'published',
+        _status: 'published',
+        priceMode: 'show',
+        price: 125,
+        currency: 'INR',
+        isDemo: false,
+      },
+    })
+    const href = `/products/${slug}`
+    const title = 'Preview Sheet Regression Product'
+
+    try {
+      await page.goto('/products')
+      const detailLink = page.locator(`.pc-card a.pc-media[href="${href}"]`)
+      await expect(detailLink).toBeVisible()
+      await detailLink.click()
+
+      const dialog = page.getByRole('dialog')
+      await expect(dialog).toBeVisible()
+      await expect(dialog.getByRole('heading', { name: title })).toBeVisible()
+      await expect.poll(() => dialog.evaluate((node) => node.contains(document.activeElement))).toBe(true)
+      await expect(dialog.getByRole('link', { name: 'Order on WhatsApp' })).toHaveAttribute('href', /^https:\/\/wa\.me\//)
+      await expect(dialog.getByRole('link', { name: 'View details →' })).toHaveAttribute('href', href)
+
+      const enquiry = new URL(await dialog.getByRole('link', { name: 'Order on WhatsApp' }).getAttribute('href') || '')
+      const message = enquiry.searchParams.get('text') || ''
+      expect(message).toContain(`${href}?v=`)
+
+      await dialog.getByRole('link', { name: 'View details →' }).click()
+      await expect(page).toHaveURL(new RegExp(`${href}$`))
+      await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible()
+      await expect(page.getByRole('dialog')).toHaveCount(0)
+
+      await page.goto('/products')
+      await page.locator(`.pc-card a.pc-media[href="${href}"]`).click()
+      await expect(page.getByRole('dialog')).toBeVisible()
+      await page.getByRole('dialog').getByRole('button', { name: 'Close' }).click()
+      await expect(page.getByRole('dialog')).toHaveCount(0)
+    } finally {
+      await payload.delete({
+        collection: 'products',
+        id: product.id,
+        overrideAccess: true,
+        context: { disableRevalidate: true },
+      })
+    }
   })
 
 

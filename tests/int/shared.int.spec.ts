@@ -53,7 +53,7 @@ describe('shared business helpers', () => {
     )
     expect(message).toContain('SAMPLE Kit')
     expect(message).toContain('Ask for price')
-    expect(message).toContain('https://example.test/products/sample-kit')
+    expect(message).toContain('https://example.test/products/sample-kit?v=0')
     expect(message).toContain('Quantity: 3')
     expect(message).toContain('Colour: Black')
     expect(message).toContain('bulk pricing')
@@ -77,13 +77,28 @@ describe('shared business helpers', () => {
         whatsappMessageOverride: "Hi Cobraa 3D, I'm interested in the {{title}}. Please share more details, available customisation options and pricing. {{url}}",
       }, { baseURL: 'https://cobraa3d.example' })
       expect(message).toContain(`the ${title}`)
-      expect(message).toContain(`https://cobraa3d.example/products/${slug}`)
+      expect(message).toContain(`https://cobraa3d.example/products/${slug}?v=0`)
       expect(message).not.toContain('Ask for price')
       const url = buildWhatsAppUrl({ number: '+91 98765 43210', message })
       expect(url).toContain('https://wa.me/919876543210?text=')
       expect(new URL(url!).searchParams.get('text')).toBe(message)
     }
     expect(buildWhatsAppUrl({ number: null, message: 'test' })).toBeNull()
+  })
+
+  it('versions product enquiry links when the product is updated', () => {
+    const message = buildProductMessage(
+      { title: 'Sample', slug: 'sample', updatedAt: '2026-10-25T00:00:00.000Z', price: 1250, priceMode: 'show' },
+      { baseURL: 'https://example.test' },
+    )
+    expect(message).toContain("Hi, I'm interested in Sample.")
+    expect(message).toContain('https://example.test/products/sample?v=1792886400000')
+  })
+
+  it('does not include a raw image URL in product enquiries', () => {
+    const message = buildProductMessage({ title: 'A', images: [{ image: { url: 'https://cdn.test/a.jpg' } }] })
+    expect(message).not.toContain('cdn.test')
+    expect(message).not.toContain('Product image')
   })
 
   it('never puts the raw storage image URL in a product enquiry', () => {

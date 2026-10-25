@@ -1,12 +1,11 @@
 'use client'
 
 import Image from 'next/image'
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type TouchEvent as ReactTouchEvent } from 'react'
+import Link from 'next/link'
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type TouchEvent as ReactTouchEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { ProductRender, type ConnectProduct } from '@/components/home/ConnectProducts'
-import { formatPrice } from '@/lib/shared'
-import { PushAlerts } from '@/components/PushAlerts'
 import {
   buildCatalogFacets,
   catalogFiltersToSearchParams,
@@ -198,21 +197,14 @@ function FilterPanel({
   )
 }
 
-export function ProductsCatalog({ products, categories, copy, whatsappBase, brandName, siteURL, calmMode, pushPublicKey, initialFilters }: Props) {
+export function ProductsCatalog({ products, categories, copy, calmMode, initialFilters }: Props) {
   const perPage = Math.min(48, Math.max(1, copy.perPage || 15))
-  const sheetTitleId = useId()
   const filterTitleId = useId()
 
   const [filters, setFilters] = useState<CatalogFilterState>(initialFilters)
   const [search, setSearch] = useState(initialFilters.q)
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const [openSlug, setOpenSlug] = useState<string | null>(null)
-  const [lastProduct, setLastProduct] = useState<CatalogProduct | null>(null)
-  const [qty, setQty] = useState(1)
-  const [note, setNote] = useState('')
-  const [slide, setSlide] = useState(0)
 
-  const bySlug = useMemo(() => new Map(products.map((product) => [product.slug, product])), [products])
   const filtered = useMemo(() => sortCatalogProducts(filterCatalogProducts(products, filters), filters.sort), [products, filters])
   const facets = useMemo(() => buildCatalogFacets(products, filters), [products, filters])
   const pages = Math.max(1, Math.ceil(filtered.length / perPage))
@@ -251,66 +243,12 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
     .filter((option) => option.count > 0 || filters.options.includes(option.value as OptionFilterId))
 
   const resultsRef = useRef<HTMLElement>(null)
-  const sheetRef = useRef<HTMLElement>(null)
   const filterSheetRef = useRef<HTMLElement>(null)
   const filterCloseRef = useRef<HTMLButtonElement>(null)
-  const closeRef = useRef<HTMLButtonElement>(null)
   const filterTriggerRef = useRef<HTMLButtonElement>(null)
-  const trackRef = useRef<HTMLDivElement>(null)
-  const lastFocusRef = useRef<HTMLElement | null>(null)
   const filterLastFocusRef = useRef<HTMLElement | null>(null)
-  const pushedRef = useRef(false)
-  const dragY = useRef<number | null>(null)
-  const dragDist = useRef(0)
   const filterDragY = useRef<number | null>(null)
   const filterDragDist = useRef(0)
-
-  const openProduct = useCallback((slug: string, fromPop = false) => {
-    const product = bySlug.get(slug)
-    if (!product) return
-    lastFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
-    setLastProduct(product)
-    setOpenSlug(slug)
-    setQty(1)
-    setNote('')
-    setSlide(0)
-    if (sheetRef.current) {
-      sheetRef.current.classList.remove('drag')
-      sheetRef.current.style.transform = ''
-    }
-    if (trackRef.current) trackRef.current.scrollLeft = 0
-    const target = `#/p/${encodeURIComponent(slug)}`
-    if (!fromPop && location.hash !== target) {
-      try {
-        history.pushState({ pcSheet: slug }, '', `${location.pathname}${location.search}${target}`)
-        pushedRef.current = true
-      } catch {
-        // history can be unavailable in restricted contexts
-      }
-    }
-    document.body.classList.add('pc-locked')
-    window.setTimeout(() => closeRef.current?.focus({ preventScroll: true }), 50)
-  }, [bySlug])
-
-  const closeProduct = useCallback((fromPop = false) => {
-    setOpenSlug(null)
-    document.body.classList.remove('pc-locked')
-    if (!fromPop) {
-      if (pushedRef.current) {
-        pushedRef.current = false
-        history.back()
-      } else {
-        try {
-          history.replaceState(null, '', `${location.pathname}${location.search}`)
-        } catch {
-          // history can be unavailable in restricted contexts
-        }
-      }
-    } else {
-      pushedRef.current = false
-    }
-    lastFocusRef.current?.focus?.({ preventScroll: true })
-  }, [])
 
   const updateFilters = useCallback((patch: Partial<CatalogFilterState>, resetPage = true) => {
     setFilters((current) => ({ ...current, ...patch, ...(resetPage ? { page: 1 } : {}) }))
@@ -364,18 +302,6 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
   }
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      try {
-        const match = window.location.hash.match(/^#\/p\/(.+)$/)
-        if (match) openProduct(decodeURIComponent(match[1]), true)
-      } catch {
-        // a malformed hash simply opens nothing
-      }
-    }, 0)
-    return () => window.clearTimeout(timer)
-  }, [openProduct])
-
-  useEffect(() => {
     if (search === filters.q) return
     const timer = window.setTimeout(() => {
       setFilters((current) => ({ ...current, q: search.trim(), page: 1 }))
@@ -391,56 +317,6 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
       // history can be unavailable in restricted contexts
     }
   }, [filters, safePage])
-
-  useEffect(() => {
-    const onPop = () => {
-      const match = location.hash.match(/^#\/p\/(.+)$/)
-      if (match) openProduct(decodeURIComponent(match[1]), true)
-      else closeProduct(true)
-    }
-    window.addEventListener('popstate', onPop)
-    return () => window.removeEventListener('popstate', onPop)
-  }, [openProduct, closeProduct])
-
-  useEffect(() => {
-    if (!openSlug) return
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        closeProduct()
-        return
-      }
-      if (event.key === 'Tab' && sheetRef.current) {
-        const items = Array.from(sheetRef.current.querySelectorAll<HTMLElement>(FOCUSABLE))
-        if (!items.length) {
-          event.preventDefault()
-          return
-        }
-        const first = items[0]!
-        const last = items[items.length - 1]!
-        const inside = sheetRef.current.contains(document.activeElement)
-        if (!inside || (event.shiftKey && document.activeElement === first)) {
-          event.preventDefault()
-          first.focus()
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault()
-          last.focus()
-        }
-        return
-      }
-      const target = event.target
-      if (target instanceof HTMLElement && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) return
-      const track = trackRef.current
-      const product = lastProduct
-      if (!track || !product || product.images.length < 2) return
-      if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return
-      const index = Math.round(track.scrollLeft / track.clientWidth)
-      const next = Math.max(0, Math.min(product.images.length - 1, index + (event.key === 'ArrowRight' ? 1 : -1)))
-      track.scrollTo({ left: next * track.clientWidth, behavior: calmMode || prefersReduced() ? 'auto' : 'smooth' })
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [openSlug, closeProduct, lastProduct, calmMode])
 
   useEffect(() => {
     if (!filtersOpen) return
@@ -492,8 +368,6 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
     }
   }, [filtersOpen, closeFilters])
 
-  useEffect(() => () => { document.body.classList.remove('pc-locked') }, [])
-
   const activeChips = useMemo(() => {
     const chips: { key: FilterKey; value: string; label: string }[] = []
     filters.categories.forEach((value) => chips.push({ key: 'categories', value, label: categoryLabels.get(value) || value }))
@@ -520,63 +394,6 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
     const top = target.getBoundingClientRect().top + window.scrollY - 150
     window.scrollTo({ top: Math.min(top, window.scrollY), behavior: calmMode || prefersReduced() ? 'auto' : 'smooth' })
   }
-
-  const onCardActivate = (event: ReactMouseEvent<HTMLAnchorElement>, slug: string) => {
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
-    event.preventDefault()
-    openProduct(slug)
-  }
-
-  const onTrackScroll = () => {
-    const track = trackRef.current
-    if (!track || !track.clientWidth) return
-    setSlide(Math.round(track.scrollLeft / track.clientWidth))
-  }
-
-  const goGallery = (direction: number) => {
-    const track = trackRef.current
-    if (!track || !lastProduct || !track.clientWidth) return
-    const index = Math.max(0, Math.min(lastProduct.images.length - 1, Math.round(track.scrollLeft / track.clientWidth) + direction))
-    track.scrollTo({ left: index * track.clientWidth, behavior: calmMode || prefersReduced() ? 'auto' : 'smooth' })
-  }
-
-  const onTouchStart = (event: ReactTouchEvent<HTMLDivElement>) => {
-    dragY.current = event.touches[0]!.clientY
-    dragDist.current = 0
-    sheetRef.current?.classList.add('drag')
-  }
-  const onTouchMove = (event: ReactTouchEvent<HTMLDivElement>) => {
-    if (dragY.current == null) return
-    dragDist.current = Math.max(0, event.touches[0]!.clientY - dragY.current)
-    if (sheetRef.current) sheetRef.current.style.transform = `translateY(${dragDist.current}px)`
-  }
-  const onTouchEnd = () => {
-    if (dragY.current == null) return
-    dragY.current = null
-    sheetRef.current?.classList.remove('drag')
-    if (dragDist.current > 110) closeProduct()
-    else if (sheetRef.current) sheetRef.current.style.transform = ''
-  }
-
-  const orderHref = useMemo(() => {
-    if (!whatsappBase || !lastProduct) return null
-    const lines = [`Hi ${brandName}, I'd like to order:`, '', `• ${lastProduct.title}`, `• Qty: ${qty}`]
-    if (lastProduct.hasPrice && lastProduct.price != null) {
-      lines.push(`• Price: ${formatPrice(lastProduct.price, 'show', lastProduct.currency)} each · ${formatPrice(lastProduct.price * qty, 'show', lastProduct.currency)} total`)
-    }
-    const trimmed = note.trim()
-    if (trimmed) lines.push(`• Notes: ${trimmed}`)
-    lines.push('', `• Product: ${siteURL}/products/${lastProduct.slug}`, '', copy.orderFooter)
-    return `${whatsappBase}${encodeURIComponent(lines.join('\n'))}`
-  }, [whatsappBase, lastProduct, qty, note, brandName, siteURL, copy.orderFooter])
-
-  const orderLabel = (() => {
-    if (!lastProduct || qty <= 1) return copy.orderLabel
-    const total = lastProduct.hasPrice && lastProduct.price != null ? ` · ${formatPrice(lastProduct.price * qty, 'show', lastProduct.currency)}` : ''
-    return `Order ${qty} on WhatsApp${total}`
-  })()
-
-  const slideCount = lastProduct ? Math.max(1, lastProduct.images.length) : 1
 
   const filterPanel = (
     <FilterPanel
@@ -697,7 +514,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
             <div className="pc-grid">
               {slice.length ? slice.map((product, index) => (
                 <article className="pc-card" key={product.id}>
-                  <a className={`pc-media${product.images.length > 1 ? '' : ' single'}`} href={`/products/${product.slug}`} aria-label={`View ${product.title}`} onClick={(event) => onCardActivate(event, product.slug)}>
+                  <Link className={`pc-media${product.images.length > 1 ? '' : ' single'}`} href={`/products/${product.slug}`} aria-label={`View ${product.title}`} scroll={false}>
                     {product.images[0] ? (
                       <>
                         <Image className="a" src={product.images[0].url} alt={product.images[0].alt} fill sizes="(max-width: 860px) 50vw, (max-width: 1320px) 25vw, 300px" loading={index < 4 ? 'eager' : 'lazy'} unoptimized={!product.images[0].url.startsWith('/')} />
@@ -706,12 +523,12 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
                     ) : (
                       <span className="pc-fallback"><ProductRender product={product.render} animate={false} buildKey={0} /></span>
                     )}
-                  </a>
+                  </Link>
                   <div className="pc-info">
                     <h2 className="pc-card-title">{product.title}</h2>
                     <div className="pc-foot">
                       <span className="pc-price">{product.priceLabel}</span>
-                      <a className="pc-view" href={`/products/${product.slug}`} onClick={(event) => onCardActivate(event, product.slug)}>View</a>
+                      <Link className="pc-view" href={`/products/${product.slug}`} scroll={false}>View</Link>
                     </div>
                   </div>
                 </article>
@@ -739,79 +556,6 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
       </div>
 
       {filterSheet}
-
-      <div className={`pc-overlay${openSlug ? ' open' : ''}`} onClick={() => closeProduct()} />
-      <section
-        ref={sheetRef}
-        className={`pc-sheet${openSlug ? ' open' : ''}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={sheetTitleId}
-        aria-hidden={openSlug ? undefined : true}
-        inert={!openSlug}
-        tabIndex={-1}
-      >
-        <div className="pc-grab" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}><i /></div>
-        <button ref={closeRef} type="button" className="pc-close" aria-label="Close" onClick={() => closeProduct()}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
-        </button>
-        <div className="pc-scroll">
-          <div className="pc-gal">
-            <div className="pc-track" ref={trackRef} onScroll={onTrackScroll}>
-              {lastProduct && (lastProduct.images.length ? lastProduct.images.map((image, index) => (
-                <div className="pc-slide" key={`${image.url}-${index}`}>
-                  <Image src={image.url} alt={`${lastProduct.title} — image ${index + 1} of ${lastProduct.images.length}`} fill sizes="(max-width: 860px) 100vw, 50vw" loading={index === 0 ? 'eager' : 'lazy'} draggable={false} unoptimized={!image.url.startsWith('/')} />
-                </div>
-              )) : (
-                <div className="pc-slide"><span className="pc-fallback"><ProductRender product={lastProduct.render} animate={false} buildKey={0} /></span></div>
-              ))}
-            </div>
-            <button type="button" className="pc-arrow l" aria-label="Previous image" style={slideCount > 1 ? undefined : { visibility: 'hidden' }} onClick={() => goGallery(-1)}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
-            </button>
-            <button type="button" className="pc-arrow r" aria-label="Next image" style={slideCount > 1 ? undefined : { visibility: 'hidden' }} onClick={() => goGallery(1)}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
-            </button>
-            {lastProduct && lastProduct.images.length > 1 && (
-              <div className="pc-dotrow" aria-hidden="true">
-                {lastProduct.images.map((_, index) => <i key={index} className={index === slide ? 'on' : ''} />)}
-              </div>
-            )}
-          </div>
-          {lastProduct && (
-            <div className="pc-detail">
-              {lastProduct.category && <div className="pc-cat">{lastProduct.category}</div>}
-              <h2 id={sheetTitleId}>{lastProduct.title}</h2>
-              <div className="pc-sheet-price">{lastProduct.priceLabel}</div>
-              {lastProduct.description && <p className="pc-desc">{lastProduct.description}</p>}
-              {lastProduct.specs.length > 0 && (
-                <dl className="pc-specs">
-                  {lastProduct.specs.map((spec) => <div key={spec.label}><dt>{spec.label}</dt><dd>{spec.value}</dd></div>)}
-                </dl>
-              )}
-              <label className="pc-field" htmlFor="pc-note">{copy.noteLabel}</label>
-              <textarea className="pc-note" id="pc-note" placeholder={copy.notePlaceholder} value={note} onChange={(event) => setNote(event.target.value)} />
-              <PushAlerts publicKey={pushPublicKey} source="product-sheet" />
-            </div>
-          )}
-        </div>
-        {orderHref && (
-          <div className="pc-sheet-action">
-            <div className="pc-buybar">
-              <div className="pc-qty">
-                <button type="button" aria-label="Decrease quantity" onClick={() => setQty((current) => Math.max(1, current - 1))}>−</button>
-                <span>{qty}</span>
-                <button type="button" aria-label="Increase quantity" onClick={() => setQty((current) => Math.min(20, current + 1))}>+</button>
-              </div>
-              <a className="pc-order" href={orderHref} target="_blank" rel="noopener noreferrer" data-wa-source="catalog" data-wa-slug={lastProduct?.slug}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>
-                <span>{orderLabel}</span>
-              </a>
-            </div>
-            {copy.finePrint && <div className="pc-fine">{copy.finePrint}</div>}
-          </div>
-        )}
-      </section>
     </div>
   )
 }
