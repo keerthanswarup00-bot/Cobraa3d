@@ -2,6 +2,7 @@ import type { CollectionConfig, Where } from 'payload'
 import { slugField } from 'payload'
 import { editorAccess } from '../access/roles'
 import { revalidateDeletedSiteContent, revalidateSite } from '../hooks/revalidateSite'
+import { warmProductShareImage } from '../hooks/warmProductShareImage'
 import { generatePreviewPath } from '../utilities/generatePreviewPath'
 
 export const Products: CollectionConfig = {
@@ -97,7 +98,7 @@ export const Products: CollectionConfig = {
       else if (data.status) data._status = data.status
       return data
     }],
-    afterChange: [revalidateSite],
+    afterChange: [warmProductShareImage, revalidateSite],
     afterDelete: [revalidateDeletedSiteContent],
   },
   versions: { drafts: { autosave: { interval: 100 } }, maxPerDoc: 50 },

@@ -11,6 +11,8 @@ import { getDisplayPrice } from '@/lib/pricing'
 import { TEMP_PRODUCTS } from '@/lib/tempProducts'
 import type { Product } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
+import { getProductShareImageURL, SHARE_IMAGE_HEIGHT, SHARE_IMAGE_WIDTH } from '@/lib/shareImage-constants'
+import { defaultShareImage } from '@/lib/siteMeta'
 
 export const revalidate = 60
 
@@ -36,9 +38,13 @@ function urlForMedia(image: Product['images'] extends (infer _T)[] | null | unde
   return media.url ? { url: media.url, alt: media.alt || '' } : undefined
 }
 
+function truncate(text: string, max: number): string {
+  return text.length <= max ? text : `${text.slice(0, max - 1).trimEnd()}…`
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
-  const { product } = await loadProduct(slug)
+  const { product, settings } = await loadProduct(slug)
   if (!product) {
     const temporary = TEMP_PRODUCTS.find((item) => item.slug === slug)
     return temporary ? { title: temporary.name, description: temporary.blurb, robots: { index: false, follow: true } } : { title: 'Product not found' }
@@ -47,10 +53,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const media = typeof mainImage === 'object' && mainImage ? mainImage : null
   const canonical = `/products/${product.slug}`
   const title = product.seoTitle || product.meta?.title || product.title
-  const description = product.seoDescription || product.meta?.description || product.shortDescription || undefined
+  const description = product.seoDescription || product.meta?.description || product.shortDescription || truncate(textFromLexical(product.description?.root), 160) || undefined
+  // Previews use a composed 1200x630 JPEG (see share.jpg/route.ts), not the raw upload: uploads are WebP, which not every
+  // crawler renders, and a portrait photo would show as a tiny thumbnail. ?v= changes when the product is edited.
+  const image = media?.url
+    ? { url: getProductShareImageURL(getServerSideURL(), product.slug || slug, product.updatedAt), width: SHARE_IMAGE_WIDTH, height: SHARE_IMAGE_HEIGHT, type: 'image/jpeg', alt: product.title }
+    : defaultShareImage(product.title)
   return {
     title, description, alternates: { canonical }, robots: product.isDemo ? { index: false, follow: false } : undefined,
-    openGraph: { title, description, url: canonical, images: media?.url ? [{ url: media.url, alt: product.images?.[0]?.alt || product.title }] : undefined },
+    openGraph: { siteName: settings.brandName, title, description, url: canonical, images: [image] },
+    twitter: { card: 'summary_large_image', title, description, images: [image.url] },
   }
 }
 
@@ -99,6 +111,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     { '@type': 'ListItem', position: 3, name: product.title, item: `${siteURL}/products/${product.slug}` },
   ] }
   return <>
+    <meta property="og:type" content="product" />
     {schema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, '\\u003c') }} />}
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb).replace(/</g, '\\u003c') }} />
     <ProductDetail product={productData} brandName={settings.brandName} whatsappNumber={settings.whatsappNumber} productTemplate={settings.messageTemplates?.product} siteURL={siteURL} ctaLabel={settings.productEnquiryCtaLabel || 'Ask on WhatsApp'} related={related} />

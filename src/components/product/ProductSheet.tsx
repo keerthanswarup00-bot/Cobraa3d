@@ -24,7 +24,17 @@ export function ProductSheet({ product, href }: { product: SheetProduct; href: s
   const titleId = useId();
   const [open, setOpen] = useState(true);
   const [slide, setSlide] = useState(0);
+  const [notice, setNotice] = useState("");
   const close = useCallback(() => setOpen(false), []);
+  const share = async () => {
+    const url = `${window.location.origin}/products/${encodeURIComponent(product.slug)}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: product.name, text: product.shortDescription || product.name, url }); return; }
+      catch { /* user cancelled */ }
+    }
+    try { await navigator.clipboard.writeText(url); setNotice("Link copied"); }
+    catch { setNotice(`Copy this link: ${url}`); }
+  };
 
   // scroll lock, focus in, focus restore, Escape, Tab trap
   useEffect(() => {
@@ -69,6 +79,7 @@ export function ProductSheet({ product, href }: { product: SheetProduct; href: s
           <div className="ps-grab" onPointerDown={(e) => controls.start(e)}>
             <span className="ps-handle" />
             <button type="button" className="ps-close" onClick={close} aria-label="Close">×</button>
+            <button type="button" className="ps-share" onClick={share}>Share</button>
           </div>
 
           <div className="ps-body">
@@ -93,8 +104,9 @@ export function ProductSheet({ product, href }: { product: SheetProduct; href: s
           </div>
 
           <div className="ps-cta">
-            <a className="ps-wa" href={href} target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>
-            <a className="ps-details" href={`/products/${encodeURIComponent(product.slug)}`}>View full details →</a>
+            <a className="ps-wa" href={href} target="_blank" rel="noopener noreferrer">Order on WhatsApp</a>
+            <a className="ps-details" href={`/products/${encodeURIComponent(product.slug)}`}>View details →</a>
+            {notice && <p className="ps-notice" role="status">{notice}</p>}
           </div>
         </motion.div>
       )}

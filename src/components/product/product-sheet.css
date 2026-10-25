@@ -10,6 +10,7 @@
 .ps-handle { width: 40px; height: 4px; border-radius: 4px; background: currentColor; opacity: .3; }
 .ps-close { position: absolute; right: 8px; top: 2px; width: 40px; height: 40px; border: 0; border-radius: 50%;
   background: transparent; color: inherit; font-size: 28px; line-height: 1; cursor: pointer; }
+.ps-share { position: absolute; right: 8px; top: 34px; border: 0; padding: 4px 8px; background: transparent; color: inherit; font: inherit; font-size: .8rem; cursor: pointer; }
 .ps-body { flex: 1; overflow-y: auto; padding: 0 20px 16px; overscroll-behavior: contain; }
 .ps-gallery { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 14px; }
 .ps-gallery::-webkit-scrollbar { display: none; }
@@ -24,5 +25,6 @@
 .ps-wa { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 52px; border-radius: 999px;
   background: #25d366; color: #062d16; font-weight: 700; text-decoration: none; }
 .ps-details { display: flex; align-items: center; justify-content: center; min-height: 44px; color: inherit; font-size: .9rem; text-decoration: none; }
-.ps-wa:focus-visible, .ps-details:focus-visible, .ps-close:focus-visible { outline: 2px solid var(--accent, #ff5a1f); outline-offset: 3px; }
+.ps-notice { margin: 0; text-align: center; font-size: .8rem; overflow-wrap: anywhere; }
+.ps-wa:focus-visible, .ps-details:focus-visible, .ps-close:focus-visible, .ps-share:focus-visible { outline: 2px solid var(--accent, #ff5a1f); outline-offset: 3px; }
 @media (min-width: 768px) { .ps-sheet { bottom: 24px; border-radius: 22px; } }

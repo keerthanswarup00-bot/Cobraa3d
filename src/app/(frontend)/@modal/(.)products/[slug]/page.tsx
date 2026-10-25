@@ -36,19 +36,17 @@ export default async function ProductSheetPage({ params }: { params: Promise<{ s
     images: photos,
   };
   const message = buildProductMessage({
+    ...p,
     title: p.title,
     slug: productSlug,
     updatedAt: p.updatedAt,
+    images: photos.map((image) => ({ alt: image.alt, image: { url: image.url } })),
     price: displayPrice.showOffer ? displayPrice.offerPrice ?? p.price : p.price,
     priceMode: p.priceMode,
-    currency: p.currency,
-    isDemo: p.isDemo,
-    whatsappMessageOverride: p.whatsappMessageOverride,
-    ageGroup: p.ageGroup,
-    personalisable: p.personalisable,
-    badges: p.badges,
-    images: photos.map((image) => ({ alt: image.alt, image: { url: image.url } })),
-  }, { baseURL: getServerSideURL() }, { productMessageTemplate: settings.messageTemplates?.product });
+  }, { baseURL: getServerSideURL() }, {
+    whatsappNumber: settings.whatsappNumber,
+    productMessageTemplate: settings.messageTemplates?.product,
+  });
   const baseUrl = buildWhatsAppUrl({ number: settings.whatsappNumber, message });
   if (!baseUrl) notFound();
   return <ProductSheet product={product} href={baseUrl} />;
