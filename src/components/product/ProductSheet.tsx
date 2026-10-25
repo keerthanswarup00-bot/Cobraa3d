@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useDragControls, useReducedMotion } from "motion/react";
+import { MessageCircle, Share2 } from "lucide-react";
 import "./product-sheet.css";
 
 export type SheetProduct = {
@@ -79,7 +80,7 @@ export function ProductSheet({ product, href }: { product: SheetProduct; href: s
           <div className="ps-grab" onPointerDown={(e) => controls.start(e)}>
             <span className="ps-handle" />
             <button type="button" className="ps-close" onPointerDown={(event) => event.stopPropagation()} onClick={close} aria-label="Close">×</button>
-            <button type="button" className="ps-share" onPointerDown={(event) => event.stopPropagation()} onClick={share}>Share</button>
+            <button type="button" className="ps-share" onPointerDown={(event) => event.stopPropagation()} onClick={share} aria-label="Share product"><Share2 size={19} strokeWidth={1.8} /></button>
           </div>
 
           <div className="ps-body">
@@ -105,8 +106,8 @@ export function ProductSheet({ product, href }: { product: SheetProduct; href: s
 
           <div className="ps-cta">
             <div className="ps-cta-actions">
-              <a className="ps-wa" href={href} target="_blank" rel="noopener noreferrer">Order on WhatsApp</a>
-              <a className="ps-details" href={`/products/${encodeURIComponent(product.slug)}`}>View details</a>
+              <a className="ps-wa" href={href} target="_blank" rel="noopener noreferrer"><MessageCircle size={21} strokeWidth={1.9} aria-hidden="true" /><span>Order on WhatsApp</span></a>
+              <a className="ps-details" href={`/products/${encodeURIComponent(product.slug)}`} aria-label="Know more"><span aria-hidden="true">Know<br />more</span></a>
             </div>
             {notice && <p className="ps-notice" role="status">{notice}</p>}
           </div>
