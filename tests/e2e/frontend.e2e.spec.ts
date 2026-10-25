@@ -131,13 +131,13 @@ test.describe('Frontend', () => {
       await expect(dialog.getByRole('heading', { name: title })).toBeVisible()
       await expect.poll(() => dialog.evaluate((node) => node.contains(document.activeElement))).toBe(true)
       await expect(dialog.getByRole('link', { name: 'Order on WhatsApp' })).toHaveAttribute('href', /^https:\/\/wa\.me\//)
-      await expect(dialog.getByRole('link', { name: 'View details →' })).toHaveAttribute('href', href)
+      await expect(dialog.getByRole('link', { name: 'View details' })).toHaveAttribute('href', href)
 
       const enquiry = new URL(await dialog.getByRole('link', { name: 'Order on WhatsApp' }).getAttribute('href') || '')
       const message = enquiry.searchParams.get('text') || ''
       expect(message).toContain(`${href}?v=`)
 
-      await dialog.getByRole('link', { name: 'View details →' }).click()
+      await dialog.getByRole('link', { name: 'View details' }).click()
       await expect(page).toHaveURL(new RegExp(`${href}$`))
       await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible()
       await expect(page.getByRole('dialog')).toHaveCount(0)

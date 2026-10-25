@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, Box, MessageCircle } from 'lucide-react'
-import type { ConnectProduct } from './ConnectProducts'
+import { ArrowRight, MessageCircle } from 'lucide-react'
+import { ProductRender, type ConnectProduct } from './ConnectProducts'
 
 export function HomeProductGrid({ products, productsURL, viewAllLabel, eagerFirstImage = false }: {
   products: ConnectProduct[]
@@ -15,7 +15,7 @@ export function HomeProductGrid({ products, productsURL, viewAllLabel, eagerFirs
         <Link className="studio-product-photo" href={`/products/${product.slug}`} aria-label={`View ${product.title}`}>
           {product.image?.url
             ? <Image src={product.image.url} alt={product.image.alt || product.title} fill sizes="(max-width: 370px) 90vw, (max-width: 760px) 44vw, (max-width: 1020px) 48vw, 30vw" loading={eagerFirstImage && index === 0 ? 'eager' : 'lazy'} unoptimized={!product.image.url.startsWith('/')} />
-            : <span className="home-product-placeholder" aria-hidden="true"><Box size={34} strokeWidth={1.2} /></span>}
+            : <span className="home-product-placeholder" aria-hidden="true"><ProductRender product={product} animate={false} buildKey={0} /></span>}
           <small className="studio-product-tag">{product.tag}</small>
           <small className="studio-product-number">{String(index + 1).padStart(2, '0')}</small>
         </Link>

@@ -78,8 +78,8 @@ export function ProductSheet({ product, href }: { product: SheetProduct; href: s
           initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={spring}>
           <div className="ps-grab" onPointerDown={(e) => controls.start(e)}>
             <span className="ps-handle" />
-            <button type="button" className="ps-close" onClick={close} aria-label="Close">×</button>
-            <button type="button" className="ps-share" onClick={share}>Share</button>
+            <button type="button" className="ps-close" onPointerDown={(event) => event.stopPropagation()} onClick={close} aria-label="Close">×</button>
+            <button type="button" className="ps-share" onPointerDown={(event) => event.stopPropagation()} onClick={share}>Share</button>
           </div>
 
           <div className="ps-body">
@@ -104,8 +104,10 @@ export function ProductSheet({ product, href }: { product: SheetProduct; href: s
           </div>
 
           <div className="ps-cta">
-            <a className="ps-wa" href={href} target="_blank" rel="noopener noreferrer">Order on WhatsApp</a>
-            <a className="ps-details" href={`/products/${encodeURIComponent(product.slug)}`}>View details →</a>
+            <div className="ps-cta-actions">
+              <a className="ps-wa" href={href} target="_blank" rel="noopener noreferrer">Order on WhatsApp</a>
+              <a className="ps-details" href={`/products/${encodeURIComponent(product.slug)}`}>View details</a>
+            </div>
             {notice && <p className="ps-notice" role="status">{notice}</p>}
           </div>
         </motion.div>
