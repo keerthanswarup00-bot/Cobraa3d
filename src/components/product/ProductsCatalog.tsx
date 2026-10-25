@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type TouchEvent as ReactTouchEvent } from 'react'
 import { createPortal } from 'react-dom'
-import { SlidersHorizontal, X } from 'lucide-react'
+import { Share2, SlidersHorizontal, X } from 'lucide-react'
 import { ProductRender, type ConnectProduct } from '@/components/home/ConnectProducts'
 import { formatPrice } from '@/lib/shared'
 import { PushAlerts } from '@/components/PushAlerts'
@@ -211,6 +211,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
   const [qty, setQty] = useState(1)
   const [note, setNote] = useState('')
   const [slide, setSlide] = useState(0)
+  const [shareNotice, setShareNotice] = useState('')
 
   const bySlug = useMemo(() => new Map(products.map((product) => [product.slug, product])), [products])
   const filtered = useMemo(() => sortCatalogProducts(filterCatalogProducts(products, filters), filters.sort), [products, filters])
@@ -273,6 +274,7 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
     setOpenSlug(slug)
     setQty(1)
     setNote('')
+    setShareNotice('')
     setSlide(0)
     if (sheetRef.current) {
       sheetRef.current.classList.remove('drag')
@@ -576,6 +578,17 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
     return `Order ${qty} on WhatsApp${total}`
   })()
 
+  const shareProduct = async () => {
+    if (!lastProduct) return
+    const url = `${siteURL}/products/${lastProduct.slug}`
+    if (navigator.share) {
+      try { await navigator.share({ title: lastProduct.title, text: lastProduct.description || lastProduct.title, url }); return }
+      catch { return }
+    }
+    try { await navigator.clipboard.writeText(url); setShareNotice('Link copied') }
+    catch { setShareNotice(`Copy this link: ${url}`) }
+  }
+
   const slideCount = lastProduct ? Math.max(1, lastProduct.images.length) : 1
 
   const filterPanel = (
@@ -755,6 +768,10 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
         <button ref={closeRef} type="button" className="pc-close" aria-label="Close" onClick={() => closeProduct()}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
         </button>
+        <button type="button" className="pc-share" aria-label="Share product" title="Share product" onClick={shareProduct}>
+          <Share2 size={18} aria-hidden="true" />
+        </button>
+        {shareNotice && <div className="pc-share-notice" role="status">{shareNotice}</div>}
         <div className="pc-scroll">
           <div className="pc-gal">
             <div className="pc-track" ref={trackRef} onScroll={onTrackScroll}>
@@ -795,20 +812,21 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
             </div>
           )}
         </div>
-        {orderHref && (
+        {lastProduct && (
           <div className="pc-sheet-action">
             <div className="pc-buybar">
-              <div className="pc-qty">
+              {orderHref && <div className="pc-qty">
                 <button type="button" aria-label="Decrease quantity" onClick={() => setQty((current) => Math.max(1, current - 1))}>−</button>
                 <span>{qty}</span>
                 <button type="button" aria-label="Increase quantity" onClick={() => setQty((current) => Math.min(20, current + 1))}>+</button>
-              </div>
-              <a className="pc-order" href={orderHref} target="_blank" rel="noopener noreferrer" data-wa-source="catalog" data-wa-slug={lastProduct?.slug}>
+              </div>}
+              <a className="pc-know-more" href={`/products/${lastProduct.slug}`}>Know more</a>
+              {orderHref && <a className="pc-order" href={orderHref} target="_blank" rel="noopener noreferrer" data-wa-source="catalog" data-wa-slug={lastProduct.slug}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>
                 <span>{orderLabel}</span>
-              </a>
+              </a>}
             </div>
-            {copy.finePrint && <div className="pc-fine">{copy.finePrint}</div>}
+            {orderHref && copy.finePrint && <div className="pc-fine">{copy.finePrint}</div>}
           </div>
         )}
       </section>
