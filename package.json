@@ -5,8 +5,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "cross-env NODE_OPTIONS=--no-deprecation next build --webpack",
-    "postbuild": "next-sitemap --config next-sitemap.config.cjs",
+    "build": "cross-env NODE_OPTIONS=--no-deprecation next build --webpack && node scripts/check-public-confirm.mjs",
     "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",
     "dev:prod": "cross-env NODE_OPTIONS=--no-deprecation rm -rf .next && pnpm build && pnpm start",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
@@ -17,6 +16,9 @@
     "ii": "cross-env NODE_OPTIONS=--no-deprecation pnpm --ignore-workspace install",
     "lint": "cross-env NODE_OPTIONS=--no-deprecation eslint .",
     "lint:fix": "cross-env NODE_OPTIONS=--no-deprecation eslint . --fix",
+    "check:public-confirm": "node scripts/check-public-confirm.mjs",
+    "seed:legal-pages": "node --import=tsx/esm scripts/seed-legal-pages.ts",
+    "seed:product-drafts": "node --import=tsx/esm scripts/seed-product-editorial-drafts.ts",
     "typecheck": "tsc --noEmit",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
     "reinstall": "cross-env NODE_OPTIONS=--no-deprecation rm -rf node_modules && rm pnpm-lock.yaml && pnpm --ignore-workspace install",
@@ -26,7 +28,7 @@
     "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts",
     "migrate:create": "payload migrate:create",
     "migrate": "cross-env MIGRATING=1 payload migrate",
-    "vercel-build": "cross-env MIGRATING=1 payload migrate && next build --webpack"
+    "vercel-build": "cross-env MIGRATING=1 payload migrate && next build --webpack && node scripts/check-public-confirm.mjs"
   },
   "dependencies": {
     "@google/model-viewer": "4.4.0",
@@ -63,6 +65,7 @@
     "payload": "3.91.0",
     "prism-react-renderer": "^2.3.1",
     "qrcode": "1.5.4",
+    "razorpay": "^2.9.8",
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "react-hook-form": "7.90.0",

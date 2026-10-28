@@ -30,6 +30,10 @@ export const Products: CollectionConfig = {
       { label: 'Overview', fields: [
         { name: 'title', type: 'text', required: true, admin: { description: 'Product name customers will see.' } },
         { name: 'shortDescription', label: 'Description', type: 'textarea', maxLength: 240, admin: { description: 'The description shown on product cards. Keep it under 240 characters.' } },
+        { name: 'shortBenefit', type: 'text', maxLength: 120, admin: { description: 'One-line product benefit. Keep factual and under 120 characters.' } },
+        { name: 'shortIncludes', type: 'text', admin: { description: 'One concise, verified line describing what is included.' } },
+        { name: 'badge', type: 'select', options: [{ label: 'Ready stock', value: 'ready_stock' }, { label: 'Made to order', value: 'made_to_order' }, { label: 'New', value: 'new' }] },
+        { name: 'dispatchTime', type: 'text' },
         { name: 'category', type: 'relationship', relationTo: 'categories', admin: { description: 'Choose a catalogue category for this product.', components: { Cell: '/components/admin/EditableCategoryCell#EditableCategoryCell' } } },
         { name: 'price', type: 'number', min: 0, admin: {
           description: 'Enter the price in INR. Leave blank to show “Ask for price”.',
@@ -57,7 +61,11 @@ export const Products: CollectionConfig = {
       { label: 'Details', fields: [
         { name: 'includedItems', type: 'array', fields: [{ name: 'item', type: 'text', required: true }] },
         { name: 'colourOptions', type: 'array', fields: [{ name: 'name', type: 'text', required: true }, { name: 'hex', type: 'text', validate: (value: unknown) => value == null || value === '' || /^#[0-9a-f]{6}$/i.test(String(value)) || 'Enter a six digit hex colour.' }] },
-        { name: 'dimensions', type: 'text' }, { name: 'material', type: 'text' }, { name: 'ageGroup', type: 'text' },
+        { name: 'dimensions', type: 'text' }, { name: 'heightMm', type: 'number', min: 0 }, { name: 'widthMm', type: 'number', min: 0 }, { name: 'depthMm', type: 'number', min: 0 },
+        { name: 'weightGrams', type: 'number', min: 0 }, { name: 'material', type: 'text' }, { name: 'colour', type: 'text' },
+        { name: 'powerAndBulb', type: 'text' }, { name: 'ageGroup', type: 'text' }, { name: 'ageSuitability', type: 'text' },
+        { name: 'faq', type: 'array', fields: [{ name: 'question', type: 'text', required: true }, { name: 'answer', type: 'textarea', required: true }] },
+        { name: 'occasions', type: 'array', fields: [{ name: 'occasion', type: 'text', required: true }] },
         { name: 'careNotes', type: 'textarea' }, { name: 'productionNote', type: 'textarea' },
         { name: 'layerPhotos', type: 'upload', relationTo: 'media', hasMany: true },
         { name: 'model3d', type: 'upload', relationTo: 'media', admin: { description: 'Optional GLB preview. Export a GLB/glTF from your CAD tool or slicer (if supported), then upload it. Some slicers do not export 3D scene files.' } },

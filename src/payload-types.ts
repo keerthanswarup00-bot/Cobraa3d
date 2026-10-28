@@ -80,6 +80,7 @@ export interface Config {
     media: Media;
     users: User;
     'whatsapp-clicks': WhatsappClick;
+    orders: Order;
     search: Search;
     redirects: Redirect;
     exports: Export;
@@ -113,6 +114,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'whatsapp-clicks': WhatsappClicksSelect<false> | WhatsappClicksSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
     search: SearchSelect<false> | SearchSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     exports: ExportsSelect<false> | ExportsSelect<true>;
@@ -186,6 +188,16 @@ export interface Product {
    */
   shortDescription?: string | null;
   /**
+   * One-line product benefit. Keep factual and under 120 characters.
+   */
+  shortBenefit?: string | null;
+  /**
+   * One concise, verified line describing what is included.
+   */
+  shortIncludes?: string | null;
+  badge?: ('ready_stock' | 'made_to_order' | 'new') | null;
+  dispatchTime?: string | null;
+  /**
    * Choose a catalogue category for this product.
    */
   category?: (number | null) | Category;
@@ -255,8 +267,28 @@ export interface Product {
       }[]
     | null;
   dimensions?: string | null;
+  heightMm?: number | null;
+  widthMm?: number | null;
+  depthMm?: number | null;
+  weightGrams?: number | null;
   material?: string | null;
+  colour?: string | null;
+  powerAndBulb?: string | null;
   ageGroup?: string | null;
+  ageSuitability?: string | null;
+  faq?:
+    | {
+        question: string;
+        answer: string;
+        id?: string | null;
+      }[]
+    | null;
+  occasions?:
+    | {
+        occasion: string;
+        id?: string | null;
+      }[]
+    | null;
   careNotes?: string | null;
   productionNote?: string | null;
   layerPhotos?: (number | Media)[] | null;
@@ -632,6 +664,42 @@ export interface WhatsappClick {
   createdAt: string;
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: number;
+  orderNumber: string;
+  status: 'created' | 'paid' | 'failed' | 'cancelled' | 'refunded';
+  items: {
+    productId: string;
+    productName: string;
+    /**
+     * Snapshot in paise.
+     */
+    unitPrice: number;
+    quantity: number;
+    id?: string | null;
+  }[];
+  subtotal: number;
+  shipping: number;
+  total: number;
+  customerName: string;
+  phone: string;
+  email?: string | null;
+  shippingAddress: {
+    address: string;
+    pin: string;
+  };
+  notes?: string | null;
+  razorpayOrderId: string;
+  razorpayPaymentId?: string | null;
+  razorpaySignature?: string | null;
+  paidAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This is a collection of automatically created search results. These results are used by the global site search and will be updated automatically as documents in the CMS are created or updated.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -909,6 +977,10 @@ export interface PayloadLockedDocument {
         value: number | WhatsappClick;
       } | null)
     | ({
+        relationTo: 'orders';
+        value: number | Order;
+      } | null)
+    | ({
         relationTo: 'search';
         value: number | Search;
       } | null)
@@ -969,6 +1041,10 @@ export interface PayloadMigration {
 export interface ProductsSelect<T extends boolean = true> {
   title?: T;
   shortDescription?: T;
+  shortBenefit?: T;
+  shortIncludes?: T;
+  badge?: T;
+  dispatchTime?: T;
   category?: T;
   price?: T;
   salePrice?: T;
@@ -1001,8 +1077,28 @@ export interface ProductsSelect<T extends boolean = true> {
         id?: T;
       };
   dimensions?: T;
+  heightMm?: T;
+  widthMm?: T;
+  depthMm?: T;
+  weightGrams?: T;
   material?: T;
+  colour?: T;
+  powerAndBulb?: T;
   ageGroup?: T;
+  ageSuitability?: T;
+  faq?:
+    | T
+    | {
+        question?: T;
+        answer?: T;
+        id?: T;
+      };
+  occasions?:
+    | T
+    | {
+        occasion?: T;
+        id?: T;
+      };
   careNotes?: T;
   productionNote?: T;
   layerPhotos?: T;
@@ -1313,6 +1409,42 @@ export interface WhatsappClicksSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders_select".
+ */
+export interface OrdersSelect<T extends boolean = true> {
+  orderNumber?: T;
+  status?: T;
+  items?:
+    | T
+    | {
+        productId?: T;
+        productName?: T;
+        unitPrice?: T;
+        quantity?: T;
+        id?: T;
+      };
+  subtotal?: T;
+  shipping?: T;
+  total?: T;
+  customerName?: T;
+  phone?: T;
+  email?: T;
+  shippingAddress?:
+    | T
+    | {
+        address?: T;
+        pin?: T;
+      };
+  notes?: T;
+  razorpayOrderId?: T;
+  razorpayPaymentId?: T;
+  razorpaySignature?: T;
+  paidAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "search_select".
  */
 export interface SearchSelect<T extends boolean = true> {
@@ -1597,6 +1729,14 @@ export interface SiteSetting {
   address?: string | null;
   showFullAddress?: boolean | null;
   openingHours?: string | null;
+  /**
+   * Flat shipping fee in INR. Leave at 0 for no shipping charge.
+   */
+  shippingFlatFee?: number | null;
+  /**
+   * Subtotal in INR at which shipping is free. Set to 0 to disable the threshold.
+   */
+  freeShippingThreshold?: number | null;
   productMessageTemplate?: string | null;
   messageTemplates?: {
     /**
@@ -1799,6 +1939,8 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   address?: T;
   showFullAddress?: T;
   openingHours?: T;
+  shippingFlatFee?: T;
+  freeShippingThreshold?: T;
   productMessageTemplate?: T;
   messageTemplates?:
     | T
@@ -1914,6 +2056,7 @@ export interface TaskCreateCollectionExport {
       | 'media'
       | 'users'
       | 'whatsapp-clicks'
+      | 'orders'
       | 'search'
       | 'redirects'
       | 'exports'

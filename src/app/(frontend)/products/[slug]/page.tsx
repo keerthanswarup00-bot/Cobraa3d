@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { ProductDetail } from '@/components/ProductDetail'
+import { BuyNowPortal } from '@/components/BuyNowPortal'
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import { ConnectTerrain } from '@/components/home/ConnectTerrain'
@@ -11,8 +12,6 @@ import { getDisplayPrice } from '@/lib/pricing'
 import { TEMP_PRODUCTS } from '@/lib/tempProducts'
 import type { Product } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
-import { getProductShareImageURL, SHARE_IMAGE_HEIGHT, SHARE_IMAGE_WIDTH } from '@/lib/shareImage-constants'
-import { defaultShareImage } from '@/lib/siteMeta'
 
 export const revalidate = 60
 
@@ -38,10 +37,6 @@ function urlForMedia(image: Product['images'] extends (infer _T)[] | null | unde
   return media.url ? { url: media.url, alt: media.alt || '' } : undefined
 }
 
-function truncate(text: string, max: number): string {
-  return text.length <= max ? text : `${text.slice(0, max - 1).trimEnd()}…`
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const { product, settings } = await loadProduct(slug)
@@ -52,17 +47,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const mainImage = product.images?.[0]?.image
   const media = typeof mainImage === 'object' && mainImage ? mainImage : null
   const canonical = `/products/${product.slug}`
-  const title = product.seoTitle || product.meta?.title || product.title
-  const description = product.seoDescription || product.meta?.description || product.shortDescription || truncate(textFromLexical(product.description?.root), 160) || undefined
-  // Previews use a composed 1200x630 JPEG (see share.jpg/route.ts), not the raw upload: uploads are WebP, which not every
-  // crawler renders, and a portrait photo would show as a tiny thumbnail. ?v= changes when the product is edited.
-  const image = media?.url
-    ? { url: getProductShareImageURL(getServerSideURL(), product.slug || slug, product.updatedAt), width: SHARE_IMAGE_WIDTH, height: SHARE_IMAGE_HEIGHT, type: 'image/jpeg', alt: product.title }
-    : defaultShareImage(product.title)
+  const brandName = settings.brandName || 'Cobraa 3D'
+  const title = product.seoTitle || product.meta?.title || `${product.title} | ${brandName}, Hoskote`
+  const description = product.seoDescription || product.meta?.description || product.shortBenefit || product.shortDescription || `${product.title} is 3D printed in PLA and hand finished in Hoskote, Bengaluru. Ships across India.`
   return {
     title, description, alternates: { canonical }, robots: product.isDemo ? { index: false, follow: false } : undefined,
-    openGraph: { siteName: settings.brandName, title, description, url: canonical, images: [image] },
-    twitter: { card: 'summary_large_image', title, description, images: [image.url] },
+    openGraph: { title, description, url: canonical, images: media?.url ? [{ url: media.url, alt: product.images?.[0]?.alt || product.title }] : undefined },
   }
 }
 
@@ -91,7 +81,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     return { slug: item.slug || '', title: item.title, image: media?.url ? { url: media.url, alt: item.images?.[0]?.alt || item.title } : undefined }
   })
   const productData = {
-    title: product.title, slug: product.slug || slug, updatedAt: product.updatedAt, shortDescription: product.shortDescription,
+    title: product.title, slug: product.slug || slug, shortDescription: product.shortDescription,
     descriptionText: textFromLexical(product.description?.root), price: product.price, salePrice: product.salePrice, originalPrice: product.originalPrice,
     currency: product.currency, priceMode: product.priceMode, availability: product.availability, images: photos,
     includedItems: product.includedItems?.map((item) => item.item), colourOptions: product.colourOptions?.map(({ name, hex }) => ({ name, hex })),
@@ -102,7 +92,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const displayPrice = getDisplayPrice({ id: product.id, price: product.price, salePrice: product.salePrice, priceMode: product.priceMode, currency: product.currency })
   const hasStructuredOffer = product.priceMode === 'show' && typeof product.price === 'number' && product.availability && !product.isDemo && displayPrice.showOffer
   const schema = product.isDemo ? null : {
-    '@context': 'https://schema.org', '@type': 'Product', name: product.title, description: product.seoDescription || product.shortDescription || undefined,
+    '@context': 'https://schema.org', '@type': 'Product', name: product.title, description: product.seoDescription || product.shortBenefit || product.shortDescription || `${product.title}, 3D printed in PLA and hand finished in Hoskote, Bengaluru.`,
     image: photos.map((photo) => photo.url), sku: undefined,
     ...(hasStructuredOffer ? { offers: { '@type': 'Offer', priceCurrency: product.currency || 'INR', price: displayPrice.offerPrice ?? product.price, availability: product.availability === 'in_stock' ? 'https://schema.org/InStock' : product.availability === 'out_of_stock' ? 'https://schema.org/OutOfStock' : 'https://schema.org/PreOrder', url: `${siteURL}/products/${product.slug}` } } : product.priceMode === 'show' && typeof product.price === 'number' ? { offers: { '@type': 'Offer', priceCurrency: product.currency || 'INR', price: product.price, availability: product.availability === 'in_stock' ? 'https://schema.org/InStock' : product.availability === 'out_of_stock' ? 'https://schema.org/OutOfStock' : 'https://schema.org/PreOrder', url: `${siteURL}/products/${product.slug}` } } : {}),
   }
@@ -111,9 +101,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     { '@type': 'ListItem', position: 3, name: product.title, item: `${siteURL}/products/${product.slug}` },
   ] }
   return <>
-    <meta property="og:type" content="product" />
     {schema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, '\\u003c') }} />}
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb).replace(/</g, '\\u003c') }} />
     <ProductDetail product={productData} brandName={settings.brandName} whatsappNumber={settings.whatsappNumber} productTemplate={settings.messageTemplates?.product} siteURL={siteURL} ctaLabel={settings.productEnquiryCtaLabel || 'Ask on WhatsApp'} related={related} />
+    {product.faq?.length ? <section className="product-detail-extras" aria-labelledby="product-faq-title"><h2 id="product-faq-title">Frequently asked questions</h2>{product.faq.map((entry, index) => entry.question?.trim() && entry.answer?.trim() ? <details key={`${entry.question}-${index}`}><summary>{entry.question}</summary><p>{entry.answer}</p></details> : null)}</section> : null}
+    <nav className="product-policy-links" aria-label="Product information"><Link href="/product-safety-and-care">Product safety and care</Link><Link href="/shipping-and-delivery-policy">Shipping and delivery</Link><Link href="/refund-and-cancellation-policy">Refunds and cancellations</Link></nav>
+    {product.priceMode === 'show' && typeof product.price === 'number' && product.price > 0 && !product.isDemo && product.availability !== 'out_of_stock' && product.availability !== 'coming_soon' && <BuyNowPortal productId={product.id} />}
   </>
 }

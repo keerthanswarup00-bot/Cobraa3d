@@ -11,14 +11,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pages = await payload.findGlobal({ slug: 'legal-pages', depth: 0 })
   const hasContent = (value: unknown): boolean => {
     if (!value || typeof value !== 'object') return false
-    const node = value as { text?: string; children?: unknown[] }
-    return Boolean(node.text?.trim() || node.children?.some(hasContent))
+    const node = value as { text?: string; children?: unknown[]; root?: unknown }
+    return Boolean(node.text?.trim() || node.children?.some(hasContent) || (node.root && hasContent(node.root)))
   }
   const routes = [
     { url: `${baseURL}/`, changeFrequency: 'weekly' as const, priority: 1 },
     { url: `${baseURL}/products`, changeFrequency: 'daily' as const, priority: 0.8 },
     { url: `${baseURL}/custom`, changeFrequency: 'monthly' as const, priority: 0.7 },
     { url: `${baseURL}/location`, changeFrequency: 'monthly' as const, priority: 0.6 },
+    { url: `${baseURL}/contact`, changeFrequency: 'monthly' as const, priority: 0.5 },
+    { url: `${baseURL}/refund-and-cancellation-policy`, changeFrequency: 'yearly' as const, priority: 0.3 },
+    { url: `${baseURL}/shipping-and-delivery-policy`, changeFrequency: 'yearly' as const, priority: 0.3 },
+    { url: `${baseURL}/product-safety-and-care`, changeFrequency: 'yearly' as const, priority: 0.3 },
+    { url: `${baseURL}/custom-orders`, changeFrequency: 'yearly' as const, priority: 0.3 },
+    { url: `${baseURL}/3d-printing-bengaluru-hoskote`, changeFrequency: 'monthly' as const, priority: 0.7 },
     ...(hasContent(pages.privacy) ? [{ url: `${baseURL}/privacy`, changeFrequency: 'yearly' as const, priority: 0.3 }] : []),
     ...(hasContent(pages.terms) ? [{ url: `${baseURL}/terms`, changeFrequency: 'yearly' as const, priority: 0.3 }] : []),
   ]

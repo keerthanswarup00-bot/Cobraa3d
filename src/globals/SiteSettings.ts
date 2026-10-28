@@ -72,6 +72,10 @@ export const SiteSettings: GlobalConfig = {
       { name: 'mapsUrl', type: 'text', label: 'Maps share link' }, { name: 'mapsEmbedUrl', type: 'text' }, { name: 'address', type: 'textarea' },
       { name: 'showFullAddress', type: 'checkbox', defaultValue: false }, { name: 'openingHours', type: 'textarea' },
     ] },
+    { label: 'Shipping and Checkout', fields: [
+      { name: 'shippingFlatFee', type: 'number', min: 0, defaultValue: 0, admin: { description: 'Flat shipping fee in INR. Leave at 0 for no shipping charge.' } },
+      { name: 'freeShippingThreshold', type: 'number', min: 0, defaultValue: 0, admin: { description: 'Subtotal in INR at which shipping is free. Set to 0 to disable the threshold.' } },
+    ] },
     { label: 'Messages', fields: [
     // Keep the original column during local SQLite schema sync; the value is
     // copied into messageTemplates.product after the additive sync completes.

@@ -20,6 +20,12 @@ body:has(.home-rework) .connect-nav.is-scrolled { min-height: 64px; border-botto
 .home-hero-visual > img { object-fit: cover; }
 .home-hero-placeholder { display: grid; width: 100%; height: 100%; place-items: center; color: rgb(240 231 212 / 55%); }
 .home-hero-visual > span { position: absolute; right: 0; bottom: 0; left: 0; display: flex; min-height: 54px; align-items: center; justify-content: space-between; padding: 0 16px; border-top: 1px solid var(--home-line); background: rgb(8 8 8 / 84%); font-size: 13px; }
+.home-how { width: min(100%, 1180px); padding: 24px 0; margin: 0 auto 34px; border-block: 1px solid var(--home-line); }
+.home-how h2 { margin: 8px 0 0; font-size: 19px; font-weight: 600; }
+.home-how ol { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding: 0; margin: 20px 0 0; list-style: none; }
+.home-how li { display: flex; align-items: center; gap: 10px; color: var(--home-muted); font-size: 13px; line-height: 1.4; }
+.home-how li b { color: var(--home-accent); font: 11px var(--font-dm-mono), monospace; }
+.home-info-item a { color: inherit; text-underline-offset: 3px; }
 .home-section { padding-block: clamp(52px, 7vw, 84px); border-top: 1px solid var(--home-line); }
 .home-section-inner { width: min(100%, 1180px); margin-inline: auto; }
 .home-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 26px; }
@@ -95,6 +101,9 @@ body:has(.home-rework) .connect-nav.is-scrolled { min-height: 64px; border-botto
   .home-hero-actions { gap: 8px; margin-top: 19px; }
   .home-button { min-height: 44px; padding-inline: 12px; font-size: 12px; }
   .home-hero-visual { min-height: 245px; }
+  .home-how { padding: 20px 0; margin-bottom: 28px; }
+  .home-how ol { grid-template-columns: 1fr 1fr; gap: 14px 10px; margin-top: 16px; }
+  .home-how li { align-items: flex-start; font-size: 12px; }
   .home-section { padding-block: 40px; }
   .home-section-heading { align-items: start; flex-direction: column; gap: 9px; margin-bottom: 17px; }
   .home-section-heading h2 { font-size: 31px; }

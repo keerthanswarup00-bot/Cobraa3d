@@ -4,14 +4,18 @@ import config from '@payload-config'
 import { ProductsCatalog, type CatalogCopy, type CatalogProduct, type CatalogSpec } from '@/components/product/ProductsCatalog'
 import type { ConnectProduct } from '@/components/home/ConnectProducts'
 import { getDisplayPrice } from '@/lib/pricing'
-import { buildWhatsAppUrl, getVisibleCategories } from '@/lib/shared'
+import { buildProductMessage, buildWhatsAppUrl, getVisibleCategories } from '@/lib/shared'
 import { getSiteSettings } from '@/utilities/getSiteSettings'
 import { getServerSideURL } from '@/utilities/getURL'
 import type { Product } from '@/payload-types'
 import { env } from '@/lib/env'
 import { normalizeSearch, parseCatalogFilters, slugifyFilterValue } from '@/lib/catalogFilters'
 
-export const metadata: Metadata = { title: 'Products', alternates: { canonical: '/products' } }
+export const metadata: Metadata = {
+  title: '3D Printed Products | Cobraa 3D, Hoskote',
+  description: 'Browse 3D printed products from Cobraa 3D, a studio in Hoskote, Bengaluru. Ask about products on WhatsApp; shipping is available across India.',
+  alternates: { canonical: '/products' },
+}
 
 function visualFor(product: Product): ConnectProduct['visual'] {
   const category = typeof product.category === 'object' && product.category ? product.category.name || '' : ''
@@ -81,6 +85,12 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     const searchText = normalizeSearch([product.title, product.shortDescription || '', category || '', material || '', ...colours.map((colour) => colour.name), ...tags].join(' '))
     const display = getDisplayPrice({ id: product.id, price: product.price, salePrice: product.salePrice, priceMode: product.priceMode, currency: product.currency })
     const hasPrice = display.regularPrice != null && product.priceMode === 'show'
+    const whatsappHref = buildWhatsAppUrl({ number: settings.whatsappNumber, message: buildProductMessage(product, {}, settings) })
+    const knownDimensions = [
+      product.heightMm ? `${product.heightMm} mm H` : '',
+      product.widthMm ? `${product.widthMm} mm W` : '',
+      product.depthMm ? `${product.depthMm} mm D` : '',
+    ].filter(Boolean).join(' × ')
     const render: ConnectProduct = {
       id: String(product.id),
       slug,
@@ -108,7 +118,11 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       newArrival: (product.badges || []).includes('new'),
       searchText,
       description: product.shortDescription || '',
-      priceLabel: display.priceLabel,
+      shortIncludes: product.shortIncludes?.trim() || null,
+      badge: product.badge || null,
+      dimensionsLabel: knownDimensions || product.dimensions?.trim() || null,
+      whatsappHref,
+      priceLabel: hasPrice ? display.priceLabel : 'Ask on WhatsApp',
       hasPrice,
       price: display.regularPrice ?? product.price ?? null,
       currency: product.currency || 'INR',

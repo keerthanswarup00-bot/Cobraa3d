@@ -6,14 +6,12 @@ import { getPayload } from "payload"
 import config from "@payload-config"
 import { getSiteSettings } from "@/utilities/getSiteSettings";
 import { buildProductMessage, buildWhatsAppUrl } from "@/lib/shared";
-import { getDisplayPrice } from "@/lib/pricing";
-import { getServerSideURL } from "@/utilities/getURL";
-import type { Product } from "@/payload-types";
+import { env } from "@/lib/env";
 
 async function getProductBySlug(slug: string) {
   const payload = await getPayload({ config })
   const res = await payload.find({ collection: "products", where: { and: [{ slug: { equals: slug } }, { status: { equals: "published" } }, { _status: { equals: "published" } }] }, depth: 1, limit: 1 })
-  return res.docs[0] as Product | undefined
+  return res.docs[0] as any
 }
 
 export default async function ProductSheetPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -21,33 +19,23 @@ export default async function ProductSheetPage({ params }: { params: Promise<{ s
   const p = await getProductBySlug(slug);
   if (!p) notFound();
   const settings = await getSiteSettings();
-  const displayPrice = getDisplayPrice({ id: p.id, price: p.price, salePrice: p.salePrice, priceMode: p.priceMode, currency: p.currency });
-  const photos = (p.images ?? [])
-    .flatMap((image) => {
-      const media = image.image;
-      return typeof media === "object" && media?.url ? [{ url: media.url, alt: image.alt || p.title }] : [];
-    });
-  const productSlug = p.slug || slug;
   const product: SheetProduct = {
-    slug: productSlug,
     name: p.title,
     shortDescription: p.shortDescription,
-    price: !p.isDemo && p.priceMode === "show" && displayPrice.regularPrice != null ? displayPrice.priceLabel : undefined,
-    images: photos,
+    shortIncludes: p.shortIncludes || undefined,
+    dimensions: [p.heightMm ? `${p.heightMm} mm H` : '', p.widthMm ? `${p.widthMm} mm W` : '', p.depthMm ? `${p.depthMm} mm D` : ''].filter(Boolean).join(' × ') || p.dimensions || undefined,
+    price: p.priceMode === "show" && p.price != null ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: p.currency || 'INR', maximumFractionDigits: 0 }).format(p.price) : undefined,
+    productId: p.id,
+    slug: p.slug,
+    images: (p.images ?? [])
+      .map((i: any) => ({ url: typeof i.image === "object" && i.image ? i.image.url : i.url, alt: i.alt }))
+      .filter((i: any) => i.url),
+    colors: p.colors?.map((c: any) => ({ name: c.name, hex: c.hex })),
   };
-  const message = buildProductMessage({
-    ...p,
-    title: p.title,
-    slug: productSlug,
-    updatedAt: p.updatedAt,
-    images: photos.map((image) => ({ alt: image.alt, image: { url: image.url } })),
-    price: displayPrice.showOffer ? displayPrice.offerPrice ?? p.price : p.price,
-    priceMode: p.priceMode,
-  }, { baseURL: getServerSideURL() }, {
-    whatsappNumber: settings.whatsappNumber,
-    productMessageTemplate: settings.messageTemplates?.product,
-  });
-  const baseUrl = buildWhatsAppUrl({ number: settings.whatsappNumber, message });
+  const url = (color?: string) =>
+    buildWhatsAppUrl({ number: settings.whatsappNumber, message: buildProductMessage({ ...p, title: p.title, slug: p.slug, images: p.images }, { colour: color }, settings) });
+  const baseUrl = url();
+  const byColor = Object.fromEntries((product.colors ?? []).map((c) => [c.name, url(c.name)]).filter(([, v]) => v != null)) as Record<string, string>;
   if (!baseUrl) notFound();
-  return <ProductSheet product={product} href={baseUrl} />;
+  return <ProductSheet product={product} hrefs={{ base: baseUrl, byColor }} pushPublicKey={env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || env.VAPID_PUBLIC_KEY} />;
 }
