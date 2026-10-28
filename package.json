@@ -105,5 +105,12 @@
   "engines": {
     "node": ">=20.18.1",
     "pnpm": "^9 || ^10 || ^11"
-  }
+  },
+  "browserslist": [
+    "chrome >= 111",
+    "edge >= 111",
+    "firefox >= 111",
+    "safari >= 16.4",
+    "ios_saf >= 16.4"
+  ]
 }

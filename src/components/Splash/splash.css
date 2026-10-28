@@ -38,11 +38,20 @@
   position: absolute;
   left: -8%;
   right: -8%;
-  top: 100%;
+  top: 0;
+  bottom: 0;
+  opacity: 1;
+  transform: translateY(100%);
+  animation: splash-nozzle 0.45s steps(10, end) forwards;
+}
+/* the glowing print line riding the moving edge */
+.splash__nozzle::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
   height: 2px;
   background: var(--splash-accent, #ff5a1f);
   box-shadow: 0 0 10px var(--splash-accent, #ff5a1f);
-  animation: splash-nozzle 0.45s steps(10, end) forwards;
 }
 
 @keyframes splash-print {
@@ -50,8 +59,8 @@
   to   { clip-path: inset(0 0 0 0); }
 }
 @keyframes splash-nozzle {
-  from { top: 100%; opacity: 1; }
-  to   { top: 0; opacity: 0; }
+  from { transform: translateY(100%); opacity: 1; }
+  to   { transform: translateY(0); opacity: 0; }
 }
 @keyframes splash-peel {
   to { transform: translateY(-100%); visibility: hidden; }
