@@ -17,7 +17,7 @@ export function ProductGrid({ products, pagination }: { products: GridProduct[];
     <ul className="pg-grid">
       {products.map((p, i) => (
         <li key={p.slug}>
-          <Link href={`/products/${p.slug}`} scroll={false} className="pg-card">
+          <Link href={`/products/${p.slug}`} scroll={false} prefetch className="pg-card">
             <span className="pg-media">
               {p.image && (
                 // swap for next/image once the media domain is configured

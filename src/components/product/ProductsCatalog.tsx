@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type TouchEvent as ReactTouchEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { SlidersHorizontal, X } from 'lucide-react'
@@ -198,6 +199,7 @@ function FilterPanel({
 }
 
 export function ProductsCatalog({ products, categories, copy, calmMode, initialFilters }: Props) {
+  const router = useRouter()
   const perPage = Math.min(48, Math.max(1, copy.perPage || 15))
   const filterTitleId = useId()
 
@@ -514,7 +516,15 @@ export function ProductsCatalog({ products, categories, copy, calmMode, initialF
             <div className="pc-grid">
               {slice.length ? slice.map((product, index) => (
                 <article className="pc-card" key={product.id}>
-                  <Link className={`pc-media${product.images.length > 1 ? '' : ' single'}`} href={`/products/${product.slug}`} aria-label={`View ${product.title}`} scroll={false}>
+                  <Link
+                    className={`pc-media${product.images.length > 1 ? '' : ' single'}`}
+                    href={`/products/${product.slug}`}
+                    aria-label={`View ${product.title}`}
+                    scroll={false}
+                    prefetch
+                    onPointerDown={() => router.prefetch(`/products/${product.slug}`)}
+                    onTouchStart={() => router.prefetch(`/products/${product.slug}`)}
+                  >
                     {product.images[0] ? (
                       <>
                         <Image className="a" src={product.images[0].url} alt={product.images[0].alt} fill sizes="(max-width: 860px) 50vw, (max-width: 1320px) 25vw, 300px" loading={index < 4 ? 'eager' : 'lazy'} unoptimized={!product.images[0].url.startsWith('/')} />
@@ -528,7 +538,7 @@ export function ProductsCatalog({ products, categories, copy, calmMode, initialF
                     <h2 className="pc-card-title">{product.title}</h2>
                     <div className="pc-foot">
                       <span className="pc-price">{product.priceLabel}</span>
-                      <Link className="pc-view" href={`/products/${product.slug}`} scroll={false}>View</Link>
+                      <Link className="pc-view" href={`/products/${product.slug}`} scroll={false} prefetch onPointerDown={() => router.prefetch(`/products/${product.slug}`)} onTouchStart={() => router.prefetch(`/products/${product.slug}`)}>View</Link>
                     </div>
                   </div>
                 </article>

@@ -8,6 +8,8 @@ import { getSiteSettings } from "@/utilities/getSiteSettings";
 import { buildProductMessage, buildWhatsAppUrl } from "@/lib/shared";
 import { env } from "@/lib/env";
 
+export const revalidate = 300;
+
 async function getProductBySlug(slug: string) {
   const payload = await getPayload({ config })
   const res = await payload.find({ collection: "products", where: { and: [{ slug: { equals: slug } }, { status: { equals: "published" } }, { _status: { equals: "published" } }] }, depth: 1, limit: 1 })
