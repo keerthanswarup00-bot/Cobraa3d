@@ -3,6 +3,7 @@ import config from '@payload-config'
 import type { Metadata } from 'next'
 import { LazyNameplateStudio } from '@/components/LazyNameplateStudio'
 import { LazyEnquiryForm } from '@/components/LazyEnquiryForm'
+export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Custom Orders', alternates: { canonical: '/custom' } }
 export default async function CustomPage() {
   const payload = await getPayload({ config })
