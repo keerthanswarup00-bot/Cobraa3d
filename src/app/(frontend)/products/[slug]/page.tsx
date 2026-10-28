@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { ProductDetail } from '@/components/ProductDetail'
-import { BuyNowPortal } from '@/components/BuyNowPortal'
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import { ConnectTerrain } from '@/components/home/ConnectTerrain'
@@ -106,6 +105,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     <ProductDetail product={productData} brandName={settings.brandName} whatsappNumber={settings.whatsappNumber} productTemplate={settings.messageTemplates?.product} siteURL={siteURL} ctaLabel={settings.productEnquiryCtaLabel || 'Ask on WhatsApp'} related={related} />
     {product.faq?.length ? <section className="product-detail-extras" aria-labelledby="product-faq-title"><h2 id="product-faq-title">Frequently asked questions</h2>{product.faq.map((entry, index) => entry.question?.trim() && entry.answer?.trim() ? <details key={`${entry.question}-${index}`}><summary>{entry.question}</summary><p>{entry.answer}</p></details> : null)}</section> : null}
     <nav className="product-policy-links" aria-label="Product information"><Link href="/product-safety-and-care">Product safety and care</Link><Link href="/shipping-and-delivery-policy">Shipping and delivery</Link><Link href="/refund-and-cancellation-policy">Refunds and cancellations</Link></nav>
-    {product.priceMode === 'show' && typeof product.price === 'number' && product.price > 0 && !product.isDemo && product.availability !== 'out_of_stock' && product.availability !== 'coming_soon' && <BuyNowPortal productId={product.id} />}
+
   </>
 }
