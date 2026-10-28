@@ -23,7 +23,6 @@ import { PushNotifications } from './collections/PushNotifications'
 import { Products } from './collections/Products'
 import { Users } from './collections/Users'
 import { WhatsappClicks } from './collections/WhatsappClicks'
-import { Orders } from './collections/Orders'
 import { SiteSettings } from './globals/SiteSettings'
 import { LegalPages } from './globals/LegalPages'
 import { getServerSideURL } from './utilities/getURL'
@@ -125,7 +124,6 @@ export default buildConfig({
     { ...Media, admin: { ...Media.admin, group: 'Content' } },
     { ...Users, admin: { ...Users.admin, group: 'Team' } },
     WhatsappClicks,
-    Orders,
   ],
   cors: localOrigins,
   csrf: localOrigins,

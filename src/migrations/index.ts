@@ -7,9 +7,8 @@ import * as migration_20261020_164500_upload_object_key from './20261020_164500_
 import * as migration_20261021_090000_delivery_line from './20261021_090000_delivery_line';
 import * as migration_20261022_193100_push_alerts_and_sale_price from './20261022_193100_push_alerts_and_sale_price';
 import * as migration_20261023_090000_version_sale_price from './20261023_090000_version_sale_price';
-import * as migration_20261025_120000_orders_checkout from './20261025_120000_orders_checkout';
-import * as migration_20261025_143000_whatsapp_number from './20261025_143000_whatsapp_number';
-import * as migration_20261025_160000_product_content_fields from './20261025_160000_product_content_fields';
+import * as migration_20261024_160000_update_whatsapp_number from './20261024_160000_update_whatsapp_number';
+import * as migration_20261024_190000_clean_product_message_template from './20261024_190000_clean_product_message_template';
 
 export const migrations = [
   {
@@ -58,18 +57,13 @@ export const migrations = [
     name: '20261023_090000_version_sale_price'
   },
   {
-    up: migration_20261025_120000_orders_checkout.up,
-    down: migration_20261025_120000_orders_checkout.down,
-    name: '20261025_120000_orders_checkout'
+    up: migration_20261024_160000_update_whatsapp_number.up,
+    down: migration_20261024_160000_update_whatsapp_number.down,
+    name: '20261024_160000_update_whatsapp_number'
   },
   {
-    up: migration_20261025_143000_whatsapp_number.up,
-    down: migration_20261025_143000_whatsapp_number.down,
-    name: '20261025_143000_whatsapp_number'
-  },
-  {
-    up: migration_20261025_160000_product_content_fields.up,
-    down: migration_20261025_160000_product_content_fields.down,
-    name: '20261025_160000_product_content_fields'
+    up: migration_20261024_190000_clean_product_message_template.up,
+    down: migration_20261024_190000_clean_product_message_template.down,
+    name: '20261024_190000_clean_product_message_template'
   },
 ];

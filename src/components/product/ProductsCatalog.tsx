@@ -45,6 +45,10 @@ export type CatalogProduct = {
   newArrival: boolean
   searchText: string
   description: string
+  shortIncludes?: string | null
+  badge?: string | null
+  dimensionsLabel?: string | null
+  whatsappHref?: string | null
   priceLabel: string
   hasPrice: boolean
   price: number | null
