@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { AnimatePresence, motion, useDragControls, useReducedMotion } from "motion/react";
+import { ArrowRight, Share2 } from "lucide-react";
 import { PushAlerts } from "@/components/PushAlerts";
 import "./product-sheet.css";
 
@@ -34,7 +35,35 @@ export function ProductSheet({ product, hrefs, pushPublicKey }: { product: Sheet
   const [open, setOpen] = useState(true);
   const [slide, setSlide] = useState(0);
   const [color, setColor] = useState<string | null>(null);
+  const [notice, setNotice] = useState("");
   const close = useCallback(() => setOpen(false), []);
+  const share = async () => {
+    const url = typeof window !== "undefined" ? `${window.location.origin}/products/${encodeURIComponent(product.slug)}` : `/products/${encodeURIComponent(product.slug)}`;
+    const shareData = { title: product.name, text: product.shortDescription || product.name, url };
+    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err: any) {
+        if (err?.name === "AbortError") return;
+      }
+    }
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        setNotice("Link copied");
+        window.setTimeout(() => setNotice(""), 1600);
+        return;
+      }
+    } catch {}
+    try {
+      setNotice("Link copied");
+      window.setTimeout(() => setNotice(""), 1600);
+      return;
+    } catch {}
+    setNotice(`Copy this link: ${url}`);
+    window.setTimeout(() => setNotice(""), 2000);
+  };
 
   // scroll lock, focus in, focus restore, Escape, Tab trap
   useEffect(() => {
@@ -79,17 +108,22 @@ export function ProductSheet({ product, hrefs, pushPublicKey }: { product: Sheet
           initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={spring}>
           <div className="ps-grab" onPointerDown={(e) => controls.start(e)}>
             <span className="ps-handle" />
-            <button type="button" className="ps-close" onClick={close} aria-label="Close">×</button>
           </div>
+          <div className="ps-actions">
+            <button type="button" className="ps-close" onClick={close} aria-label="Close">×</button>
+            <button type="button" className="ps-share" onClick={share} aria-label="Share this product" data-testid="preview-sheet-share">
+              <Share2 size={18} aria-hidden="true" />
+            </button>
+          </div>
+          {notice && <div className="ps-share-notice" role="status">{notice}</div>}
 
           <div className="ps-body">
             <div className="ps-gallery" onScroll={(e) => {
               const el = e.currentTarget; setSlide(Math.round(el.scrollLeft / el.clientWidth));
             }}>
               {product.images.map((img, i) => (
-                // swap for next/image once the media domain is configured
                 <Image key={img.url} src={img.url} alt={img.alt || product.name} className="ps-img" width={800} height={800}
-                  sizes="(max-width: 520px) 100vw, 480px" loading={i === 0 ? "eager" : "lazy"} draggable={false} unoptimized={!img.url.startsWith('/')} />
+                  sizes="(max-width: 520px) 100vw, 480px" loading={i === 0 ? "eager" : "lazy"} decoding="async" fetchPriority={i === 0 ? "high" : "auto"} draggable={false} unoptimized={!img.url.startsWith('/')} />
               ))}
             </div>
             {product.images.length > 1 && (
@@ -99,6 +133,7 @@ export function ProductSheet({ product, hrefs, pushPublicKey }: { product: Sheet
             )}
 
             <h2 id={titleId} className="ps-title">{product.name}</h2>
+            {product.price && <p className="ps-price">{product.price}</p>}
             {product.shortIncludes && <p className="ps-desc">{product.shortIncludes}</p>}
             {product.dimensions && <p className="ps-size">Size: {product.dimensions}</p>}
 
@@ -116,10 +151,16 @@ export function ProductSheet({ product, hrefs, pushPublicKey }: { product: Sheet
           </div>
 
           <div className="ps-cta">
-            <p className="ps-price">{product.price ?? "Ask on WhatsApp"}</p>
-            {product.price && <Link className="ps-buy" href={`/checkout?productId=${encodeURIComponent(String(product.productId))}`}>Buy now</Link>}
-            <Link className="ps-details" href={`/products/${product.slug}`}>View details</Link>
-            <a className="ps-wa" href={href} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+            <div className="ps-cta-row" data-testid="preview-sheet-footer">
+              <a className="ps-wa" href={href} target="_blank" rel="noopener noreferrer">
+                <svg className="ps-wa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>
+                <span>Order on WhatsApp</span>
+              </a>
+              <Link className="ps-details" href={`/products/${product.slug}`}>
+                <span>Know more</span>
+                <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            </div>
           </div>
         </motion.div>
       )}
