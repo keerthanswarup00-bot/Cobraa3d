@@ -80,7 +80,6 @@ export interface Config {
     media: Media;
     users: User;
     'whatsapp-clicks': WhatsappClick;
-    orders: Order;
     search: Search;
     redirects: Redirect;
     exports: Export;
@@ -114,7 +113,6 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'whatsapp-clicks': WhatsappClicksSelect<false> | WhatsappClicksSelect<true>;
-    orders: OrdersSelect<false> | OrdersSelect<true>;
     search: SearchSelect<false> | SearchSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     exports: ExportsSelect<false> | ExportsSelect<true>;
@@ -664,42 +662,6 @@ export interface WhatsappClick {
   createdAt: string;
 }
 /**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "orders".
- */
-export interface Order {
-  id: number;
-  orderNumber: string;
-  status: 'created' | 'paid' | 'failed' | 'cancelled' | 'refunded';
-  items: {
-    productId: string;
-    productName: string;
-    /**
-     * Snapshot in paise.
-     */
-    unitPrice: number;
-    quantity: number;
-    id?: string | null;
-  }[];
-  subtotal: number;
-  shipping: number;
-  total: number;
-  customerName: string;
-  phone: string;
-  email?: string | null;
-  shippingAddress: {
-    address: string;
-    pin: string;
-  };
-  notes?: string | null;
-  razorpayOrderId: string;
-  razorpayPaymentId?: string | null;
-  razorpaySignature?: string | null;
-  paidAt?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
  * This is a collection of automatically created search results. These results are used by the global site search and will be updated automatically as documents in the CMS are created or updated.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -975,10 +937,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'whatsapp-clicks';
         value: number | WhatsappClick;
-      } | null)
-    | ({
-        relationTo: 'orders';
-        value: number | Order;
       } | null)
     | ({
         relationTo: 'search';
@@ -1404,42 +1362,6 @@ export interface UsersSelect<T extends boolean = true> {
 export interface WhatsappClicksSelect<T extends boolean = true> {
   slug?: T;
   source?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "orders_select".
- */
-export interface OrdersSelect<T extends boolean = true> {
-  orderNumber?: T;
-  status?: T;
-  items?:
-    | T
-    | {
-        productId?: T;
-        productName?: T;
-        unitPrice?: T;
-        quantity?: T;
-        id?: T;
-      };
-  subtotal?: T;
-  shipping?: T;
-  total?: T;
-  customerName?: T;
-  phone?: T;
-  email?: T;
-  shippingAddress?:
-    | T
-    | {
-        address?: T;
-        pin?: T;
-      };
-  notes?: T;
-  razorpayOrderId?: T;
-  razorpayPaymentId?: T;
-  razorpaySignature?: T;
-  paidAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2056,7 +1978,6 @@ export interface TaskCreateCollectionExport {
       | 'media'
       | 'users'
       | 'whatsapp-clicks'
-      | 'orders'
       | 'search'
       | 'redirects'
       | 'exports'
