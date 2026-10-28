@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type TouchEvent as ReactTouchEvent } from 'react'
 import { createPortal } from 'react-dom'
-import { Share2, SlidersHorizontal, X } from 'lucide-react'
+import { ArrowRight, MessageCircle, Share2, SlidersHorizontal, X } from 'lucide-react'
 import { ProductRender, type ConnectProduct } from '@/components/home/ConnectProducts'
 import { formatPrice } from '@/lib/shared'
 import { PushAlerts } from '@/components/PushAlerts'
@@ -45,6 +45,10 @@ export type CatalogProduct = {
   newArrival: boolean
   searchText: string
   description: string
+  shortIncludes: string | null
+  badge: string | null
+  dimensionsLabel: string | null
+  whatsappHref: string | null
   priceLabel: string
   hasPrice: boolean
   price: number | null
@@ -523,6 +527,19 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
     window.scrollTo({ top: Math.min(top, window.scrollY), behavior: calmMode || prefersReduced() ? 'auto' : 'smooth' })
   }
 
+  const prefetchProductImage = useCallback((slug: string) => {
+    const product = bySlug.get(slug)
+    if (!product) return
+    const first = product.images?.[0]
+    if (first?.url && typeof window !== 'undefined') {
+      try {
+        const img = document.createElement('img')
+        img.loading = 'eager'
+        img.src = first.url
+      } catch {}
+    }
+  }, [bySlug])
+
   const onCardActivate = (event: ReactMouseEvent<HTMLAnchorElement>, slug: string) => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
     event.preventDefault()
@@ -581,12 +598,31 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
   const shareProduct = async () => {
     if (!lastProduct) return
     const url = `${siteURL}/products/${lastProduct.slug}`
-    if (navigator.share) {
-      try { await navigator.share({ title: lastProduct.title, text: lastProduct.description || lastProduct.title, url }); return }
-      catch { return }
+    const shareData = { title: lastProduct.title, text: lastProduct.description || lastProduct.title, url }
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      try {
+        await navigator.share(shareData)
+        return
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return
+        // fall through to clipboard
+      }
     }
-    try { await navigator.clipboard.writeText(url); setShareNotice('Link copied') }
-    catch { setShareNotice(`Copy this link: ${url}`) }
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url)
+        setShareNotice('Link copied')
+        window.setTimeout(() => setShareNotice(''), 1600)
+        return
+      }
+    } catch {}
+    try {
+      setShareNotice('Link copied')
+      window.setTimeout(() => setShareNotice(''), 1600)
+      return
+    } catch {}
+    setShareNotice(`Copy this link: ${url}`)
+    window.setTimeout(() => setShareNotice(''), 2000)
   }
 
   const slideCount = lastProduct ? Math.max(1, lastProduct.images.length) : 1
@@ -710,7 +746,15 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
             <div className="pc-grid">
               {slice.length ? slice.map((product, index) => (
                 <article className="pc-card" key={product.id}>
-                  <a className={`pc-media${product.images.length > 1 ? '' : ' single'}`} href={`/products/${product.slug}`} aria-label={`View ${product.title}`} onClick={(event) => onCardActivate(event, product.slug)}>
+                  <a
+                    className={`pc-media${product.images.length > 1 ? '' : ' single'}`}
+                    href={`/products/${product.slug}`}
+                    aria-label={`View ${product.title}`}
+                    onClick={(event) => onCardActivate(event, product.slug)}
+                    onMouseEnter={() => prefetchProductImage(product.slug)}
+                    onPointerEnter={() => prefetchProductImage(product.slug)}
+                    onTouchStart={() => prefetchProductImage(product.slug)}
+                  >
                     {product.images[0] ? (
                       <>
                         <Image className="a" src={product.images[0].url} alt={product.images[0].alt} fill sizes="(max-width: 860px) 50vw, (max-width: 1320px) 25vw, 300px" loading={index < 4 ? 'eager' : 'lazy'} unoptimized={!product.images[0].url.startsWith('/')} />
@@ -722,9 +766,14 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
                   </a>
                   <div className="pc-info">
                     <h2 className="pc-card-title">{product.title}</h2>
+                    {product.badge && <span className="pc-badge">{product.badge.replaceAll('_', ' ')}</span>}
+                    {product.shortIncludes && <p className="pc-includes">{product.shortIncludes}</p>}
                     <div className="pc-foot">
                       <span className="pc-price">{product.priceLabel}</span>
-                      <a className="pc-view" href={`/products/${product.slug}`} onClick={(event) => onCardActivate(event, product.slug)}>View</a>
+                      <span className="pc-card-actions">
+                        <a className="pc-view" href={`/products/${product.slug}`} onClick={(event) => onCardActivate(event, product.slug)}>{product.hasPrice ? 'Buy now' : 'Ask on WhatsApp'}</a>
+                        {product.whatsappHref && <a className="pc-wa-icon" href={product.whatsappHref} target="_blank" rel="noopener noreferrer" aria-label={`Ask about ${product.title} on WhatsApp`}><MessageCircle size={17} aria-hidden="true" /></a>}
+                      </span>
                     </div>
                   </div>
                 </article>
@@ -764,69 +813,94 @@ export function ProductsCatalog({ products, categories, copy, whatsappBase, bran
         inert={!openSlug}
         tabIndex={-1}
       >
-        <div className="pc-grab" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}><i /></div>
-        <button ref={closeRef} type="button" className="pc-close" aria-label="Close" onClick={() => closeProduct()}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
-        </button>
-        <button type="button" className="pc-share" aria-label="Share product" title="Share product" onClick={shareProduct}>
-          <Share2 size={18} aria-hidden="true" />
-        </button>
+        <div className="pc-grab" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+          <span className="pc-handle" />
+        </div>
+        <div className="pc-sheet-actions">
+          <button ref={closeRef} type="button" className="pc-close" aria-label="Close" onClick={() => closeProduct()}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+          <button type="button" className="pc-share" aria-label="Share this product" onClick={shareProduct}>
+            <Share2 size={18} aria-hidden="true" />
+          </button>
+        </div>
         {shareNotice && <div className="pc-share-notice" role="status">{shareNotice}</div>}
-        <div className="pc-scroll">
-          <div className="pc-gal">
-            <div className="pc-track" ref={trackRef} onScroll={onTrackScroll}>
-              {lastProduct && (lastProduct.images.length ? lastProduct.images.map((image, index) => (
-                <div className="pc-slide" key={`${image.url}-${index}`}>
-                  <Image src={image.url} alt={`${lastProduct.title} — image ${index + 1} of ${lastProduct.images.length}`} fill sizes="(max-width: 860px) 100vw, 50vw" loading={index === 0 ? 'eager' : 'lazy'} draggable={false} unoptimized={!image.url.startsWith('/')} />
+        <div className="pc-body">
+          <div className="pc-scroll-inner">
+            <div className="pc-gal">
+              <div className="pc-track" ref={trackRef} onScroll={onTrackScroll}>
+                {lastProduct && (lastProduct.images.length ? lastProduct.images.map((image, index) => (
+                  <div className="pc-slide" key={`${image.url}-${index}`}>
+                    <Image
+                      src={image.url}
+                      alt={image.alt || `${lastProduct.title}`}
+                      fill
+                      sizes="(max-width: 520px) 100vw, 480px"
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      fetchPriority={index === 0 ? 'high' : 'auto'}
+                      draggable={false}
+                      unoptimized={!image.url.startsWith('/')}
+                    />
+                  </div>
+                )) : (
+                  <div className="pc-slide"><span className="pc-fallback"><ProductRender product={lastProduct.render} animate={false} buildKey={0} /></span></div>
+                ))}
+              </div>
+              <button type="button" className="pc-arrow l" aria-label="Previous image" style={slideCount > 1 ? undefined : { visibility: 'hidden' }} onClick={() => goGallery(-1)}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+              </button>
+              <button type="button" className="pc-arrow r" aria-label="Next image" style={slideCount > 1 ? undefined : { visibility: 'hidden' }} onClick={() => goGallery(1)}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+              </button>
+              {lastProduct && lastProduct.images.length > 1 && (
+                <div className="pc-dotrow" aria-hidden="true">
+                  {lastProduct.images.map((_, index) => <i key={index} className={index === slide ? 'on' : ''} />)}
                 </div>
-              )) : (
-                <div className="pc-slide"><span className="pc-fallback"><ProductRender product={lastProduct.render} animate={false} buildKey={0} /></span></div>
-              ))}
+              )}
             </div>
-            <button type="button" className="pc-arrow l" aria-label="Previous image" style={slideCount > 1 ? undefined : { visibility: 'hidden' }} onClick={() => goGallery(-1)}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
-            </button>
-            <button type="button" className="pc-arrow r" aria-label="Next image" style={slideCount > 1 ? undefined : { visibility: 'hidden' }} onClick={() => goGallery(1)}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
-            </button>
-            {lastProduct && lastProduct.images.length > 1 && (
-              <div className="pc-dotrow" aria-hidden="true">
-                {lastProduct.images.map((_, index) => <i key={index} className={index === slide ? 'on' : ''} />)}
+            {lastProduct && (
+              <div className="pc-detail">
+                {lastProduct.category && <div className="pc-cat">{lastProduct.category}</div>}
+                <h2 id={sheetTitleId}>{lastProduct.title}</h2>
+                <div className="pc-sheet-price">{lastProduct.priceLabel}</div>
+                {lastProduct.shortIncludes && (
+                  <div className="pc-desc-wrap">
+                    <p className="pc-desc">{lastProduct.shortIncludes}</p>
+                    <div className="pc-desc-fade" aria-hidden="true" />
+                  </div>
+                )}
+                {lastProduct.dimensionsLabel && <p className="pc-preview-size">Size: {lastProduct.dimensionsLabel}</p>}
+                <label className="pc-field" htmlFor="pc-note">{copy.noteLabel}</label>
+                <textarea className="pc-note" id="pc-note" placeholder={copy.notePlaceholder} value={note} onChange={(event) => setNote(event.target.value)} />
+                <PushAlerts publicKey={pushPublicKey} source="product-sheet" />
               </div>
             )}
           </div>
-          {lastProduct && (
-            <div className="pc-detail">
-              {lastProduct.category && <div className="pc-cat">{lastProduct.category}</div>}
-              <h2 id={sheetTitleId}>{lastProduct.title}</h2>
-              <div className="pc-sheet-price">{lastProduct.priceLabel}</div>
-              {lastProduct.description && <p className="pc-desc">{lastProduct.description}</p>}
-              {lastProduct.specs.length > 0 && (
-                <dl className="pc-specs">
-                  {lastProduct.specs.map((spec) => <div key={spec.label}><dt>{spec.label}</dt><dd>{spec.value}</dd></div>)}
-                </dl>
-              )}
-              <label className="pc-field" htmlFor="pc-note">{copy.noteLabel}</label>
-              <textarea className="pc-note" id="pc-note" placeholder={copy.notePlaceholder} value={note} onChange={(event) => setNote(event.target.value)} />
-              <PushAlerts publicKey={pushPublicKey} source="product-sheet" />
-            </div>
-          )}
         </div>
-        {lastProduct && (
-          <div className="pc-sheet-action">
-            <div className="pc-buybar">
-              {orderHref && <div className="pc-qty">
-                <button type="button" aria-label="Decrease quantity" onClick={() => setQty((current) => Math.max(1, current - 1))}>−</button>
-                <span>{qty}</span>
-                <button type="button" aria-label="Increase quantity" onClick={() => setQty((current) => Math.min(20, current + 1))}>+</button>
-              </div>}
-              <a className="pc-know-more" href={`/products/${lastProduct.slug}`}>Know more</a>
-              {orderHref && <a className="pc-order" href={orderHref} target="_blank" rel="noopener noreferrer" data-wa-source="catalog" data-wa-slug={lastProduct.slug}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>
-                <span>{orderLabel}</span>
-              </a>}
+        {lastProduct && orderHref && (
+          <div className="pc-sheet-footer">
+            <div className="pc-sheet-row">
+              <a className="pc-wa-main" href={orderHref} target="_blank" rel="noopener noreferrer" data-wa-source="catalog" data-wa-slug={lastProduct.slug}>
+                <svg className="pc-wa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>
+                <span>{orderLabel.replace('Order ', '').startsWith('on WhatsApp') ? orderLabel : (qty > 1 ? `Order ${qty} on WhatsApp` : copy.orderLabel)}</span>
+              </a>
+              <a className="pc-know-more" href={`/products/${lastProduct.slug}`}>
+                <span>Know more</span>
+                <ArrowRight size={16} aria-hidden="true" />
+              </a>
             </div>
-            {orderHref && copy.finePrint && <div className="pc-fine">{copy.finePrint}</div>}
+            {copy.finePrint && <div className="pc-fine">{copy.finePrint}</div>}
+          </div>
+        )}
+        {lastProduct && !orderHref && (
+          <div className="pc-sheet-footer">
+            <div className="pc-sheet-row">
+              <a className="pc-know-more pc-know-more-full" href={`/products/${lastProduct.slug}`}>
+                <span>Know more</span>
+                <ArrowRight size={16} aria-hidden="true" />
+              </a>
+            </div>
           </div>
         )}
       </section>
