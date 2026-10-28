@@ -32,8 +32,13 @@ function textFromLexical(value: unknown): string {
 
 function urlForMedia(image: Product['images'] extends (infer _T)[] | null | undefined ? unknown : unknown) {
   if (!image || typeof image !== 'object') return undefined
-  const media = image as { url?: string | null; alt?: string | null }
-  return media.url ? { url: media.url, alt: media.alt || '' } : undefined
+  const media = image as {
+    url?: string | null
+    alt?: string | null
+    sizes?: { medium?: { url?: string | null } | null; large?: { url?: string | null } | null }
+  }
+  const url = media.sizes?.medium?.url || media.url
+  return url ? { url, alt: media.alt || '' } : undefined
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -48,7 +53,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const canonical = `/products/${product.slug}`
   const brandName = settings.brandName || 'Cobraa 3D'
   const title = product.seoTitle || product.meta?.title || `${product.title} | ${brandName}, Hoskote`
-  const description = product.seoDescription || product.meta?.description || product.shortBenefit || product.shortDescription || `${product.title} is 3D printed in PLA and hand finished in Hoskote, Bengaluru. Ships across India.`
+  const description = product.seoDescription || product.meta?.description || product.shortBenefit || product.shortDescription || `${product.title} is 3D printed in PLA and hand finished in Hoskote, Bengaluru. Custom colours available. Order on WhatsApp with delivery across India.`
   return {
     title, description, alternates: { canonical }, robots: product.isDemo ? { index: false, follow: false } : undefined,
     openGraph: { title, description, url: canonical, images: media?.url ? [{ url: media.url, alt: product.images?.[0]?.alt || product.title }] : undefined },
@@ -77,7 +82,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const related = relatedProducts.map((item) => {
     const image = item.images?.[0]?.image
     const media = typeof image === 'object' && image ? image : undefined
-    return { slug: item.slug || '', title: item.title, image: media?.url ? { url: media.url, alt: item.images?.[0]?.alt || item.title } : undefined }
+    const url = media?.sizes?.square?.url || media?.sizes?.thumbnail?.url || media?.url
+    return { slug: item.slug || '', title: item.title, image: url ? { url, alt: item.images?.[0]?.alt || item.title } : undefined }
   })
   const productData = {
     title: product.title, slug: product.slug || slug, shortDescription: product.shortDescription,

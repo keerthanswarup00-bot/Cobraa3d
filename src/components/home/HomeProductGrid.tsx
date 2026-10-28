@@ -19,18 +19,18 @@ export function HomeProductGrid({ products, productsURL, viewAllLabel, eagerFirs
         <Link
           className="studio-product-photo"
           href={`/products/${product.slug}`}
-          prefetch
+          prefetch={false}
           aria-label={`View ${product.title}`}
           onPointerDown={() => router.prefetch(`/products/${product.slug}`)}
           onTouchStart={() => router.prefetch(`/products/${product.slug}`)}
         >
           {product.image?.url
-            ? <Image src={product.image.url} alt={product.image.alt || product.title} fill sizes="(max-width: 370px) 90vw, (max-width: 760px) 44vw, (max-width: 1020px) 48vw, 30vw" loading={eagerFirstImage && index === 0 ? 'eager' : 'lazy'} unoptimized={!product.image.url.startsWith('/')} />
+            ? <Image src={product.image.url} alt={product.image.alt || product.title} fill quality={75} sizes="(max-width: 760px) 74vw, (max-width: 1020px) 48vw, 390px" loading={eagerFirstImage && index === 0 ? 'eager' : 'lazy'} decoding="async" unoptimized={!product.image.url.startsWith('/')} />
             : <span className="home-product-placeholder" aria-hidden="true"><Box size={34} strokeWidth={1.2} /></span>}
           <small className="studio-product-tag">{product.tag}</small>
           <small className="studio-product-number">{String(index + 1).padStart(2, '0')}</small>
         </Link>
-        <div className="studio-product-copy"><h3><Link href={`/products/${product.slug}`} prefetch onPointerDown={() => router.prefetch(`/products/${product.slug}`)} onTouchStart={() => router.prefetch(`/products/${product.slug}`)}>{product.title}</Link></h3></div>
+        <div className="studio-product-copy"><h3><Link href={`/products/${product.slug}`} prefetch={false} onPointerDown={() => router.prefetch(`/products/${product.slug}`)} onTouchStart={() => router.prefetch(`/products/${product.slug}`)}>{product.title}</Link></h3></div>
         <div className="studio-product-actions">
           <span className="studio-product-price">{product.priceLabel || 'Ask for price'}</span>
           {product.whatsappURL && <a className="studio-product-ask" href={product.whatsappURL} aria-label={`Ask about ${product.title} on WhatsApp`} data-wa-source="card" target="_blank" rel="noopener noreferrer"><MessageCircle size={19} strokeWidth={1.8} aria-hidden="true" /></a>}

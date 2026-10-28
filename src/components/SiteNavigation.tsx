@@ -31,12 +31,23 @@ export function SiteNavigation({ brandName, whatsappURL }: { brandName: string; 
 
 
   useEffect(() => {
-    const update = () => setScrolled(window.scrollY > 8)
+    let frame = 0
+    // Coalesce scroll events into one layout read per frame and skip re-renders
+    // when the nav is already in the right state.
+    const update = () => {
+      frame = 0
+      const next = window.scrollY > 8
+      setScrolled((current) => (current === next ? current : next))
+    }
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(update)
+    }
     const close = () => setOpen(false)
-    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('popstate', close)
     return () => {
-      window.removeEventListener('scroll', update)
+      if (frame) window.cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', onScroll)
       window.removeEventListener('popstate', close)
     }
   }, [])
