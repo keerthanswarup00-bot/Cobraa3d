@@ -11,6 +11,7 @@ import * as migration_20261024_160000_update_whatsapp_number from './20261024_16
 import * as migration_20261024_190000_clean_product_message_template from './20261024_190000_clean_product_message_template';
 import * as migration_20261029_000000_shipping_fields from './20261029_000000_shipping_fields'
 import * as migration_20261029_000001_products_extra_arrays from './20261029_000001_products_extra_arrays'
+import * as migration_20261029_000002_products_missing_columns from './20261029_000002_products_missing_columns'
 
 export const migrations = [
   {
@@ -77,5 +78,10 @@ export const migrations = [
     up: migration_20261029_000001_products_extra_arrays.up,
     down: migration_20261029_000001_products_extra_arrays.down,
     name: '20261029_000001_products_extra_arrays'
+  },
+  {
+    up: migration_20261029_000002_products_missing_columns.up,
+    down: migration_20261029_000002_products_missing_columns.down,
+    name: '20261029_000002_products_missing_columns'
   },
 ];
