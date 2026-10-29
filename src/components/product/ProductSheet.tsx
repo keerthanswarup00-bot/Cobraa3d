@@ -3,30 +3,21 @@
 // Drag starts only from the handle/header, so the gallery and body scroll freely.
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
 import { AnimatePresence, motion, useDragControls, useReducedMotion } from "motion/react";
-import { ArrowRight, Share2 } from "lucide-react";
-import { PushAlerts } from "@/components/PushAlerts";
+import { Share2 } from "lucide-react";
 import "./product-sheet.css";
 
 export type SheetProduct = {
-  name: string;
-  shortDescription?: string;
-  shortIncludes?: string;
-  dimensions?: string;
-  price?: string;
-  productId: number | string;
   slug: string;
+  name: string;
+  shortDescription?: string | null;
+  price?: string;
   images: { url: string; alt?: string }[];
-  colors?: { name: string; hex?: string }[];
 };
-// Hrefs are built on the server with your existing buildProductMessage, so no server code is imported here.
-export type SheetHrefs = { base: string; byColor: Record<string, string> };
 
 const FOCUSABLE = 'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
-export function ProductSheet({ product, hrefs, pushPublicKey }: { product: SheetProduct; hrefs: SheetHrefs; pushPublicKey?: string }) {
+export function ProductSheet({ product, href }: { product: SheetProduct; href: string }) {
   const router = useRouter();
   const reduce = useReducedMotion();
   const controls = useDragControls();
@@ -34,7 +25,6 @@ export function ProductSheet({ product, hrefs, pushPublicKey }: { product: Sheet
   const titleId = useId();
   const [open, setOpen] = useState(true);
   const [slide, setSlide] = useState(0);
-  const [color, setColor] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const close = useCallback(() => setOpen(false), []);
   const share = async () => {
@@ -90,7 +80,6 @@ export function ProductSheet({ product, hrefs, pushPublicKey }: { product: Sheet
     };
   }, [close]);
 
-  const href = (color && hrefs.byColor[color]) || hrefs.base;
   const spring = reduce ? { duration: 0.01 } : { type: "spring" as const, damping: 32, stiffness: 380 };
 
   return (
@@ -108,22 +97,20 @@ export function ProductSheet({ product, hrefs, pushPublicKey }: { product: Sheet
           initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={spring}>
           <div className="ps-grab" onPointerDown={(e) => controls.start(e)}>
             <span className="ps-handle" />
-          </div>
-          <div className="ps-actions">
             <button type="button" className="ps-close" onClick={close} aria-label="Close">×</button>
-            <button type="button" className="ps-share" onClick={share} aria-label="Share this product" data-testid="preview-sheet-share">
+            <button type="button" className="ps-share" onClick={share} aria-label="Share this product">
               <Share2 size={18} aria-hidden="true" />
             </button>
           </div>
-          {notice && <div className="ps-share-notice" role="status">{notice}</div>}
+          {notice && <p className="ps-notice" role="status">{notice}</p>}
 
           <div className="ps-body">
             <div className="ps-gallery" onScroll={(e) => {
               const el = e.currentTarget; setSlide(Math.round(el.scrollLeft / el.clientWidth));
             }}>
               {product.images.map((img, i) => (
-                <Image key={img.url} src={img.url} alt={img.alt || product.name} className="ps-img" width={800} height={800}
-                  sizes="(max-width: 520px) 100vw, 480px" loading={i === 0 ? "eager" : "lazy"} decoding="async" fetchPriority={i === 0 ? "high" : "auto"} draggable={false} unoptimized={!img.url.startsWith('/')} />
+                <img key={img.url} src={img.url} alt={img.alt || product.name} className="ps-img"
+                  loading={i === 0 ? "eager" : "lazy"} draggable={false} />
               ))}
             </div>
             {product.images.length > 1 && (
@@ -134,33 +121,12 @@ export function ProductSheet({ product, hrefs, pushPublicKey }: { product: Sheet
 
             <h2 id={titleId} className="ps-title">{product.name}</h2>
             {product.price && <p className="ps-price">{product.price}</p>}
-            {product.shortIncludes && <p className="ps-desc">{product.shortIncludes}</p>}
-            {product.dimensions && <p className="ps-size">Size: {product.dimensions}</p>}
-
-            {!!product.colors?.length && (
-              <div className="ps-colors" role="group" aria-label="Colour">
-                {product.colors.map((c) => (
-                  <button key={c.name} type="button" className="ps-chip" aria-pressed={color === c.name}
-                    onClick={() => setColor(color === c.name ? null : c.name)}>
-                    {c.hex && <i style={{ background: c.hex }} />}{c.name}
-                  </button>
-                ))}
-              </div>
-            )}
-            <PushAlerts publicKey={pushPublicKey} source="product-sheet" />
+            {product.shortDescription && <p className="ps-desc">{product.shortDescription}</p>}
           </div>
 
           <div className="ps-cta">
-            <div className="ps-cta-row" data-testid="preview-sheet-footer">
-              <a className="ps-wa" href={href} target="_blank" rel="noopener noreferrer">
-                <svg className="ps-wa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>
-                <span>Order on WhatsApp</span>
-              </a>
-              <Link className="ps-details" href={`/products/${product.slug}`}>
-                <span>Know more</span>
-                <ArrowRight size={16} aria-hidden="true" />
-              </Link>
-            </div>
+            <a className="ps-wa" href={href} target="_blank" rel="noopener noreferrer">Order on WhatsApp</a>
+            <a className="ps-details" href={`/products/${encodeURIComponent(product.slug)}`}>View details →</a>
           </div>
         </motion.div>
       )}
