@@ -16,14 +16,14 @@ import type { Product } from '@/payload-types'
 
 export async function generateMetadata(): Promise<Metadata> {
   const title = 'Cobraa 3D | 3D Printing & Gifts in Hoskote, Bengaluru'
-  const description = '3D printing studio in Hoskote, Bengaluru. Custom 3D prints, 3D printed lamps, idols and gifts. Order on WhatsApp, delivery across India.'
+  const description = '3D printing studio in Hoskote, Bengaluru. Custom 3D prints, 3D printed lamps, idols and gifts, made to order. Order on WhatsApp with delivery across India.'
   return {
     title: { absolute: title },
     description,
     alternates: { canonical: '/' },
     robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } },
-    openGraph: { type: 'website', siteName: 'Cobraa 3D', locale: 'en_IN', title, description: '3D printing studio in Hoskote, Bengaluru. Custom 3D prints, 3D printed lamps, idols and gifts. Order on WhatsApp.', url: '/', images: [{ url: '/og-default.png', width: 1200, height: 630, alt: '3D printed lamps, idols and figurines by Cobraa 3D, Hoskote, Bengaluru' }] },
-    twitter: { card: 'summary_large_image', title, description: '3D printing studio in Hoskote, Bengaluru. Custom 3D prints, 3D printed lamps, idols and gifts.', images: ['/og-default.png'] },
+    openGraph: { type: 'website', siteName: 'Cobraa 3D', locale: 'en_IN', title, description, url: '/', images: [{ url: '/og-default.png', width: 1200, height: 630, alt: '3D printed lamps, idols and figurines by Cobraa 3D, Hoskote, Bengaluru' }] },
+    twitter: { card: 'summary_large_image', title, description, images: ['/og-default.png'] },
   }
 }
 
@@ -43,6 +43,10 @@ function visualFor(product: Product): ConnectProduct['visual'] {
 function asHomeProduct(product: Product, siteURL: string, productTemplate?: string | null, whatsappNumber?: string | null): ConnectProduct {
   const mediaRow = product.images?.find((row) => row.image && typeof row.image === 'object')
   const media = mediaRow?.image && typeof mediaRow.image === 'object' ? mediaRow.image : null
+  // Use the 900px derivative instead of the full-resolution upload. The card and
+  // hero never render wider than ~400px, and next/image re-encodes this smaller
+  // source to AVIF/WebP instead of pulling the multi-megabyte original.
+  const displayMedia = media?.sizes?.medium || media
   const category = typeof product.category === 'object' && product.category ? product.category : null
   const displayPrice = getDisplayPrice({ id: product.id, price: product.price, salePrice: product.salePrice, priceMode: product.priceMode, currency: product.currency })
   const messagePrice = displayPrice.showOffer ? displayPrice.offerPrice ?? product.price : product.price
@@ -69,7 +73,7 @@ function asHomeProduct(product: Product, siteURL: string, productTemplate?: stri
     visual: visualFor(product),
     sample: product.title,
     categorySlug: category ? category.slug || slugifyFilterValue(category.name) : null,
-    image: media?.url ? { url: media.url, alt: mediaRow?.alt || media.alt || product.title, width: media.width, height: media.height } : undefined,
+    image: displayMedia?.url ? { url: displayMedia.url, alt: mediaRow?.alt || media?.alt || product.title, width: displayMedia.width ?? undefined, height: displayMedia.height ?? undefined } : undefined,
     priceLabel: displayPrice.priceLabel,
     whatsappURL: buildWhatsAppUrl({ number: whatsappNumber, message }),
   }
@@ -171,7 +175,7 @@ export default async function HomePage() {
         </div>
       </div>
       {heroProduct && <Link className="home-hero-visual" href={`/products/${heroProduct.slug}`} aria-label={`Discover ${heroProduct.title}`}>
-        {heroProduct.image?.url ? <Image src={heroProduct.image.url} alt={`3D printed ${heroProduct.title}`} fill loading="eager" fetchPriority="high" sizes="(max-width: 760px) 100vw, 48vw" unoptimized={!heroProduct.image.url.startsWith('/')} /> : <div className="home-hero-placeholder" aria-hidden="true"><Box size={68} strokeWidth={1} /></div>}
+        {heroProduct.image?.url ? <Image src={heroProduct.image.url} alt={`3D printed ${heroProduct.title}`} fill preload quality={75} fetchPriority="high" sizes="(max-width: 760px) 100vw, 48vw" unoptimized={!heroProduct.image.url.startsWith('/')} /> : <div className="home-hero-placeholder" aria-hidden="true"><Box size={68} strokeWidth={1} /></div>}
         <span>{heroProduct.title}<ArrowDownRight size={18} aria-hidden="true" /></span>
       </Link>}
     </section>
@@ -181,7 +185,7 @@ export default async function HomePage() {
       <ol><li><b>01</b><span>Choose a product</span></li><li><b>02</b><span>Pay online or ask us on WhatsApp</span></li><li><b>03</b><span>We print and pack your order</span></li><li><b>04</b><span>We ship across India</span></li></ol>
     </section>
 
-    <ProductSection eyebrow="Selected for you" title="Featured products" description="A few pieces from the studio." products={featured} href="/products" viewMore="View all products" eagerFirstImage />
+    <ProductSection eyebrow="Selected for you" title="Featured products" description="A few pieces from the studio." products={featured} href="/products" viewMore="View all products" />
 
     {lightingCategory && <ProductSection eyebrow="Explore by category" title={lightingCategory.name} products={lightingProducts} categorySlug={lightingCategory.slug} href={`/products?category=${encodeURIComponent(lightingCategory.slug)}`} viewMore={`View more ${lightingCategory.name.toLowerCase()}`} />}
 

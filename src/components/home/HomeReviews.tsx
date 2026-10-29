@@ -17,6 +17,7 @@ const REVIEWS = [
 ]
 
 export function HomeReviews() {
+  const sectionRef = useRef<HTMLElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const [paused, setPaused] = useState(false)
   const [held, setHeld] = useState(false)
@@ -40,12 +41,44 @@ export function HomeReviews() {
   }, [])
 
   useEffect(() => {
-    if (paused || held || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const timer = window.setInterval(() => move(1), 5200)
-    return () => window.clearInterval(timer)
+    if (paused || held) return
+    const section = sectionRef.current
+    if (!section || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    let timer: number | undefined
+    let idle: number | undefined
+    let timeout: number | undefined
+
+    const stop = () => {
+      if (timer !== undefined) { window.clearInterval(timer); timer = undefined }
+      if (idle !== undefined) { (window as any).cancelIdleCallback?.(idle); idle = undefined }
+      if (timeout !== undefined) { window.clearTimeout(timeout); timeout = undefined }
+    }
+    const start = () => {
+      idle = undefined
+      timeout = undefined
+      if (timer === undefined) timer = window.setInterval(() => move(1), 5200)
+    }
+
+    // Only start the autoplay once the carousel is near the viewport and the
+    // browser is idle. This keeps it out of the initial load and stops the
+    // timer when the section scrolls away.
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        if (timer === undefined && idle === undefined && timeout === undefined) {
+          const requestIdle = (window as any).requestIdleCallback as ((callback: () => void, options?: { timeout: number }) => number) | undefined
+          if (requestIdle) idle = requestIdle(start, { timeout: 2000 })
+          else timeout = window.setTimeout(start, 1200)
+        }
+      } else {
+        stop()
+      }
+    }, { rootMargin: '200px 0px' })
+    observer.observe(section)
+    return () => { observer.disconnect(); stop() }
   }, [held, move, paused])
 
-  return <section className="home-section home-reviews" aria-labelledby="reviews-title" onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)} onFocusCapture={() => setHeld(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setHeld(false) }} onTouchStart={() => setHeld(true)} onTouchEnd={() => setHeld(false)}>
+  return <section ref={sectionRef} className="home-section home-reviews" aria-labelledby="reviews-title" onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)} onFocusCapture={() => setHeld(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setHeld(false) }} onTouchStart={() => setHeld(true)} onTouchEnd={() => setHeld(false)}>
     <div className="home-section-inner">
       <header className="home-section-heading home-reviews-heading">
         <div><p className="home-eyebrow">Notes from our customers</p><h2 id="reviews-title">Made with care.<br />Loved at home.</h2></div>

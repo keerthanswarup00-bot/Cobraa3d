@@ -9,6 +9,9 @@ import * as migration_20261022_193100_push_alerts_and_sale_price from './2026102
 import * as migration_20261023_090000_version_sale_price from './20261023_090000_version_sale_price';
 import * as migration_20261024_160000_update_whatsapp_number from './20261024_160000_update_whatsapp_number';
 import * as migration_20261024_190000_clean_product_message_template from './20261024_190000_clean_product_message_template';
+import * as migration_20261029_000000_shipping_fields from './20261029_000000_shipping_fields'
+import * as migration_20261029_000001_products_extra_arrays from './20261029_000001_products_extra_arrays'
+import * as migration_20261029_000002_products_missing_columns from './20261029_000002_products_missing_columns'
 
 export const migrations = [
   {
@@ -65,5 +68,20 @@ export const migrations = [
     up: migration_20261024_190000_clean_product_message_template.up,
     down: migration_20261024_190000_clean_product_message_template.down,
     name: '20261024_190000_clean_product_message_template'
+  },
+  {
+    up: migration_20261029_000000_shipping_fields.up,
+    down: migration_20261029_000000_shipping_fields.down,
+    name: '20261029_000000_shipping_fields'
+  },
+  {
+    up: migration_20261029_000001_products_extra_arrays.up,
+    down: migration_20261029_000001_products_extra_arrays.down,
+    name: '20261029_000001_products_extra_arrays'
+  },
+  {
+    up: migration_20261029_000002_products_missing_columns.up,
+    down: migration_20261029_000002_products_missing_columns.down,
+    name: '20261029_000002_products_missing_columns'
   },
 ];

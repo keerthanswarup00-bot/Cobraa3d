@@ -47,10 +47,10 @@ export function ProductDetail({ product, brandName, whatsappNumber, productTempl
     <article className="product-detail">
       <div className="detail-gallery">
         <div className="detail-main-image">
-          {product.images[photoIndex]?.url ? <Image src={product.images[photoIndex].url} alt={product.images[photoIndex].alt || product.title} fill sizes="(max-width: 760px) 100vw, 55vw" quality={85} loading="eager" fetchPriority="high" unoptimized={!product.images[photoIndex].url.startsWith('/')} /> : <div className="detail-image-empty">{product.title}</div>}
+          {product.images[photoIndex]?.url ? <Image src={product.images[photoIndex].url} alt={product.images[photoIndex].alt || product.title} fill sizes="(max-width: 760px) 100vw, 55vw" quality={75} preload={photoIndex === 0} fetchPriority={photoIndex === 0 ? 'high' : 'auto'} unoptimized={!product.images[photoIndex].url.startsWith('/')} /> : <div className="detail-image-empty">{product.title}</div>}
           {product.images.length > 1 && <><button className="gallery-arrow gallery-prev" aria-label="Previous image" onClick={() => setPhotoIndex((photoIndex + product.images.length - 1) % product.images.length)}>‹</button><button className="gallery-arrow gallery-next" aria-label="Next image" onClick={() => setPhotoIndex((photoIndex + 1) % product.images.length)}>›</button></>}
         </div>
-        {product.images.length > 1 && <div className="detail-thumbnails" aria-label="Product photos">{product.images.map((photo, i) => <button key={`${photo.url}-${i}`} aria-label={`Show image ${i + 1}`} aria-pressed={i === photoIndex} onClick={() => setPhotoIndex(i)}>{photo.url && <Image src={photo.url} alt="" fill sizes="70px" quality={85} unoptimized={!photo.url.startsWith('/')} />}</button>)}</div>}
+        {product.images.length > 1 && <div className="detail-thumbnails" aria-label="Product photos">{product.images.map((photo, i) => <button key={`${photo.url}-${i}`} aria-label={`Show image ${i + 1}`} aria-pressed={i === photoIndex} onClick={() => setPhotoIndex(i)}>{photo.url && <Image src={photo.url} alt="" fill sizes="70px" quality={75} loading={i === 0 ? 'eager' : 'lazy'} unoptimized={!photo.url.startsWith('/')} />}</button>)}</div>}
         {product.images.length > 1 && <div className="gallery-dots" aria-label={`Image ${photoIndex + 1} of ${product.images.length}`}>{product.images.map((_, i) => <button key={i} aria-label={`Image ${i + 1}`} aria-pressed={i === photoIndex} onClick={() => setPhotoIndex(i)} />)}</div>}
       </div>
       <div className="detail-copy">
@@ -79,7 +79,7 @@ export function ProductDetail({ product, brandName, whatsappNumber, productTempl
       {product.careNotes && <div className="product-fact"><h2>Care</h2><p>{product.careNotes}</p></div>}
       {product.productionNote && <div className="product-fact"><h2>Production</h2><p>{product.productionNote}</p></div>}
     </section>
-    {!!related.length && <section className="related-products"><h2>You may also like</h2><div>{related.map((item) => <Link href={`/products/${item.slug}`} key={item.slug}>{item.image?.url && <Image src={item.image.url} alt={item.image.alt} width={180} height={225} quality={85} unoptimized={!item.image.url.startsWith('/')} />}<span>{item.title}</span></Link>)}</div></section>}
+    {!!related.length && <section className="related-products"><h2>You may also like</h2><div>{related.map((item) => <Link href={`/products/${item.slug}`} key={item.slug}>{item.image?.url && <Image src={item.image.url} alt={item.image.alt} width={180} height={225} quality={75} loading="lazy" unoptimized={!item.image.url.startsWith('/')} />}<span>{item.title}</span></Link>)}</div></section>}
     <div className="detail-mobile-cta">{waURL ? <a href={waURL} target="_blank" rel="noopener noreferrer">{product.isDemo ? 'Enquire on WhatsApp' : `${ctaLabel} · ${formatPrice(product.price, product.priceMode, product.currency || 'INR')}`}</a> : null}</div>
   </main>
 }

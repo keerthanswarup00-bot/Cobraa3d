@@ -1,25 +1,20 @@
-import type { Metadata } from 'next'
-import { getPayload } from 'payload'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { getPayload } from 'payload'
 import config from '@payload-config'
-import { LexicalLegalContent } from '@/components/LexicalLegalContent'
-import { copyMetadata } from '@/components/PublicCopyPage'
-import copy from '@/content/public-pages/terms.json'
-import { getSiteSettings } from '@/utilities/getSiteSettings'
 
 export const dynamic = 'force-dynamic'
-export const metadata: Metadata = copyMetadata(copy, '/terms')
 
-const hasText = (value: unknown): boolean => {
-  if (!value || typeof value !== 'object') return false
-  const node = value as { text?: string; children?: unknown[]; root?: unknown }
-  return Boolean(node.text?.trim() || node.children?.some(hasText) || (node.root && hasText(node.root)))
+const text = (value: unknown): string => {
+  if (!value || typeof value !== 'object') return ''
+  const node = value as { text?: string; children?: unknown[] }
+  return [node.text || '', ...(node.children || []).map(text)].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
 }
 
 export default async function TermsPage() {
   const payload = await getPayload({ config })
-  const [pages, settings] = await Promise.all([payload.findGlobal({ slug: 'legal-pages', depth: 0 }), getSiteSettings(0)])
-  if (!hasText(pages.terms)) notFound()
-  const phone = settings.phone || settings.whatsappNumber
-  return <main className="public-copy-page"><article className="public-copy-article"><LexicalLegalContent value={pages.terms} phone={phone} /></article></main>
+  const pages = await payload.findGlobal({ slug: 'legal-pages', depth: 0 })
+  const body = text(pages.terms)
+  if (!body) notFound()
+  return <main className="legal-page"><Link href="/">← Home</Link><h1>Terms</h1><p>{body}</p></main>
 }

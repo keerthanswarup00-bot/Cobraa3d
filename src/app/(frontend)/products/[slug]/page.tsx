@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { ProductDetail } from '@/components/ProductDetail'
-import { BuyNowPortal } from '@/components/BuyNowPortal'
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import { ConnectTerrain } from '@/components/home/ConnectTerrain'
@@ -33,8 +32,13 @@ function textFromLexical(value: unknown): string {
 
 function urlForMedia(image: Product['images'] extends (infer _T)[] | null | undefined ? unknown : unknown) {
   if (!image || typeof image !== 'object') return undefined
-  const media = image as { url?: string | null; alt?: string | null }
-  return media.url ? { url: media.url, alt: media.alt || '' } : undefined
+  const media = image as {
+    url?: string | null
+    alt?: string | null
+    sizes?: { medium?: { url?: string | null } | null; large?: { url?: string | null } | null }
+  }
+  const url = media.sizes?.medium?.url || media.url
+  return url ? { url, alt: media.alt || '' } : undefined
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -49,7 +53,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const canonical = `/products/${product.slug}`
   const brandName = settings.brandName || 'Cobraa 3D'
   const title = product.seoTitle || product.meta?.title || `${product.title} | ${brandName}, Hoskote`
-  const description = product.seoDescription || product.meta?.description || product.shortBenefit || product.shortDescription || `${product.title} is 3D printed in PLA and hand finished in Hoskote, Bengaluru. Ships across India.`
+  const description = product.seoDescription || product.meta?.description || product.shortBenefit || product.shortDescription || `${product.title} is 3D printed in PLA and hand finished in Hoskote, Bengaluru. Custom colours available. Order on WhatsApp with delivery across India.`
   return {
     title, description, alternates: { canonical }, robots: product.isDemo ? { index: false, follow: false } : undefined,
     openGraph: { title, description, url: canonical, images: media?.url ? [{ url: media.url, alt: product.images?.[0]?.alt || product.title }] : undefined },
@@ -78,7 +82,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const related = relatedProducts.map((item) => {
     const image = item.images?.[0]?.image
     const media = typeof image === 'object' && image ? image : undefined
-    return { slug: item.slug || '', title: item.title, image: media?.url ? { url: media.url, alt: item.images?.[0]?.alt || item.title } : undefined }
+    const url = media?.sizes?.square?.url || media?.sizes?.thumbnail?.url || media?.url
+    return { slug: item.slug || '', title: item.title, image: url ? { url, alt: item.images?.[0]?.alt || item.title } : undefined }
   })
   const productData = {
     title: product.title, slug: product.slug || slug, shortDescription: product.shortDescription,
@@ -106,6 +111,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     <ProductDetail product={productData} brandName={settings.brandName} whatsappNumber={settings.whatsappNumber} productTemplate={settings.messageTemplates?.product} siteURL={siteURL} ctaLabel={settings.productEnquiryCtaLabel || 'Ask on WhatsApp'} related={related} />
     {product.faq?.length ? <section className="product-detail-extras" aria-labelledby="product-faq-title"><h2 id="product-faq-title">Frequently asked questions</h2>{product.faq.map((entry, index) => entry.question?.trim() && entry.answer?.trim() ? <details key={`${entry.question}-${index}`}><summary>{entry.question}</summary><p>{entry.answer}</p></details> : null)}</section> : null}
     <nav className="product-policy-links" aria-label="Product information"><Link href="/product-safety-and-care">Product safety and care</Link><Link href="/shipping-and-delivery-policy">Shipping and delivery</Link><Link href="/refund-and-cancellation-policy">Refunds and cancellations</Link></nav>
-    {product.priceMode === 'show' && typeof product.price === 'number' && product.price > 0 && !product.isDemo && product.availability !== 'out_of_stock' && product.availability !== 'coming_soon' && <BuyNowPortal productId={product.id} />}
+
   </>
 }

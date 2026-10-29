@@ -7,6 +7,7 @@ import config from "@payload-config"
 import { getSiteSettings } from "@/utilities/getSiteSettings";
 import { buildProductMessage, buildWhatsAppUrl } from "@/lib/shared";
 import { env } from "@/lib/env";
+import { MobileOnlyModal } from "./MobileOnlyModal";
 
 export const revalidate = 300;
 
@@ -39,5 +40,5 @@ export default async function ProductSheetPage({ params }: { params: Promise<{ s
   const baseUrl = url();
   const byColor = Object.fromEntries((product.colors ?? []).map((c) => [c.name, url(c.name)]).filter(([, v]) => v != null)) as Record<string, string>;
   if (!baseUrl) notFound();
-  return <ProductSheet product={product} hrefs={{ base: baseUrl, byColor }} pushPublicKey={env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || env.VAPID_PUBLIC_KEY} />;
+  return <MobileOnlyModal slug={slug}><ProductSheet product={product} hrefs={{ base: baseUrl, byColor }} pushPublicKey={env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || env.VAPID_PUBLIC_KEY} /></MobileOnlyModal>;
 }
