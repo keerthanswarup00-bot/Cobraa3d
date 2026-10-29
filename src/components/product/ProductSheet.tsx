@@ -28,31 +28,13 @@ export function ProductSheet({ product, href }: { product: SheetProduct; href: s
   const [notice, setNotice] = useState("");
   const close = useCallback(() => setOpen(false), []);
   const share = async () => {
-    const url = typeof window !== "undefined" ? `${window.location.origin}/products/${encodeURIComponent(product.slug)}` : `/products/${encodeURIComponent(product.slug)}`;
-    const shareData = { title: product.name, text: product.shortDescription || product.name, url };
+    const url = `${window.location.origin}/products/${encodeURIComponent(product.slug)}`;
     if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-      try {
-        await navigator.share(shareData);
-        return;
-      } catch (err: any) {
-        if (err?.name === "AbortError") return;
-      }
+      try { await navigator.share({ title: product.name, text: product.shortDescription || product.name, url }); return; }
+      catch { /* user cancelled */ }
     }
-    try {
-      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-        setNotice("Link copied");
-        window.setTimeout(() => setNotice(""), 1600);
-        return;
-      }
-    } catch {}
-    try {
-      setNotice("Link copied");
-      window.setTimeout(() => setNotice(""), 1600);
-      return;
-    } catch {}
-    setNotice(`Copy this link: ${url}`);
-    window.setTimeout(() => setNotice(""), 2000);
+    try { await navigator.clipboard.writeText(url); setNotice("Link copied"); window.setTimeout(() => setNotice(""), 1200); }
+    catch { setNotice(`Copy this link: ${url}`); window.setTimeout(() => setNotice(""), 1600); }
   };
 
   // scroll lock, focus in, focus restore, Escape, Tab trap
@@ -98,11 +80,8 @@ export function ProductSheet({ product, href }: { product: SheetProduct; href: s
           <div className="ps-grab" onPointerDown={(e) => controls.start(e)}>
             <span className="ps-handle" />
             <button type="button" className="ps-close" onClick={close} aria-label="Close">×</button>
-            <button type="button" className="ps-share" onClick={share} aria-label="Share this product">
-              <Share2 size={18} aria-hidden="true" />
-            </button>
+            <button type="button" className="ps-share" onClick={share} aria-label="Share"><Share2 size={18} aria-hidden="true" /></button>
           </div>
-          {notice && <p className="ps-notice" role="status">{notice}</p>}
 
           <div className="ps-body">
             <div className="ps-gallery" onScroll={(e) => {
@@ -122,6 +101,7 @@ export function ProductSheet({ product, href }: { product: SheetProduct; href: s
             <h2 id={titleId} className="ps-title">{product.name}</h2>
             {product.price && <p className="ps-price">{product.price}</p>}
             {product.shortDescription && <p className="ps-desc">{product.shortDescription}</p>}
+            {notice && <p className="ps-notice" role="status">{notice}</p>}
           </div>
 
           <div className="ps-cta">
