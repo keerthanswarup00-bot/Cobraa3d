@@ -1,9 +1,9 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
 import { Search, MessageCircle } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { ProductLink } from '@/components/product/ProductLink'
 import { filterAndSortProducts, type ProductSort } from '@/lib/productListing'
 
 export type BrowserProduct = {
@@ -60,14 +60,14 @@ export function ProductsBrowser({ products, categories, initialCategory = '', in
       const secondImage = typeof secondary?.image === 'object' ? secondary.image : undefined
       const badge = badgeOrder.find((b) => p.badges?.includes(b))
       const unavailable = p.availability === 'out_of_stock' || p.availability === 'coming_soon'
-      return <li key={p.id} className="product-card"><Link className="product-image" href={`/products/${p.slug}`} aria-label={`View ${p.title}`}>
+      return <li key={p.id} className="product-card"><ProductLink className="product-image" href={`/products/${p.slug}`} aria-label={`View ${p.title}`}>
         {mainImage?.url ? <Image src={mainImage.url} alt={main?.alt || p.title} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" loading={index === 0 ? 'eager' : 'lazy'} /> : <span className="image-placeholder">Product photo to be added</span>}
         {p.isDemo && <span className="demo-product-label">DEMO · temporary listing</span>}
         {p.isDemo && <span className="demo-image-label">Placeholder image · not a product photo</span>}
         {secondImage?.url && <Image className="product-image-secondary" src={secondImage.url} alt={secondary?.alt || p.title} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" />}
         {badge && <span className="product-badge">{badgeLabel[badge]}</span>}
         {unavailable && <span className="availability-label">{p.availability === 'out_of_stock' ? 'Out of stock' : 'Coming soon'}</span>}
-      </Link><div className="product-card-copy"><div><Link href={`/products/${p.slug}`}><h2>{p.title}</h2></Link>{p.shortDescription && <p>{p.shortDescription}</p>}{!p.isDemo && <strong>{priceText(p)}</strong>}</div>
+      </ProductLink><div className="product-card-copy"><div><ProductLink href={`/products/${p.slug}`}><h2>{p.title}</h2></ProductLink>{p.shortDescription && <p>{p.shortDescription}</p>}{!p.isDemo && <strong>{priceText(p)}</strong>}</div>
         {p.whatsappURL ? <a className={`product-wa${p.isDemo ? ' product-wa-demo' : ''}`} href={p.whatsappURL} target="_blank" rel="noopener noreferrer" aria-label={`${unavailable ? 'Ask about availability for' : 'Enquire about'} ${p.title}`}><MessageCircle size={17} /><span>{p.isDemo ? 'Enquire on WhatsApp' : unavailable ? 'Ask about availability' : 'WhatsApp'}</span></a> : <button className="product-wa product-wa-demo" type="button" disabled aria-label={`WhatsApp enquiry unavailable for ${p.title}`}><MessageCircle size={17} /><span>WhatsApp unavailable</span></button>}
       </div></li>
     })}</ul>{filtered.length > shown && <button className="show-more" onClick={() => setShown((n) => n + 12)}>Show more</button>}</>

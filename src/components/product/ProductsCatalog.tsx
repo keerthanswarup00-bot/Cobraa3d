@@ -1,12 +1,12 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type TouchEvent as ReactTouchEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { ProductRender, type ConnectProduct } from '@/components/home/ConnectProducts'
+import { ProductLink } from '@/components/product/ProductLink'
+import type { ProductPreviewData } from '@/lib/productPreview'
 import {
   buildCatalogFacets,
   catalogFiltersToSearchParams,
@@ -56,6 +56,7 @@ export type CatalogProduct = {
   specs: CatalogSpec[]
   images: CatalogImage[]
   render: ConnectProduct
+  preview?: ProductPreviewData | null
 }
 
 export type CatalogCopy = {
@@ -203,7 +204,6 @@ function FilterPanel({
 }
 
 export function ProductsCatalog({ products, categories, copy, calmMode, initialFilters }: Props) {
-  const router = useRouter()
   const perPage = Math.min(48, Math.max(1, copy.perPage || 15))
   const filterTitleId = useId()
 
@@ -520,14 +520,12 @@ export function ProductsCatalog({ products, categories, copy, calmMode, initialF
             <div className="pc-grid">
               {slice.length ? slice.map((product, index) => (
                 <article className="pc-card" key={product.id}>
-                  <Link
+                  <ProductLink
                     className={`pc-media${product.images.length > 1 ? '' : ' single'}`}
                     href={`/products/${product.slug}`}
+                    preview={product.preview}
                     aria-label={`View ${product.title}`}
                     scroll={false}
-                    prefetch
-                    onPointerDown={() => router.prefetch(`/products/${product.slug}`)}
-                    onTouchStart={() => router.prefetch(`/products/${product.slug}`)}
                   >
                     {product.images[0] ? (
                       <>
@@ -537,12 +535,12 @@ export function ProductsCatalog({ products, categories, copy, calmMode, initialF
                     ) : (
                       <span className="pc-fallback"><ProductRender product={product.render} animate={false} buildKey={0} /></span>
                     )}
-                  </Link>
+                  </ProductLink>
                   <div className="pc-info">
                     <h2 className="pc-card-title">{product.title}</h2>
                     <div className="pc-foot">
                       <span className="pc-price">{product.priceLabel}</span>
-                      <Link className="pc-view" href={`/products/${product.slug}`} scroll={false} prefetch onPointerDown={() => router.prefetch(`/products/${product.slug}`)} onTouchStart={() => router.prefetch(`/products/${product.slug}`)}>View</Link>
+                      <ProductLink className="pc-view" href={`/products/${product.slug}`} preview={product.preview} scroll={false}>View</ProductLink>
                     </div>
                   </div>
                 </article>

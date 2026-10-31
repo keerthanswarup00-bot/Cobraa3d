@@ -5,6 +5,7 @@ import { ProductsCatalog, type CatalogCopy, type CatalogProduct, type CatalogSpe
 import type { ConnectProduct } from '@/components/home/ConnectProducts'
 import { getDisplayPrice } from '@/lib/pricing'
 import { buildProductMessage, buildWhatsAppUrl, getVisibleCategories } from '@/lib/shared'
+import { buildProductPreview } from '@/lib/productPreview'
 import { getSiteSettings } from '@/utilities/getSiteSettings'
 import { getServerSideURL } from '@/utilities/getURL'
 import type { Product } from '@/payload-types'
@@ -68,6 +69,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     getSiteSettings(0),
   ])
 
+  const siteURL = getServerSideURL()
   const products: CatalogProduct[] = [...(result.docs as Product[])].sort(byRecency).map((product) => {
     const visual = visualFor(product)
     const slug = product.slug || slugify(product.title)
@@ -85,7 +87,16 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     const searchText = normalizeSearch([product.title, product.shortDescription || '', category || '', material || '', ...colours.map((colour) => colour.name), ...tags].join(' '))
     const display = getDisplayPrice({ id: product.id, price: product.price, salePrice: product.salePrice, priceMode: product.priceMode, currency: product.currency })
     const hasPrice = display.regularPrice != null && product.priceMode === 'show'
+    const priceLabel = hasPrice ? display.priceLabel : 'Ask on WhatsApp'
     const whatsappHref = buildWhatsAppUrl({ number: settings.whatsappNumber, message: buildProductMessage(product, {}, settings) })
+    const preview = buildProductPreview({
+      product,
+      slug,
+      siteURL,
+      whatsappNumber: settings.whatsappNumber,
+      productTemplate: settings.messageTemplates?.product,
+      priceLabel,
+    })
     const knownDimensions = [
       product.heightMm ? `${product.heightMm} mm H` : '',
       product.widthMm ? `${product.widthMm} mm W` : '',
@@ -122,13 +133,14 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       badge: product.badge || null,
       dimensionsLabel: knownDimensions || product.dimensions?.trim() || null,
       whatsappHref,
-      priceLabel: hasPrice ? display.priceLabel : 'Ask on WhatsApp',
+      priceLabel,
       hasPrice,
       price: display.regularPrice ?? product.price ?? null,
       currency: product.currency || 'INR',
       specs: specsFor(product),
       images,
       render,
+      preview,
     }
   })
 
@@ -174,7 +186,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       copy={copy}
       whatsappBase={buildWhatsAppUrl({ number: settings.whatsappNumber, message: '' })}
       brandName={settings.brandName || 'Cobraa 3D'}
-      siteURL={getServerSideURL()}
+      siteURL={siteURL}
       calmMode={settings.experience?.calmMode === true}
       pushPublicKey={env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || env.VAPID_PUBLIC_KEY}
       initialFilters={initialFilters}
