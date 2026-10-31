@@ -4,6 +4,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
+import { ProductLink } from '@/components/product/ProductLink'
+import type { ProductPreviewData } from '@/lib/productPreview'
 
 export type ConnectProduct = {
   id: string
@@ -20,6 +22,7 @@ export type ConnectProduct = {
   originalPriceLabel?: string
   whatsappURL?: string | null
   categorySlug?: string | null
+  preview?: ProductPreviewData | null
 }
 
 function shapeWidth(shape: ConnectProduct['visual'], t: number) {
@@ -86,15 +89,15 @@ export function ConnectProducts({ products, total, productsURL = '/products', va
 
   return <div className="studio-product-wrap">
     <div className="studio-product-grid" ref={cards}>{products.map((product, index) => <article className="studio-product-card" data-connect-card={product.id} key={`${product.id}-${product.slug}`} onPointerMove={variant === 'home' ? (event) => { const bounds = event.currentTarget.getBoundingClientRect(); event.currentTarget.style.setProperty('--mx', `${event.clientX - bounds.left}px`); event.currentTarget.style.setProperty('--my', `${event.clientY - bounds.top}px`) } : undefined} onPointerEnter={variant === 'home' ? () => { if (!window.matchMedia('(hover: none)').matches) animate(product.id) } : undefined}>
-      <Link className={`studio-product-photo${variant === 'catalog' && product.image?.width && product.image.height && product.image.width > product.image.height ? ' is-landscape' : ''}`} style={variant === 'catalog' && product.image?.width && product.image.height && product.image.width > product.image.height ? { aspectRatio: `${product.image.width} / ${product.image.height}` } : undefined} href={`/products/${product.slug}`} aria-label={`View ${product.title}`}>
+      <ProductLink className={`studio-product-photo${variant === 'catalog' && product.image?.width && product.image.height && product.image.width > product.image.height ? ' is-landscape' : ''}`} style={variant === 'catalog' && product.image?.width && product.image.height && product.image.width > product.image.height ? { aspectRatio: `${product.image.width} / ${product.image.height}` } : undefined} href={`/products/${product.slug}`} preview={product.preview} aria-label={`View ${product.title}`}>
         {product.image?.url ? <Image src={product.image.url} alt={product.image.alt || product.title} width={product.image.width || 720} height={product.image.height || 640} sizes="(max-width: 720px) 84vw, (max-width: 1020px) 48vw, 30vw" loading="lazy" unoptimized={!product.image.url.startsWith('/')} /> : <ProductRender product={product} animate={Boolean(rebuild[product.id])} buildKey={rebuild[product.id] || 0} />}
         <small className="studio-product-tag">{product.tag}</small><small className="studio-product-number">{String(index + 1).padStart(2, '0')}</small>
-      </Link>
+      </ProductLink>
       <div className="studio-product-copy"><h3>{product.title}</h3>{variant !== 'catalog' && <p>{product.blurb}</p>}</div>
       {variant === 'catalog' ? <div className="studio-product-catalog-footer">
         <span className="studio-product-catalog-price">{product.priceLabel || 'Ask for price'}{product.originalPriceLabel && <del>{product.originalPriceLabel}</del>}</span>
         {product.whatsappURL && <a className="studio-product-whatsapp" href={product.whatsappURL} aria-label={`Details for ${product.title} on WhatsApp`} target="_blank" rel="noopener noreferrer">Details</a>}
-      </div> : <div className="studio-product-actions"><span className="studio-product-price">{product.priceLabel || 'Ask for price'}</span><div className="studio-product-links"><Link className="studio-product-view" href={`/products/${product.slug}`}>View <ArrowUpRight size={15} /></Link>{product.whatsappURL && <a className="studio-product-ask" href={product.whatsappURL} data-wa-source="card" target="_blank" rel="noopener noreferrer">{ctaLabel}</a>}</div></div>}
+      </div> : <div className="studio-product-actions"><span className="studio-product-price">{product.priceLabel || 'Ask for price'}</span><div className="studio-product-links"><ProductLink className="studio-product-view" href={`/products/${product.slug}`} preview={product.preview}>View <ArrowUpRight size={15} /></ProductLink>{product.whatsappURL && <a className="studio-product-ask" href={product.whatsappURL} data-wa-source="card" target="_blank" rel="noopener noreferrer">{ctaLabel}</a>}</div></div>}
     </article>)}</div>
     {variant === 'home' && <Link className="studio-view-all" href={productsURL}><span>See all {total} pieces</span><span className="studio-view-arrow" aria-hidden="true">↗</span></Link>}
   </div>

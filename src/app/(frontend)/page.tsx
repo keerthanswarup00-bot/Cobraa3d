@@ -7,7 +7,9 @@ import config from '@payload-config'
 import type { ConnectProduct } from '@/components/home/ConnectProducts'
 import { HomeProductGrid } from '@/components/home/HomeProductGrid'
 import { HomeReviews } from '@/components/home/HomeReviews'
+import { ProductLink } from '@/components/product/ProductLink'
 import { buildProductMessage, buildWhatsAppUrl } from '@/lib/shared'
+import { buildProductPreview } from '@/lib/productPreview'
 import { slugifyFilterValue } from '@/lib/catalogFilters'
 import { getDisplayPrice } from '@/lib/pricing'
 import { getServerSideURL } from '@/utilities/getURL'
@@ -62,10 +64,19 @@ function asHomeProduct(product: Product, siteURL: string, productTemplate?: stri
     badges: product.badges,
     images: product.images?.map((row) => ({ alt: row.alt, image: row.image && typeof row.image === 'object' ? { url: row.image.url } : row.image })) || [],
   }, { baseURL: siteURL }, { messageTemplates: { product: productTemplate } })
+  const slug = product.slug || ''
+  const preview = slug ? buildProductPreview({
+    product,
+    slug,
+    siteURL,
+    whatsappNumber,
+    productTemplate,
+    priceLabel: displayPrice.priceLabel,
+  }) : null
 
   return {
     id: String(product.id),
-    slug: product.slug || '',
+    slug,
     title: product.title,
     blurb: product.shortDescription || '',
     tag: product.badges?.[0] || category?.name || '3D printed',
@@ -76,6 +87,7 @@ function asHomeProduct(product: Product, siteURL: string, productTemplate?: stri
     image: displayMedia?.url ? { url: displayMedia.url, alt: mediaRow?.alt || media?.alt || product.title, width: displayMedia.width ?? undefined, height: displayMedia.height ?? undefined } : undefined,
     priceLabel: displayPrice.priceLabel,
     whatsappURL: buildWhatsAppUrl({ number: whatsappNumber, message }),
+    preview,
   }
 }
 
@@ -174,10 +186,10 @@ export default async function HomePage() {
           {whatsAppURL && <a className="home-button home-button-secondary" href={whatsAppURL} target="_blank" rel="noopener noreferrer"><MessageCircle size={17} /> Chat on WhatsApp</a>}
         </div>
       </div>
-      {heroProduct && <Link className="home-hero-visual" href={`/products/${heroProduct.slug}`} aria-label={`Discover ${heroProduct.title}`}>
+      {heroProduct && <ProductLink className="home-hero-visual" href={`/products/${heroProduct.slug}`} preview={heroProduct.preview} aria-label={`Discover ${heroProduct.title}`}>
         {heroProduct.image?.url ? <Image src={heroProduct.image.url} alt={`3D printed ${heroProduct.title}`} fill preload quality={75} fetchPriority="high" sizes="(max-width: 760px) 100vw, 48vw" unoptimized={!heroProduct.image.url.startsWith('/')} /> : <div className="home-hero-placeholder" aria-hidden="true"><Box size={68} strokeWidth={1} /></div>}
         <span>{heroProduct.title}<ArrowDownRight size={18} aria-hidden="true" /></span>
-      </Link>}
+      </ProductLink>}
     </section>
 
     <section className="home-how" aria-labelledby="home-how-title">
