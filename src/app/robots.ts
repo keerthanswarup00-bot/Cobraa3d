@@ -26,6 +26,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin', '/api', '/next'],
     },
-    sitemap: `${getServerSideURL().replace(/\\/$/, '')}/sitemap.xml`,
+    sitemap: `${getServerSideURL().replace(/\/$/, '')}/sitemap.xml`,
   }
 }
