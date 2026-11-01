@@ -61,6 +61,51 @@ test.describe('Mobile home layout', () => {
     await expect(page.getByRole('button', { name: 'Open menu' })).toBeFocused()
   })
 
+  test('keeps the footer contact row aligned and within a 390px viewport', async ({ page }) => {
+    await skipSplash(page)
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/')
+
+    const footer = page.locator('.home-footer')
+    const phone = footer.getByRole('link', { name: '+91 70194 33035' })
+    await expect(footer.locator('.home-footer-top nav')).toBeVisible()
+    await expect(footer.locator('.home-footer-whatsapp')).toBeVisible()
+    await expect(phone).toHaveAttribute('href', 'tel:+917019433035')
+    await expect(footer.getByRole('link', { name: 'Back to top ↑' })).toBeVisible()
+
+    const layout = await page.evaluate(() => {
+      const top = document.querySelector<HTMLElement>('.home-footer-top')
+      const row = document.querySelector<HTMLElement>('.home-footer-bottom')
+      const bounds = (element: HTMLElement | null) => {
+        const { left, right } = element?.getBoundingClientRect() || { left: 0, right: 0 }
+        return { left, right }
+      }
+      const cells = row ? Array.from(row.children, (element) => {
+        const { left, right, top } = element.getBoundingClientRect()
+        return { left, right, top }
+      }) : []
+      return {
+        viewport: document.documentElement.clientWidth,
+        page: document.documentElement.scrollWidth,
+        footer: footerWidth(),
+        top: bounds(top),
+        divider: bounds(row),
+        cells,
+      }
+
+      function footerWidth() {
+        return document.querySelector<HTMLElement>('.home-footer')?.scrollWidth || 0
+      }
+    })
+    expect(layout.page).toBeLessThanOrEqual(layout.viewport)
+    expect(layout.footer).toBeLessThanOrEqual(layout.viewport)
+    expect(Math.abs(layout.top.left - layout.divider.left)).toBeLessThan(1)
+    expect(Math.abs(layout.top.right - layout.divider.right)).toBeLessThan(1)
+    expect(layout.cells).toHaveLength(4)
+    expect(Math.abs(layout.cells[0].left - layout.cells[2].left)).toBeLessThan(1)
+    expect(Math.abs(layout.cells[1].right - layout.cells[3].right)).toBeLessThan(1)
+  })
+
   test('stacks content cleanly on a short phone viewport', async ({ page }) => {
     await skipSplash(page)
     await page.setViewportSize({ width: 375, height: 568 })

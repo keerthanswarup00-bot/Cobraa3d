@@ -1,6 +1,13 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { getPayload } from 'payload'
+import sharp from 'sharp'
 import config from '../../src/payload.config.js'
+
+async function expectNoBrokenImages(page: Page) {
+  await page.evaluate(() => document.querySelectorAll('img').forEach((image) => { image.loading = 'eager' }))
+  await expect.poll(() => page.evaluate(() => Array.from(document.querySelectorAll('img')).every((image) => image.complete))).toBe(true)
+  await expect.poll(() => page.evaluate(() => Array.from(document.querySelectorAll('img')).filter((image) => image.naturalWidth === 0).length)).toBe(0)
+}
 
 test.describe('Frontend', () => {
   test('shows featured products, a product catalogue, and direct product routes', async ({ page }) => {
@@ -20,6 +27,7 @@ test.describe('Frontend', () => {
       await page.goto(href)
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
       await expect(page.locator('.detail-main-image img').or(page.locator('.detail-image-empty'))).toBeVisible()
+      await expectNoBrokenImages(page)
       const enquiry = page.getByRole('link', { name: /Enquire on WhatsApp|Ask on WhatsApp/ }).first()
       await expect(enquiry).toHaveAttribute('href', /^https:\/\/wa\.me\//)
       const slug = (href || '').split('/').pop() || ''
@@ -97,16 +105,18 @@ test.describe('Frontend', () => {
     const slug = 'preview-sheet-regression-product'
     const title = 'Preview Sheet Regression Product'
     const href = `/products/${slug}`
-    const imageBytes = Buffer.from(
+    const imageBytes = await sharp(Buffer.from(
       '/9j/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCABAAEADASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFgEBAQEAAAAAAAAAAAAAAAAAAAYH/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AkAJFpAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/9k=',
       'base64',
-    )
+    )).resize(1400, 1400).jpeg().toBuffer()
     const mediaIds: number[] = []
     let productId: number | undefined
+    let relatedProductId: number | undefined
+    const relatedSlug = `${slug}-related`
 
     await payload.delete({
       collection: 'products',
-      where: { slug: { equals: slug } },
+      where: { slug: { in: [slug, relatedSlug] } },
       overrideAccess: true,
       context: { disableRevalidate: true },
     })
@@ -124,6 +134,24 @@ test.describe('Frontend', () => {
       const firstImage = await createImage('front')
       const secondImage = await createImage('back')
       mediaIds.push(firstImage.id, secondImage.id)
+
+      const relatedProduct = await payload.create({
+        collection: 'products',
+        overrideAccess: true,
+        context: { disableRevalidate: true },
+        data: {
+          title: `${title} Related`,
+          slug: relatedSlug,
+          status: 'published',
+          _status: 'published',
+          priceMode: 'show',
+          price: 125,
+          currency: 'INR',
+          isDemo: false,
+          images: [{ image: firstImage.id, alt: `${title} related` }],
+        },
+      })
+      relatedProductId = relatedProduct.id
 
       const product = await payload.create({
         collection: 'products',
@@ -143,6 +171,7 @@ test.describe('Frontend', () => {
             { image: firstImage.id, alt: `${title} front` },
             { image: secondImage.id, alt: `${title} back` },
           ],
+          relatedProducts: [relatedProduct.id],
         },
       })
       productId = product.id
@@ -155,8 +184,18 @@ test.describe('Frontend', () => {
       await expect(page).toHaveURL(new RegExp(`${href}$`))
       await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible()
       await expect(page.getByRole('dialog')).toHaveCount(0)
-
       const baseURL = test.info().project.use.baseURL || 'http://127.0.0.1:3100'
+      const relatedImage = page.locator('.related-products img')
+      await expect(relatedImage).toHaveCount(1)
+      const relatedImageSrc = await relatedImage.getAttribute('src')
+      expect(relatedImageSrc).toMatch(/^https?:\/\//)
+      expect(new URL(relatedImageSrc || '', baseURL).origin).toBe(new URL(baseURL).origin)
+      await expect(relatedImage).toHaveAttribute('sizes', /\(max-width: 759px\)/)
+      const relatedImageSrcSet = await relatedImage.getAttribute('srcset')
+      expect(relatedImageSrcSet).toContain(baseURL)
+      expect(relatedImageSrcSet).toContain('900w')
+      await expectNoBrokenImages(page)
+
       const mobileContext = await browser.newContext({
         baseURL,
         viewport: { width: 390, height: 844 },
@@ -317,6 +356,14 @@ test.describe('Frontend', () => {
         await payload.delete({
           collection: 'products',
           id: productId,
+          overrideAccess: true,
+          context: { disableRevalidate: true },
+        })
+      }
+      if (relatedProductId !== undefined) {
+        await payload.delete({
+          collection: 'products',
+          id: relatedProductId,
           overrideAccess: true,
           context: { disableRevalidate: true },
         })

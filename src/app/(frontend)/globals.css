@@ -58,8 +58,8 @@
   --breakpoint-lg: 64rem;
   --breakpoint-xl: 80rem;
   --breakpoint-2xl: 86rem;
-  --font-mono: var(--font-geist-mono);
-  --font-sans: var(--font-geist-sans);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: var(--font-dm-sans, system-ui, sans-serif);
 }
 
 @layer utilities {
@@ -224,7 +224,15 @@
   --color-cobraa-grey: var(--cobraa-grey);
   --color-cobraa-border: var(--cobraa-border);
   --color-cobraa-saffron: var(--cobraa-saffron);
-  --font-display: var(--font-instrument-serif);
+  --font-display: var(--font-bricolage, 'Helvetica Neue', Arial, sans-serif);
+}
+
+:root {
+  --font-geist-mono: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  --font-geist-sans: var(--font-sans, system-ui, sans-serif);
+  --font-instrument-serif: var(--font-display, 'Helvetica Neue', Arial, sans-serif);
+  --font-dm-mono: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  --font-dm-serif: var(--font-display, 'Helvetica Neue', Arial, sans-serif);
 }
 
 @layer base {
@@ -804,8 +812,8 @@ main a:focus-visible, main button:focus-visible, footer a:focus-visible, footer 
 .detail-thumbnails button:not([aria-pressed="true"]) { opacity: .72; }
 .detail-thumbnails button:hover, .detail-thumbnails button[aria-pressed="true"] { opacity: 1; }
 .detail-copy { padding: clamp(4px, 1vw, 12px) 0; }
-.detail-kicker { margin: 0; color: #77736a; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; }
-.detail-copy h1 { max-width: 14ch; margin: 14px 0 10px; font: 400 clamp(36px, 5vw, 58px)/.98 var(--font-instrument-serif); letter-spacing: -.025em; }
+.detail-kicker { margin: 0; color: #555149; font: 600 11px/1.5 var(--font-dm-sans, system-ui, sans-serif); letter-spacing: .16em; text-transform: uppercase; }
+.detail-copy h1 { max-width: 24ch; margin: 14px 0 10px; font: 700 clamp(36px, 5vw, 58px)/1.02 var(--font-bricolage, 'Helvetica Neue', Arial, sans-serif); letter-spacing: -.035em; }
 .detail-summary { max-width: 48ch; margin: 14px 0 20px; color: #64615b; font-size: 15px; line-height: 1.75; }
 .detail-price { gap: 10px; margin: 20px 0 6px; font-size: 22px; font-weight: 550; font-variant-numeric: tabular-nums; }
 .detail-availability { display: inline-flex; width: fit-content; margin: 8px 0 0; padding: 6px 9px; border: 1px solid #e8e4dc; border-radius: 999px; color: #59574f; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
@@ -821,12 +829,12 @@ main a:focus-visible, main button:focus-visible, footer a:focus-visible, footer 
 .buy-now-button:hover { background: #f6f5f1; transform: translateY(-1px); }
 .product-facts { gap: 0 48px; padding-top: clamp(42px, 7vw, 84px); }
 .product-fact { padding: 22px 0; border-color: #e7e5e0; }
-.product-fact h2, .related-products h2 { margin-bottom: 12px; font: 400 24px/1.1 var(--font-instrument-serif); }
+.product-fact h2, .related-products h2 { margin-bottom: 12px; font: 600 18px/1.3 var(--font-dm-sans, system-ui, sans-serif); }
 .product-fact p, .product-fact li { color: #5f5d57; font-size: 14px; line-height: 1.75; }
 .related-products { padding-top: clamp(36px, 6vw, 72px); }
 .related-products > div { gap: 24px 16px; }
 .related-products > div > a { color: #24231f; font-size: 13px; text-decoration: none; }
-.related-products img { width: 100%; aspect-ratio: 4 / 5; height: auto; margin-bottom: 10px; border-radius: 5px; background: #f4f2ed; object-fit: cover; transition: transform 240ms ease; }
+.related-products img, .related-image-empty { display: block; width: 100%; aspect-ratio: 4 / 5; height: auto; margin-bottom: 10px; border-radius: 5px; background: #f4f2ed; object-fit: cover; transition: transform 240ms ease; }
 .related-products > div > a:hover img { transform: translateY(-3px); }
 .product-detail-extras, .product-policy-links { width: min(100% - 32px, 1120px); margin: 28px auto 0; color: #24231f; }
 .product-detail-extras h2 { margin: 0 0 14px; font: 400 24px/1.1 var(--font-instrument-serif); }
@@ -841,7 +849,7 @@ main a:focus-visible, main button:focus-visible, footer a:focus-visible, footer 
 }
 @media (max-width: 759px) {
   .product-detail-page { padding-bottom: 100px; }
-  .detail-copy h1 { max-width: 18ch; }
+  .detail-copy h1 { max-width: 24ch; }
   .detail-main-image { border-radius: 5px; }
   .product-facts { padding-top: 34px; }
   .detail-mobile-cta { padding: 9px 16px max(10px, env(safe-area-inset-bottom)); backdrop-filter: blur(14px); }

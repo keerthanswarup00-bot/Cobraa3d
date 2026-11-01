@@ -86,9 +86,9 @@ body:has(.home-rework) .connect-nav.is-scrolled { min-height: 64px; border-botto
 .home-footer-brand { color: var(--home-text); font: 700 20px var(--font-bricolage), sans-serif; letter-spacing: -.03em; text-decoration: none; }
 .home-footer-brand i { color: #ff7040; font-style: normal; }
 .home-footer-top nav { display: flex; flex-wrap: wrap; gap: 18px; }
-.home-footer-top nav a, .home-footer-top > a:last-child { color: var(--home-muted); font-size: 12px; text-decoration: none; }
-.home-footer-top > a:last-child { display: inline-flex; align-items: center; gap: 7px; color: var(--home-text); }
-.home-footer-bottom { display: flex; justify-content: space-between; gap: 14px; padding-top: 14px; border-top: 1px solid var(--home-line); color: var(--home-muted); font: 10px var(--font-dm-mono), monospace; }
+.home-footer-top nav a, .home-footer-whatsapp { color: var(--home-muted); font-size: 12px; text-decoration: none; }
+.home-footer-whatsapp { display: inline-flex; align-items: center; gap: 7px; color: var(--home-text); }
+.home-footer-bottom { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto; align-items: center; gap: 10px 14px; padding-top: 14px; border-top: 1px solid var(--home-line); color: var(--home-muted); font: 10px var(--font-dm-mono), monospace; }
 .home-footer-bottom a { color: inherit; text-decoration: none; }
 @media (max-width: 760px) {
   body:has(.home-rework) .connect-nav,
@@ -133,7 +133,8 @@ body:has(.home-rework) .connect-nav.is-scrolled { min-height: 64px; border-botto
   .home-about-copy > p:not(.home-eyebrow) { font-size: 15px; line-height: 1.7; }
   .home-footer-top { align-items: start; flex-wrap: wrap; }
   .home-footer-top nav { order: 3; width: 100%; gap: 12px 17px; }
-  .home-footer-bottom { flex-wrap: wrap; font-size: 9px; }
+  .home-footer-bottom { grid-template-columns: minmax(0, 1fr) auto; font-size: 9px; }
+  .home-footer-bottom > :nth-child(even) { text-align: right; }
 }
 @media (max-width: 370px) {
   .home-hero-actions { align-items: stretch; flex-direction: column; }

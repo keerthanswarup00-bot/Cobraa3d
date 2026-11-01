@@ -36,6 +36,7 @@
   text-decoration: none;
 }
 .site-nav.connect-nav .site-nav-links a[aria-current='page'] { color: #080808; }
+body:has(.home-rework) .site-nav.connect-nav .site-nav-links a[aria-current='page'] { color: #f4f1ea; }
 .site-nav.connect-nav .site-nav-links a[aria-current='page']::after {
   position: absolute;
   right: 0;

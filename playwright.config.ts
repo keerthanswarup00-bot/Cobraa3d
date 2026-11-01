@@ -41,6 +41,6 @@ export default defineConfig({
     reuseExistingServer: true,
     command: `./node_modules/.bin/next dev --hostname 127.0.0.1 --port ${port}`,
     url: `http://127.0.0.1:${port}`,
-    env: { ...process.env, PLAYWRIGHT_PORT: port },
+    env: { ...process.env, PLAYWRIGHT_PORT: port, NEXT_PUBLIC_SERVER_URL: `http://127.0.0.1:${port}` },
   },
 })

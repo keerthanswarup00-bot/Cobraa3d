@@ -8,6 +8,7 @@ import { ArrowUpRight } from 'lucide-react'
 import { ConnectTerrain } from '@/components/home/ConnectTerrain'
 import { ProductRender, type ConnectProduct } from '@/components/home/ConnectProducts'
 import { getDisplayPrice } from '@/lib/pricing'
+import { getProductImageSources, getProductImageURL } from '@/lib/productImage'
 import { TEMP_PRODUCTS } from '@/lib/tempProducts'
 import type { Product } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
@@ -18,7 +19,7 @@ export const revalidate = 60
 async function loadProduct(slug: string) {
   const payload = await getPayload({ config })
   const [result, settings] = await Promise.all([
-    payload.find({ collection: 'products', where: { and: [{ slug: { equals: slug } }, { status: { equals: 'published' } }, { _status: { equals: 'published' } }, { isDemo: { not_equals: true } }] }, limit: 1, depth: 1 }),
+    payload.find({ collection: 'products', where: { and: [{ slug: { equals: slug } }, { status: { equals: 'published' } }, { _status: { equals: 'published' } }, { isDemo: { not_equals: true } }] }, limit: 1, depth: 2 }),
     payload.findGlobal({ slug: 'site-settings', depth: 0 }),
   ])
   const product = result.docs[0]
@@ -29,17 +30,6 @@ function textFromLexical(value: unknown): string {
   if (!value || typeof value !== 'object') return ''
   const item = value as { text?: string; children?: unknown[] }
   return [item.text || '', ...(item.children || []).map(textFromLexical)].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
-}
-
-function urlForMedia(image: Product['images'] extends (infer _T)[] | null | undefined ? unknown : unknown) {
-  if (!image || typeof image !== 'object') return undefined
-  const media = image as {
-    url?: string | null
-    alt?: string | null
-    sizes?: { medium?: { url?: string | null } | null; large?: { url?: string | null } | null }
-  }
-  const url = media.sizes?.medium?.url || media.url
-  return url ? { url, alt: media.alt || '' } : undefined
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -86,12 +76,16 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     relatedProducts = related.docs
   }
   const siteURL = getServerSideURL()
-  const photos = (product.images || []).map((row) => ({ ...urlForMedia(row.image), alt: row.alt || product.title })).filter((item): item is { url: string; alt: string } => Boolean(item.url))
+  const photos = (product.images || []).flatMap((row) => {
+    const url = getProductImageURL(row.image, { preferredSizes: ['medium', 'large'] })
+    return url ? [{ url, alt: row.alt || product.title }] : []
+  })
   const related = relatedProducts.map((item) => {
-    const image = item.images?.[0]?.image
-    const media = typeof image === 'object' && image ? image : undefined
-    const url = media?.sizes?.square?.url || media?.sizes?.thumbnail?.url || media?.url
-    return { slug: item.slug || '', title: item.title, image: url ? { url, alt: item.images?.[0]?.alt || item.title } : undefined }
+    const image = item.images?.[0]
+    const imageOptions = { preferredSizes: ['square', 'thumbnail', 'medium', 'large'] as const, baseURL: siteURL }
+    const url = getProductImageURL(image?.image, imageOptions)
+    const sources = getProductImageSources(image?.image, imageOptions)
+    return { slug: item.slug || '', title: item.title, image: url ? { url, alt: image?.alt || item.title, sources } : undefined }
   })
   const productData = {
     title: product.title, slug: product.slug || slug, shortDescription: product.shortDescription,

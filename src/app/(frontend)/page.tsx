@@ -92,6 +92,21 @@ function asHomeProduct(product: Product, siteURL: string, productTemplate?: stri
   }
 }
 
+function formatFooterPhone(phone?: string | null) {
+  const value = phone?.trim()
+  if (!value) return null
+
+  const digits = value.replace(/\D/g, '')
+  if (!digits) return null
+  const label = digits.length === 12 && digits.startsWith('91')
+    ? `+91 ${digits.slice(2, 7)} ${digits.slice(7)}`
+    : digits.length === 10
+      ? `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`
+      : value
+
+  return { href: `tel:+${digits}`, label }
+}
+
 function ProductSection({ title, eyebrow, description, products, href, categorySlug, viewMore = 'View more products', eagerFirstImage = false }: {
   title: string; eyebrow?: string; description?: string; products: ConnectProduct[]; href?: string; categorySlug?: string; viewMore?: string; eagerFirstImage?: boolean
 }) {
@@ -161,6 +176,7 @@ export default async function HomePage() {
     ...(instagram ? [{ label: 'Instagram', url: instagram }] : []),
     ...(settings.socialLinks || []).filter((link) => link?.url).map((link) => ({ label: link.label || 'Social', url: link.url! })),
   ].filter((link, index, links) => links.findIndex((candidate) => candidate.url === link.url) === index)
+  const footerPhone = formatFooterPhone(settings.phone || settings.whatsappNumber)
 
   const localBusiness = {
     '@context': 'https://schema.org', '@type': 'LocalBusiness', '@id': `${siteURL}/#business`, name: settings.brandName || 'Cobraa 3D',
@@ -223,14 +239,8 @@ export default async function HomePage() {
     </section>
 
     <footer className="home-footer">
-      <div className="home-footer-top"><Link href="/" className="home-footer-brand">Cobraa<i>.</i>3D</Link><nav aria-label="Footer navigation"><Link href="/products">Products</Link><Link href="/location">About the studio</Link>{settings.mapsUrl && <a href={settings.mapsUrl} target="_blank" rel="noopener noreferrer">Directions</a>}{footerSocialLinks.map((link) => <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer">{link.label}</a>)}<Link href="/contact">Contact</Link><Link href="/refund-and-cancellation-policy">Refund &amp; Cancellation</Link><Link href="/shipping-and-delivery-policy">Shipping &amp; Delivery</Link><Link href="/product-safety-and-care">Product Safety</Link><Link href="/custom-orders">Custom Orders</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link></nav>{whatsAppURL && <a href={whatsAppURL} target="_blank" rel="noopener noreferrer">WhatsApp <ArrowRight size={15} /></a>}</div>
-      <div className="home-footer-bottom"><span>© {new Date().getFullYear()} {settings.brandName || 'Cobraa 3D'}</span><span>Hoskote, Bengaluru</span><Link href="#top">Back to top ↑</Link></div>
-      <div className="home-footer-contact">
-        {(settings.phone || settings.whatsappNumber) && <a href={`tel:+${String(settings.phone || settings.whatsappNumber).replace(/\D/g, '')}`}>+{String(settings.phone || settings.whatsappNumber).replace(/\D/g, '')}</a>}
-        {settings.email && <a href={`mailto:${settings.email}`}>{settings.email}</a>}
-        {settings.showFullAddress && settings.address && <address>{settings.address}</address>}
-        {settings.openingHours && <span>{settings.openingHours}</span>}
-      </div>
+      <div className="home-footer-top"><Link href="/" className="home-footer-brand">Cobraa<i>.</i>3D</Link><nav aria-label="Footer navigation"><Link href="/products">Products</Link><Link href="/location">About the studio</Link>{settings.mapsUrl && <a href={settings.mapsUrl} target="_blank" rel="noopener noreferrer">Directions</a>}{footerSocialLinks.map((link) => <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer">{link.label}</a>)}<Link href="/contact">Contact</Link><Link href="/refund-and-cancellation-policy">Refund &amp; Cancellation</Link><Link href="/shipping-and-delivery-policy">Shipping &amp; Delivery</Link><Link href="/product-safety-and-care">Product Safety</Link><Link href="/custom-orders">Custom Orders</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link></nav>{whatsAppURL && <a className="home-footer-whatsapp" href={whatsAppURL} target="_blank" rel="noopener noreferrer">WhatsApp <ArrowRight size={15} /></a>}</div>
+      <div className="home-footer-bottom"><span>© {new Date().getFullYear()} {settings.brandName || 'Cobraa 3D'}</span><span>Hoskote, Bengaluru</span>{footerPhone && <a href={footerPhone.href}>{footerPhone.label}</a>}<Link href="#top">Back to top ↑</Link></div>
     </footer>
   </main>
 }
