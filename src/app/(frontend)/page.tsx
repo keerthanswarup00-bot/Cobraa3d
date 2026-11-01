@@ -14,6 +14,7 @@ import { slugifyFilterValue } from '@/lib/catalogFilters'
 import { getDisplayPrice } from '@/lib/pricing'
 import { getServerSideURL } from '@/utilities/getURL'
 import { getSiteSettings } from '@/utilities/getSiteSettings'
+import { DEFAULT_SHARE_IMAGE_PATH } from '@/lib/siteMeta'
 import type { Product } from '@/payload-types'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -24,8 +25,8 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     alternates: { canonical: '/' },
     robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } },
-    openGraph: { type: 'website', siteName: 'Cobraa 3D', locale: 'en_IN', title, description, url: '/', images: [{ url: '/share-default.jpg', width: 1200, height: 630, type: 'image/jpeg', alt: '3D printed lamps, idols and figurines by Cobraa 3D, Hoskote, Bengaluru' }] },
-    twitter: { card: 'summary_large_image', title, description, images: ['/share-default.jpg'] },
+    openGraph: { type: 'website', siteName: 'Cobraa 3D', locale: 'en_IN', title, description, url: '/', images: [{ url: DEFAULT_SHARE_IMAGE_PATH, width: 1200, height: 630, type: 'image/jpeg', alt: '3D printed lamps, idols and figurines by Cobraa 3D, Hoskote, Bengaluru' }] },
+    twitter: { card: 'summary_large_image', title, description, images: [DEFAULT_SHARE_IMAGE_PATH] },
   }
 }
 
@@ -164,7 +165,7 @@ export default async function HomePage() {
   const localBusiness = {
     '@context': 'https://schema.org', '@type': 'LocalBusiness', '@id': `${siteURL}/#business`, name: settings.brandName || 'Cobraa 3D',
     description: '3D printing studio in Hoskote, Bengaluru making custom 3D prints, 3D printed lamps, idols, figurines and gifts.',
-    url: `${siteURL}/`, image: `${siteURL}/share-default.jpg`, ...(settings.phone || settings.whatsappNumber ? { telephone: `+${String(settings.phone || settings.whatsappNumber).replace(/\D/g, '')}` } : {}),
+    url: `${siteURL}/`, image: `${siteURL}${DEFAULT_SHARE_IMAGE_PATH}`, ...(settings.phone || settings.whatsappNumber ? { telephone: `+${String(settings.phone || settings.whatsappNumber).replace(/\D/g, '')}` } : {}),
     ...(settings.email ? { email: settings.email } : {}),
     ...(settings.showFullAddress && settings.address ? { address: { '@type': 'PostalAddress', streetAddress: settings.address, addressLocality: 'Hoskote', addressRegion: 'Karnataka', ...(settings.address.match(/\b\d{6}\b/) ? { postalCode: settings.address.match(/\b\d{6}\b/)![0] } : {}), addressCountry: 'IN' } } : {}),
     areaServed: [{ '@type': 'City', name: 'Bengaluru' }, { '@type': 'City', name: 'Hoskote' }, { '@type': 'Country', name: 'India' }],

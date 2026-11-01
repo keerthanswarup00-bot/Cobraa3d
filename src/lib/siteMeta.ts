@@ -4,9 +4,11 @@ import { SHARE_IMAGE_HEIGHT, SHARE_IMAGE_WIDTH } from './shareImage-constants'
 // Keep in step with the home page description (src/app/(frontend)/page.tsx).
 export const DEFAULT_SITE_DESCRIPTION = '3D printing studio in Hoskote, Bengaluru. Custom 3D prints, 3D printed lamps, idols and gifts, made to order. Order on WhatsApp with delivery across India.'
 
-/** Static 1200x630 brand image (public/share-default.jpg, built by scripts/make-og.mjs). */
+/** The sitewide default share image (1200x630, public/share-home.jpg). Change this one line to swap it everywhere. */
+export const DEFAULT_SHARE_IMAGE_PATH = '/share-home.jpg'
+
 export function defaultShareImage(alt: string) {
-  return { url: '/share-default.jpg', width: SHARE_IMAGE_WIDTH, height: SHARE_IMAGE_HEIGHT, type: 'image/jpeg', alt }
+  return { url: DEFAULT_SHARE_IMAGE_PATH, width: SHARE_IMAGE_WIDTH, height: SHARE_IMAGE_HEIGHT, type: 'image/jpeg', alt }
 }
 
 /** Open Graph + Twitter tags for a static page, so shared links show the page's own title and description. */
