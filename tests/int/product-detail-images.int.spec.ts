@@ -1,7 +1,11 @@
-import { createElement } from 'react'
+import { createElement, type ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ProductDetail } from '@/components/ProductDetail'
+
+vi.mock('@/components/product/ProductLink', () => ({
+  ProductLink: ({ href, children }: { href: string; children?: ReactNode }) => createElement('a', { href }, children),
+}))
 
 const remote = 'https://abc.supabase.co/storage/v1/object/public/media/lamp.webp'
 const remoteSecond = 'https://abc.supabase.co/storage/v1/object/public/media/lamp-2.webp'

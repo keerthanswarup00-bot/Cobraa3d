@@ -55,7 +55,7 @@ export function ProductDetail({ product, brandName, whatsappNumber, productTempl
         {product.images.length > 1 && <div className="detail-thumbnails" aria-label="Product photos">{product.images.map((photo, i) => {
           const thumbnailURL = photo.thumbnailURL || photo.url
           return <button key={`${photo.url}-${i}`} aria-label={`Show image ${i + 1}`} aria-pressed={i === photoIndex} onClick={() => setPhotoIndex(i)}>
-            {thumbnailURL && <StorefrontImage src={thumbnailURL} fallbackSrc={photo.url} alt="" fill sizes="64px" quality={60} loading="eager" decoding="async" unoptimized={!shouldOptimizeImage(thumbnailURL)} />}
+            {thumbnailURL && <StorefrontImage src={thumbnailURL} fallbackSrc={photo.url} alt="" fill sizes="64px" quality={75} loading="eager" decoding="async" unoptimized={!shouldOptimizeImage(thumbnailURL)} />}
           </button>
         })}</div>}
         {product.images.length > 1 && <div className="gallery-dots" aria-label={`Image ${photoIndex + 1} of ${product.images.length}`}>{product.images.map((_, i) => <button key={i} aria-label={`Image ${i + 1}`} aria-pressed={i === photoIndex} onClick={() => setPhotoIndex(i)} />)}</div>}
