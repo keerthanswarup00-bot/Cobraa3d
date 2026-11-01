@@ -27,6 +27,89 @@ test.describe('Frontend', () => {
     }
   })
 
+  test('renders uploaded images for manually suggested products', async ({ page }) => {
+    const payload = await getPayload({ config })
+    const slug = `suggested-image-regression-${Date.now()}`
+    const suggestedSlug = `${slug}-suggested`
+    const title = 'Suggested Image Regression Product'
+    const suggestedTitle = 'Suggested Image Regression Recommendation'
+    const alt = `${suggestedTitle} photo`
+    const imageBytes = Buffer.from(
+      '/9j/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCABAAEADASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFgEBAQEAAAAAAAAAAAAAAAAAAAYH/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AkAJFpAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/9k=',
+      'base64',
+    )
+    const productIds: number[] = []
+    let mediaId: number | undefined
+
+    try {
+      const image = await payload.create({
+        collection: 'media',
+        overrideAccess: true,
+        context: { disableRevalidate: true },
+        data: { alt },
+        file: { data: imageBytes, mimetype: 'image/jpeg', name: `${slug}-suggested.jpg`, size: imageBytes.length },
+      })
+      mediaId = image.id
+
+      const suggested = await payload.create({
+        collection: 'products',
+        overrideAccess: true,
+        context: { disableRevalidate: true },
+        draft: false,
+        data: {
+          title: suggestedTitle,
+          slug: suggestedSlug,
+          status: 'published',
+          _status: 'published',
+          isDemo: false,
+          currency: 'INR',
+          images: [{ image: image.id, alt }],
+        },
+      })
+      productIds.push(suggested.id)
+
+      const product = await payload.create({
+        collection: 'products',
+        overrideAccess: true,
+        context: { disableRevalidate: true },
+        draft: false,
+        data: {
+          title,
+          slug,
+          status: 'published',
+          _status: 'published',
+          isDemo: false,
+          currency: 'INR',
+          relatedProducts: [suggested.id],
+        },
+      })
+      productIds.push(product.id)
+
+      await page.goto(`/products/${slug}`)
+      const recommendation = page.locator(`.related-products a[href="/products/${suggestedSlug}"]`)
+      await expect(recommendation).toBeVisible()
+      await expect(recommendation.locator('img')).toHaveAttribute('alt', alt)
+      await expect(recommendation.locator('img')).toHaveAttribute('sizes', '(max-width: 759px) 44vw, (max-width: 1399px) 22vw, 314px')
+    } finally {
+      for (const id of productIds.reverse()) {
+        await payload.delete({
+          collection: 'products',
+          id,
+          overrideAccess: true,
+          context: { disableRevalidate: true },
+        })
+      }
+      if (mediaId !== undefined) {
+        await payload.delete({
+          collection: 'media',
+          id: mediaId,
+          overrideAccess: true,
+          context: { disableRevalidate: true },
+        })
+      }
+    }
+  })
+
   test('can load homepage', async ({ page }) => {
     await page.goto('/')
     await expect(page.locator('#home-title')).toBeVisible()

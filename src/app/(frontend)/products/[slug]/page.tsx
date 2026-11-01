@@ -15,10 +15,10 @@ import { SHARE_IMAGE_HEIGHT, SHARE_IMAGE_WIDTH, getProductShareImageURL } from '
 
 export const revalidate = 60
 
-async function loadProduct(slug: string) {
+async function loadProduct(slug: string, depth = 1) {
   const payload = await getPayload({ config })
   const [result, settings] = await Promise.all([
-    payload.find({ collection: 'products', where: { and: [{ slug: { equals: slug } }, { status: { equals: 'published' } }, { _status: { equals: 'published' } }, { isDemo: { not_equals: true } }] }, limit: 1, depth: 1 }),
+    payload.find({ collection: 'products', where: { and: [{ slug: { equals: slug } }, { status: { equals: 'published' } }, { _status: { equals: 'published' } }, { isDemo: { not_equals: true } }] }, limit: 1, depth }),
     payload.findGlobal({ slug: 'site-settings', depth: 0 }),
   ])
   const product = result.docs[0]
@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const { product, settings } = await loadProduct(slug)
+  const { product, settings } = await loadProduct(slug, 2)
   if (!product) {
     const temporary = TEMP_PRODUCTS.find((item) => item.slug === slug)
     if (!temporary) notFound()

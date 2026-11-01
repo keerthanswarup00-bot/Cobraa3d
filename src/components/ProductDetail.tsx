@@ -80,7 +80,7 @@ export function ProductDetail({ product, brandName, whatsappNumber, productTempl
       {product.careNotes && <div className="product-fact"><h2>Care</h2><p>{product.careNotes}</p></div>}
       {product.productionNote && <div className="product-fact"><h2>Production</h2><p>{product.productionNote}</p></div>}
     </section>
-    {!!related.length && <section className="related-products"><h2>You may also like</h2><div>{related.map((item) => <ProductLink href={`/products/${item.slug}`} key={item.slug}>{item.image?.url && <Image src={item.image.url} alt={item.image.alt} width={180} height={225} quality={75} loading="lazy" unoptimized={!item.image.url.startsWith('/')} />}<span>{item.title}</span></ProductLink>)}</div></section>}
+    {!!related.length && <section className="related-products"><h2>You may also like</h2><div>{related.map((item) => <ProductLink href={`/products/${item.slug}`} key={item.slug}>{item.image?.url && <Image src={item.image.url} alt={item.image.alt} width={180} height={225} sizes="(max-width: 759px) 44vw, (max-width: 1399px) 22vw, 314px" quality={75} loading="lazy" unoptimized={!item.image.url.startsWith('/')} />}<span>{item.title}</span></ProductLink>)}</div></section>}
     <div className="detail-mobile-cta">{waURL ? <a href={waURL} target="_blank" rel="noopener noreferrer">{product.isDemo ? 'Enquire on WhatsApp' : `${ctaLabel} · ${formatPrice(product.price, product.priceMode, product.currency || 'INR')}`}</a> : null}</div>
   </main>
 }
