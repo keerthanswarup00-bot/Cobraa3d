@@ -11,6 +11,7 @@ import { getDisplayPrice } from '@/lib/pricing'
 import { TEMP_PRODUCTS } from '@/lib/tempProducts'
 import type { Product } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
+import { SHARE_IMAGE_HEIGHT, SHARE_IMAGE_WIDTH, getProductShareImageURL } from '@/lib/shareImage-constants'
 
 export const revalidate = 60
 
@@ -48,15 +49,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const temporary = TEMP_PRODUCTS.find((item) => item.slug === slug)
     return temporary ? { title: temporary.name, description: temporary.blurb, robots: { index: false, follow: true } } : { title: 'Product not found' }
   }
-  const mainImage = product.images?.[0]?.image
-  const media = typeof mainImage === 'object' && mainImage ? mainImage : null
   const canonical = `/products/${product.slug}`
   const brandName = settings.brandName || 'Cobraa 3D'
   const title = product.seoTitle || product.meta?.title || `${product.title} | ${brandName}, Hoskote`
   const description = product.seoDescription || product.meta?.description || product.shortBenefit || product.shortDescription || `${product.title} is 3D printed in PLA and hand finished in Hoskote, Bengaluru. Custom colours available. Order on WhatsApp with delivery across India.`
+  // 1200x630 share card built from the product photo (see share.jpg/route.ts); falls back to the site default image.
+  const shareImage = {
+    url: getProductShareImageURL(getServerSideURL(), product.slug || slug, product.updatedAt),
+    width: SHARE_IMAGE_WIDTH,
+    height: SHARE_IMAGE_HEIGHT,
+    type: 'image/jpeg',
+    alt: product.images?.[0]?.alt || product.title,
+  }
   return {
     title, description, alternates: { canonical }, robots: product.isDemo ? { index: false, follow: false } : undefined,
-    openGraph: { title, description, url: canonical, images: media?.url ? [{ url: media.url, alt: product.images?.[0]?.alt || product.title }] : undefined },
+    openGraph: { type: 'website', siteName: brandName, locale: 'en_IN', title, description, url: canonical, images: [shareImage] },
+    twitter: { card: 'summary_large_image', title, description, images: [{ url: shareImage.url, alt: shareImage.alt }] },
   }
 }
 

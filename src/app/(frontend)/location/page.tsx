@@ -4,7 +4,10 @@ import config from '@payload-config'
 import type { Metadata } from 'next'
 import type { Media } from '@/payload-types'
 import { buildWhatsAppUrl } from '@/lib/shared'
-export const metadata: Metadata = { title: 'About Cobraa 3D | Hoskote, Bengaluru', description: 'Meet Cobraa 3D, a 3D printing studio in Hoskote, Bengaluru. Products are printed in PLA, hand finished and shipped across India.', alternates: { canonical: '/location' } }
+import { pageSocial } from '@/lib/siteMeta'
+const ABOUT_TITLE = 'About Cobraa 3D | Hoskote, Bengaluru'
+const ABOUT_DESCRIPTION = 'Meet Cobraa 3D, a 3D printing studio in Hoskote, Bengaluru. Products are printed in PLA, hand finished and shipped across India.'
+export const metadata: Metadata = { title: ABOUT_TITLE, description: ABOUT_DESCRIPTION, alternates: { canonical: '/location' }, ...pageSocial({ title: ABOUT_TITLE, description: ABOUT_DESCRIPTION, path: '/location' }) }
 const richText = (value: unknown): string => { if (!value || typeof value !== 'object') return ''; const node = value as { text?: string; children?: unknown[] }; return [node.text || '', ...(node.children || []).map(richText)].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim() }
 export default async function LocationPage() {
   const payload = await getPayload({ config })
