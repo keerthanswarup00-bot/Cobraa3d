@@ -15,7 +15,7 @@ type CustomOption = {
   text: string
   message: CustomMessageKind
   icon: LucideIcon
-  /** Phase 2 points this at the customiser. Null keeps the WhatsApp order link. */
+  /** A local route replaces the WhatsApp order link when one is available. */
   href: string | null
 }
 
@@ -26,7 +26,7 @@ const OPTIONS: CustomOption[] = [
     text: 'Your name or a short word, in the font and filament colour you choose.',
     message: 'name',
     icon: Type,
-    href: null,
+    href: '/custom/nameplate',
   },
   {
     key: 'nfc',

@@ -32,7 +32,10 @@ test.describe('Custom order landing page', () => {
     await expect(options.nth(1).getByRole('heading', { level: 3, name: 'NFC tag keychain' })).toBeVisible()
     await expect(options.nth(2).getByRole('heading', { level: 3, name: 'QR code keychain' })).toBeVisible()
 
-    for (let index = 0; index < 3; index += 1) {
+    const nameplateCta = options.nth(0).getByRole('link', { name: 'Customise' })
+    await expect(nameplateCta).toHaveAttribute('href', '/custom/nameplate')
+
+    for (let index = 1; index < 3; index += 1) {
       const cta = options.nth(index).getByRole('link', { name: /Order on WhatsApp/ })
       await expect(cta).toHaveAttribute('href', new RegExp(`^https://wa\\.me/${digits}\\?text=`))
     }
@@ -89,7 +92,7 @@ test.describe('Custom order landing page', () => {
 
     const actions = [
       page.getByRole('link', { name: 'Contact for custom 3D printed objects' }),
-      page.locator('[data-custom-option]').first().getByRole('link', { name: /Order on WhatsApp/ }),
+      page.locator('[data-custom-option="name"]').getByRole('link', { name: 'Customise' }),
       page.getByRole('link', { name: 'Message us on WhatsApp' }),
     ]
     for (const action of actions) {
