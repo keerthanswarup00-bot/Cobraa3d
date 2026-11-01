@@ -23,7 +23,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseURL}/refund-and-cancellation-policy`, changeFrequency: 'yearly' as const, priority: 0.3 },
     { url: `${baseURL}/shipping-and-delivery-policy`, changeFrequency: 'yearly' as const, priority: 0.3 },
     { url: `${baseURL}/product-safety-and-care`, changeFrequency: 'yearly' as const, priority: 0.3 },
-    { url: `${baseURL}/custom-orders`, changeFrequency: 'yearly' as const, priority: 0.3 },
     { url: `${baseURL}/3d-printing-bengaluru-hoskote`, changeFrequency: 'monthly' as const, priority: 0.7 },
     ...(hasContent(pages.privacy) ? [{ url: `${baseURL}/privacy`, changeFrequency: 'yearly' as const, priority: 0.3 }] : []),
     ...(hasContent(pages.terms) ? [{ url: `${baseURL}/terms`, changeFrequency: 'yearly' as const, priority: 0.3 }] : []),

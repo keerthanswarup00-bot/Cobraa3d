@@ -13,6 +13,7 @@ import {
 } from 'react'
 import { motion, useDragControls, useReducedMotion } from 'motion/react'
 import { ArrowRight, Share2, X } from 'lucide-react'
+import { ProductImage } from '@/components/product/ProductImage'
 import type { ProductPreviewData } from '@/lib/productPreview'
 import './product-sheet.css'
 
@@ -229,24 +230,20 @@ export function ProductSheet({
             </button>
           </div>
 
-          {data.images.length > 0 ? (
-            <div className="ps-gallery" onScroll={handleGalleryScroll} aria-label="Product photos">
-              {data.images.map((image, index) => (
-                <img
-                  key={`${image.url}-${index}`}
-                  className="ps-img"
-                  src={image.url}
-                  alt={image.alt || data.title}
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                  fetchPriority={index === 0 ? 'high' : 'auto'}
-                  decoding="async"
-                  draggable={false}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="ps-gallery ps-gallery-empty" aria-hidden="true" />
-          )}
+          <div className={`ps-gallery${data.images.length ? '' : ' ps-gallery-empty'}`} onScroll={handleGalleryScroll} aria-label="Product photos">
+            {data.images.length ? data.images.map((image, index) => (
+              <ProductImage
+                key={`${image.url}-${index}`}
+                className="ps-slide"
+                src={image.url}
+                slug={data.slug}
+                alt={image.alt || data.title}
+                sizes="100vw"
+                loading={index === 0 ? 'eager' : 'lazy'}
+                unoptimized={!image.url.startsWith('/')}
+              />
+            )) : <ProductImage className="ps-slide" slug={data.slug} alt="" sizes="100vw" />}
+          </div>
 
           {hasMultipleImages && (
             <div className="ps-dots" aria-hidden="true">

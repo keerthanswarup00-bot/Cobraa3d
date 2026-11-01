@@ -1,9 +1,9 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, Box, MessageCircle } from 'lucide-react'
+import { ArrowRight, MessageCircle } from 'lucide-react'
 import { ProductLink } from '@/components/product/ProductLink'
+import { ProductImage } from '@/components/product/ProductImage'
 import type { ConnectProduct } from './ConnectProducts'
 
 export function HomeProductGrid({ products, productsURL, viewAllLabel, eagerFirstImage = false }: {
@@ -19,16 +19,13 @@ export function HomeProductGrid({ products, productsURL, viewAllLabel, eagerFirs
           className="studio-product-photo"
           href={`/products/${product.slug}`}
           preview={product.preview}
-          prefetch={false}
           aria-label={`View ${product.title}`}
         >
-          {product.image?.url
-            ? <Image src={product.image.url} alt={product.image.alt || product.title} fill quality={75} sizes="(max-width: 760px) 74vw, (max-width: 1020px) 48vw, 390px" loading={eagerFirstImage && index === 0 ? 'eager' : 'lazy'} decoding="async" unoptimized={!product.image.url.startsWith('/')} />
-            : <span className="home-product-placeholder" aria-hidden="true"><Box size={34} strokeWidth={1.2} /></span>}
+          <ProductImage src={product.image?.url} slug={product.slug} alt={product.image?.alt || product.title} sizes="(max-width: 760px) 74vw, (max-width: 1020px) 48vw, 390px" loading={eagerFirstImage && index === 0 ? 'eager' : 'lazy'} unoptimized={Boolean(product.image?.url && !product.image.url.startsWith('/'))} />
           <small className="studio-product-tag">{product.tag}</small>
           <small className="studio-product-number">{String(index + 1).padStart(2, '0')}</small>
         </ProductLink>
-        <div className="studio-product-copy"><h3><ProductLink href={`/products/${product.slug}`} preview={product.preview} prefetch={false}>{product.title}</ProductLink></h3></div>
+        <div className="studio-product-copy"><h3><ProductLink href={`/products/${product.slug}`} preview={product.preview}>{product.title}</ProductLink></h3></div>
         <div className="studio-product-actions">
           <span className="studio-product-price">{product.priceLabel || 'Ask for price'}</span>
           {product.whatsappURL && <a className="studio-product-ask" href={product.whatsappURL} aria-label={`Ask about ${product.title} on WhatsApp`} data-wa-source="card" target="_blank" rel="noopener noreferrer"><MessageCircle size={19} strokeWidth={1.8} aria-hidden="true" /></a>}

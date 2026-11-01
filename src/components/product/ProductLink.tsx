@@ -62,7 +62,7 @@ export function ProductLink({
       {...rest}
       href={href}
       target={target}
-      prefetch={isMobile ? prefetch : false}
+      prefetch={prefetch ?? true}
       scroll={isMobile ? scroll : true}
       onClick={handleClick}
       onPointerDown={handlePointerDown}

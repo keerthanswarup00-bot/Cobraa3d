@@ -183,6 +183,7 @@ body:has(.pc-page) .connect-nav button:focus-visible { outline: 2px solid #fff; 
   transition: opacity .35s ease, transform .6s ease;
 }
 .pc-media .b { opacity: 0; }
+.pc-media .pc-image { object-fit: cover; }
 .pc-media .pc-fallback { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; background: #111; }
 @media (hover: hover) and (pointer: fine) {
   .pc-card:hover .pc-media { border-color: var(--pc-line-strong); }
@@ -191,6 +192,7 @@ body:has(.pc-page) .connect-nav button:focus-visible { outline: 2px solid #fff; 
   .pc-media.single:hover .a { transform: scale(1.05); }
 }
 .pc-card .pc-info { padding: 14px 2px 0; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.pc-media:active { transform: scale(.985); }
 .pc-card-title {
   font-size: 15px;
   font-weight: 500;
@@ -219,6 +221,12 @@ body:has(.pc-page) .connect-nav button:focus-visible { outline: 2px solid #fff; 
 
 .pc-empty { grid-column: 1 / -1; text-align: center; padding: 90px 0; color: var(--pc-muted); }
 .pc-empty b { display: block; color: #fff; font-size: 18px; margin-bottom: 8px; }
+.pc-custom-cta { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 24px; margin-bottom: 48px; border: 1px solid var(--pc-line); background: #0c0c0c; }
+.pc-custom-cta p { color: var(--pc-muted); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+.pc-custom-cta h2 { margin-top: 6px; font-size: clamp(20px, 3vw, 28px); }
+.pc-custom-cta span { display: block; margin-top: 6px; color: var(--pc-muted); font-size: 13px; }
+.pc-custom-cta a { display: inline-flex; min-height: 44px; flex: none; align-items: center; justify-content: center; padding: 0 16px; border: 1px solid var(--pc-line-strong); border-radius: 8px; }
+.pc-custom-cta a:hover { background: #fff; color: #000; }
 
 /* ============ pagination ============ */
 .pc-pager { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 56px; flex-wrap: wrap; }
@@ -317,6 +325,7 @@ body:has(.pc-page) .connect-nav button:focus-visible { outline: 2px solid #fff; 
   .pc-card .pc-price { font-size: 15px; }
   .pc-filter-sheet .pc-opt { min-height: 46px; font-size: 16px; }
   .pc-filter-sheet .pc-opt input { width: 20px; height: 20px; }
+  .pc-custom-cta { align-items: stretch; flex-direction: column; padding: 18px; }
 }
 
 @media (max-width: 767px) {

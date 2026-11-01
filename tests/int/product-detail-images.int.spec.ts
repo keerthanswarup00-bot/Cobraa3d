@@ -1,7 +1,11 @@
-import { createElement } from 'react'
+import { createElement, type ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ProductDetail } from '@/components/ProductDetail'
+
+vi.mock('@/components/product/ProductLink', () => ({
+  ProductLink: ({ href, children }: { href: string; children: ReactNode }) => createElement('a', { href }, children),
+}))
 
 const remote = 'https://abc.supabase.co/storage/v1/object/public/media/lamp.webp'
 const remoteSecond = 'https://abc.supabase.co/storage/v1/object/public/media/lamp-2.webp'
@@ -29,8 +33,8 @@ describe('product detail page images', () => {
     expect(html).toContain('/_next/image?url=%2Fapi%2Fmedia%2Ffile%2Flamp.webp')
   })
 
-  it('shows the title placeholder only when a product truly has no photo', () => {
-    expect(render([])).toContain('detail-image-empty')
-    expect(render([{ url: remote, alt: 'Lamp' }])).not.toContain('detail-image-empty')
+  it('reserves the image area and uses the neutral fallback when a product has no photo', () => {
+    expect(render([])).toContain('product-image-fallback')
+    expect(render([{ url: remote, alt: 'Lamp' }])).not.toContain('product-image-fallback')
   })
 })

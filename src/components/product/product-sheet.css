@@ -60,15 +60,22 @@
   background: linear-gradient(145deg, #24211d, #11100e 70%);
 }
 
-.ps-img {
+.ps-slide {
   flex: none;
   width: 100%;
   height: 100%;
+  position: relative;
+  inset: auto;
   scroll-snap-align: center;
   scroll-snap-stop: always;
+  background: #1a1a1a;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.ps-slide img {
   object-fit: cover;
   object-position: center 40%;
-  background: #1a1a1a;
   user-select: none;
   -webkit-user-drag: none;
 }

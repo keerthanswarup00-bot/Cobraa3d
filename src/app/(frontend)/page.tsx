@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowDownRight, ArrowRight, Box, MapPin, MessageCircle, Nfc } from 'lucide-react'
 import { getPayload } from 'payload'
@@ -8,6 +7,7 @@ import type { ConnectProduct } from '@/components/home/ConnectProducts'
 import { HomeProductGrid } from '@/components/home/HomeProductGrid'
 import { HomeReviews } from '@/components/home/HomeReviews'
 import { ProductLink } from '@/components/product/ProductLink'
+import { ProductImage } from '@/components/product/ProductImage'
 import { buildProductMessage, buildWhatsAppUrl } from '@/lib/shared'
 import { buildProductPreview } from '@/lib/productPreview'
 import { slugifyFilterValue } from '@/lib/catalogFilters'
@@ -188,7 +188,7 @@ export default async function HomePage() {
         </div>
       </div>
       {heroProduct && <ProductLink className="home-hero-visual" href={`/products/${heroProduct.slug}`} preview={heroProduct.preview} aria-label={`Discover ${heroProduct.title}`}>
-        {heroProduct.image?.url ? <Image src={heroProduct.image.url} alt={`3D printed ${heroProduct.title}`} fill preload quality={75} fetchPriority="high" sizes="(max-width: 760px) 100vw, 48vw" unoptimized={!heroProduct.image.url.startsWith('/')} /> : <div className="home-hero-placeholder" aria-hidden="true"><Box size={68} strokeWidth={1} /></div>}
+        <ProductImage src={heroProduct.image?.url} slug={heroProduct.slug} alt={`3D printed ${heroProduct.title}`} sizes="(max-width: 760px) 100vw, 48vw" preload={Boolean(heroProduct.image?.url)} unoptimized={Boolean(heroProduct.image?.url && !heroProduct.image.url.startsWith('/'))} />
         <span>{heroProduct.title}<ArrowDownRight size={18} aria-hidden="true" /></span>
       </ProductLink>}
     </section>
@@ -223,7 +223,7 @@ export default async function HomePage() {
     </section>
 
     <footer className="home-footer">
-      <div className="home-footer-top"><Link href="/" className="home-footer-brand">Cobraa<i>.</i>3D</Link><nav aria-label="Footer navigation"><Link href="/products">Products</Link><Link href="/location">About the studio</Link>{settings.mapsUrl && <a href={settings.mapsUrl} target="_blank" rel="noopener noreferrer">Directions</a>}{footerSocialLinks.map((link) => <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer">{link.label}</a>)}<Link href="/contact">Contact</Link><Link href="/refund-and-cancellation-policy">Refund &amp; Cancellation</Link><Link href="/shipping-and-delivery-policy">Shipping &amp; Delivery</Link><Link href="/product-safety-and-care">Product Safety</Link><Link href="/custom-orders">Custom Orders</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link></nav>{whatsAppURL && <a href={whatsAppURL} target="_blank" rel="noopener noreferrer">WhatsApp <ArrowRight size={15} /></a>}</div>
+      <div className="home-footer-top"><Link href="/" className="home-footer-brand">Cobraa<i>.</i>3D</Link><nav aria-label="Footer navigation"><Link href="/products">Products</Link><Link href="/location">About the studio</Link>{settings.mapsUrl && <a href={settings.mapsUrl} target="_blank" rel="noopener noreferrer">Directions</a>}{footerSocialLinks.map((link) => <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer">{link.label}</a>)}<Link href="/contact">Contact</Link><Link href="/refund-and-cancellation-policy">Refund &amp; Cancellation</Link><Link href="/shipping-and-delivery-policy">Shipping &amp; Delivery</Link><Link href="/product-safety-and-care">Product Safety</Link><Link href="/custom">Custom Orders</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link></nav>{whatsAppURL && <a href={whatsAppURL} target="_blank" rel="noopener noreferrer">WhatsApp <ArrowRight size={15} /></a>}</div>
       <div className="home-footer-bottom"><span>© {new Date().getFullYear()} {settings.brandName || 'Cobraa 3D'}</span><span>Hoskote, Bengaluru</span><Link href="#top">Back to top ↑</Link></div>
       <div className="home-footer-contact">
         {(settings.phone || settings.whatsappNumber) && <a href={`tel:+${String(settings.phone || settings.whatsappNumber).replace(/\D/g, '')}`}>+{String(settings.phone || settings.whatsappNumber).replace(/\D/g, '')}</a>}

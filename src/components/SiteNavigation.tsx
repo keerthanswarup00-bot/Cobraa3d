@@ -18,7 +18,6 @@ export function SiteNavigation({ brandName, whatsappURL }: { brandName: string; 
   const pathname = usePathname()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
-  const [activeSection, setActiveSection] = useState('')
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const menuPanelRef = useRef<HTMLDivElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
@@ -51,17 +50,6 @@ export function SiteNavigation({ brandName, whatsappURL }: { brandName: string; 
       window.removeEventListener('popstate', close)
     }
   }, [])
-
-  useEffect(() => {
-    if (pathname !== '/') return
-    const sections = ['products', 'custom'].map((id) => document.getElementById(id)).filter((node): node is HTMLElement => Boolean(node))
-    const observer = new IntersectionObserver(
-      (entries) => entries.forEach((entry) => { if (entry.isIntersecting) setActiveSection(entry.target.id) }),
-      { rootMargin: '-45% 0px -50% 0px' },
-    )
-    sections.forEach((section) => observer.observe(section))
-    return () => observer.disconnect()
-  }, [pathname])
 
   useEffect(() => {
     if (!open) return
@@ -123,15 +111,15 @@ export function SiteNavigation({ brandName, whatsappURL }: { brandName: string; 
     }
   }, [open, closeMenu])
 
-  const activeKey = pathname === '/'
-    ? activeSection || 'home'
-    : pathname.startsWith('/products')
-      ? 'products'
-      : pathname.startsWith('/custom')
-        ? 'custom'
+  const activeKey = pathname.startsWith('/products')
+    ? 'products'
+    : pathname.startsWith('/custom')
+      ? 'custom'
+      : pathname === '/'
+        ? 'home'
         : ''
 
-  const hrefFor = (key: (typeof LINKS)[number]['key']) => key === 'home' ? '/' : key === 'products' ? '/products' : pathname === '/' ? '#custom' : '/#custom'
+  const hrefFor = (key: (typeof LINKS)[number]['key']) => key === 'home' ? '/' : key === 'products' ? '/products' : '/custom'
 
   const menu = open ? createPortal(
     <div
