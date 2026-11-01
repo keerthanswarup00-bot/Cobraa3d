@@ -58,7 +58,7 @@ test.describe('Homepage product journey', () => {
 
     const about = page.locator('.home-about')
     await expect(about.getByRole('heading', { name: 'About Cobraa 3D' })).toBeVisible()
-    await expect(about.getByText('At Cobraa 3D, we turn creativity into something you can touch!', { exact: false })).toBeVisible()
+    await expect(about.getByText('Cobraa 3D is a 3D printing studio in Hoskote, Bengaluru.', { exact: false })).toBeVisible()
     await expect(about.locator('a, button')).toHaveCount(0)
 
     const reviews = page.locator('.home-reviews')
@@ -104,13 +104,12 @@ test.describe('Homepage product journey', () => {
     }
   })
 
-  test('the NFC keychain remains a future concept and is not presented as orderable', async ({ page }) => {
+  test('the custom teaser links to the custom order page', async ({ page }) => {
     await skipSplash(page)
     await page.goto('/')
 
     const teaser = page.locator('#custom')
-    await expect(teaser.getByRole('heading', { name: 'NFC keychain' })).toBeVisible()
-    await expect(teaser.getByText('Coming later')).toBeVisible()
-    await expect(teaser.locator('a, button')).toHaveCount(0)
+    await expect(teaser.getByRole('heading', { name: 'Custom 3D prints' })).toBeVisible()
+    await expect(teaser.getByRole('link', { name: /Start a custom order/ })).toHaveAttribute('href', '/custom')
   })
 })

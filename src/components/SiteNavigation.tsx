@@ -9,7 +9,7 @@ import { MessageCircle, X } from 'lucide-react'
 const LINKS = [
   { key: 'home', label: 'Home' },
   { key: 'products', label: 'Products' },
-  { key: 'custom', label: 'Custom orders' },
+  { key: 'custom', label: 'Custom' },
 ] as const
 
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
@@ -131,7 +131,7 @@ export function SiteNavigation({ brandName, whatsappURL }: { brandName: string; 
         ? 'custom'
         : ''
 
-  const hrefFor = (key: (typeof LINKS)[number]['key']) => key === 'home' ? '/' : key === 'products' ? '/products' : pathname === '/' ? '#custom' : '/#custom'
+  const hrefFor = (key: (typeof LINKS)[number]['key']) => key === 'home' ? '/' : key === 'products' ? '/products' : '/custom'
 
   const menu = open ? createPortal(
     <div

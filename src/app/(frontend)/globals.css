@@ -743,6 +743,7 @@ main a:focus-visible, main button:focus-visible, footer a:focus-visible, footer 
 .route-empty { margin-top:40px; padding:48px 20px; border:1px solid var(--cobraa-border); background:var(--cobraa-soft); }
 .route-empty h2,.custom-route-studio h2,.custom-route-form h2 { font:400 32px var(--font-instrument-serif); }
 .custom-route-studio,.custom-route-form { margin-top:44px; padding-top:28px; border-top:1px solid var(--cobraa-border); }
+.bodyLink { display:inline-flex; min-height:44px; align-items:center; color:inherit; text-underline-offset:3px; }
 .location-page address { margin:28px 0; font-style:normal; line-height:1.8; }
 .route-actions { display:flex; flex-wrap:wrap; gap:12px; }
 .route-actions a { min-height:44px; display:inline-flex; align-items:center; padding:0 18px; border:1px solid var(--cobraa-border); color:inherit; text-decoration:none; }

@@ -56,7 +56,7 @@ test.describe('Frontend', () => {
   })
 
   test('nameplate enquiry keeps the selected details in the custom request', async ({ page }) => {
-    await page.goto('/custom')
+    await page.goto('/custom/nameplate')
     await page.locator('.custom-route-studio').scrollIntoViewIfNeeded()
     const textInput = page.getByLabel('Your text')
     await expect(textInput).toBeVisible()
@@ -341,7 +341,7 @@ test.describe('Frontend', () => {
     await expect(page).toHaveURL(/\/products$/)
     await expect(page.getByRole('heading', { level: 1, name: /Thoughtful design\./ })).toBeVisible()
     await page.goto('/custom')
-    await expect(page.getByRole('heading', { name: 'Custom orders' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Custom 3D prints, made for you' })).toBeVisible()
     await page.goto('/location')
     await expect(page.getByRole('heading', { name: 'Cobraa 3D' })).toBeVisible()
     await page.goto('/products')
@@ -364,7 +364,7 @@ test.describe('Frontend', () => {
     expect(motion.animation).toBe('1e-05s')
     expect(motion.transition).toBe('1e-05s')
     await page.goto('/custom')
-    await expect(page.getByRole('heading', { name: 'Custom orders' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Custom 3D prints, made for you' })).toBeVisible()
     for (const width of [375, 430, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 })
       const overflow = await page.evaluate(() => ({ width: document.documentElement.scrollWidth, viewport: document.documentElement.clientWidth, elements: [...document.querySelectorAll<HTMLElement>('body *')].filter((node) => { const rect = node.getBoundingClientRect(); return rect.width > 0 && (rect.right > document.documentElement.clientWidth + 1 || rect.left < -1) }).slice(0, 8).map((node) => ({ tag: node.tagName, class: node.className, text: node.innerText?.slice(0, 40), right: Math.round(node.getBoundingClientRect().right) })) }))

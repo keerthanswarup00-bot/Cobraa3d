@@ -12,6 +12,7 @@ async function revalidatePublicSite() {
   revalidatePath('/products')
   revalidatePath('/products/[slug]', 'page')
   revalidatePath('/custom')
+  revalidatePath('/custom/nameplate')
   revalidatePath('/location')
 }
 

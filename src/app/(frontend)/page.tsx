@@ -202,10 +202,10 @@ export default async function HomePage() {
 
     {lightingCategory && <ProductSection eyebrow="Explore by category" title={lightingCategory.name} products={lightingProducts} categorySlug={lightingCategory.slug} href={`/products?category=${encodeURIComponent(lightingCategory.slug)}`} viewMore={`View more ${lightingCategory.name.toLowerCase()}`} />}
 
-    <section className="home-custom-teaser" id="custom" aria-labelledby="nfc-title">
+    <section className="home-custom-teaser" id="custom" aria-labelledby="custom-teaser-title">
       <div className="home-custom-icon"><Nfc size={35} strokeWidth={1.5} aria-hidden="true" /></div>
-      <div><p className="home-eyebrow">Custom idea · in development</p><h2 id="nfc-title">NFC keychain</h2><p>A custom keychain concept we’re setting aside for a future build.</p></div>
-      <span className="home-coming-soon">Coming later</span>
+      <div><p className="home-eyebrow">Made to order</p><h2 id="custom-teaser-title">Custom 3D prints</h2><p>Name, NFC and QR keychains, or something else you have in mind.</p></div>
+      <Link className="home-custom-link" href="/custom">Start a custom order <ArrowRight size={15} aria-hidden="true" /></Link>
     </section>
 
     {otherCategory && <ProductSection eyebrow="More to explore" title={otherCategory.name} products={otherProducts} categorySlug={otherCategory.slug} href={`/products?category=${encodeURIComponent(otherCategory.slug)}`} viewMore={`View more ${otherCategory.name.toLowerCase()}`} />}
@@ -223,7 +223,7 @@ export default async function HomePage() {
     </section>
 
     <footer className="home-footer">
-      <div className="home-footer-top"><Link href="/" className="home-footer-brand">Cobraa<i>.</i>3D</Link><nav aria-label="Footer navigation"><Link href="/products">Products</Link><Link href="/location">About the studio</Link>{settings.mapsUrl && <a href={settings.mapsUrl} target="_blank" rel="noopener noreferrer">Directions</a>}{footerSocialLinks.map((link) => <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer">{link.label}</a>)}<Link href="/contact">Contact</Link><Link href="/refund-and-cancellation-policy">Refund &amp; Cancellation</Link><Link href="/shipping-and-delivery-policy">Shipping &amp; Delivery</Link><Link href="/product-safety-and-care">Product Safety</Link><Link href="/custom-orders">Custom Orders</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link></nav>{whatsAppURL && <a href={whatsAppURL} target="_blank" rel="noopener noreferrer">WhatsApp <ArrowRight size={15} /></a>}</div>
+      <div className="home-footer-top"><Link href="/" className="home-footer-brand">Cobraa<i>.</i>3D</Link><nav aria-label="Footer navigation"><Link href="/products">Products</Link><Link href="/location">About the studio</Link>{settings.mapsUrl && <a href={settings.mapsUrl} target="_blank" rel="noopener noreferrer">Directions</a>}{footerSocialLinks.map((link) => <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer">{link.label}</a>)}<Link href="/contact">Contact</Link><Link href="/refund-and-cancellation-policy">Refund &amp; Cancellation</Link><Link href="/shipping-and-delivery-policy">Shipping &amp; Delivery</Link><Link href="/product-safety-and-care">Product Safety</Link><Link href="/custom">Custom Orders</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link></nav>{whatsAppURL && <a href={whatsAppURL} target="_blank" rel="noopener noreferrer">WhatsApp <ArrowRight size={15} /></a>}</div>
       <div className="home-footer-bottom"><span>© {new Date().getFullYear()} {settings.brandName || 'Cobraa 3D'}</span><span>Hoskote, Bengaluru</span><Link href="#top">Back to top ↑</Link></div>
       <div className="home-footer-contact">
         {(settings.phone || settings.whatsappNumber) && <a href={`tel:+${String(settings.phone || settings.whatsappNumber).replace(/\D/g, '')}`}>+{String(settings.phone || settings.whatsappNumber).replace(/\D/g, '')}</a>}
