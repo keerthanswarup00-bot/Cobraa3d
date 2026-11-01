@@ -2,6 +2,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { composeShareImage } from '@/lib/shareImage'
 import { getServerSideURL } from '@/utilities/getURL'
+import { DEFAULT_SHARE_IMAGE_PATH } from '@/lib/siteMeta'
 
 export const runtime = 'nodejs'
 
@@ -12,7 +13,7 @@ const MAX_SOURCE_BYTES = 15 * 1024 * 1024
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const siteURL = getServerSideURL()
-  const fallback = () => Response.redirect(new URL('/share-default.jpg', siteURL), 307)
+  const fallback = () => Response.redirect(new URL(DEFAULT_SHARE_IMAGE_PATH, siteURL), 307)
   try {
     const payload = await getPayload({ config })
     const { docs } = await payload.find({
