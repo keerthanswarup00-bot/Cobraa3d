@@ -3,8 +3,11 @@ import config from '@payload-config'
 import type { Metadata } from 'next'
 import { LazyNameplateStudio } from '@/components/LazyNameplateStudio'
 import { LazyEnquiryForm } from '@/components/LazyEnquiryForm'
+import { pageSocial } from '@/lib/siteMeta'
 export const dynamic = 'force-dynamic'
-export const metadata: Metadata = { title: 'Custom Orders', alternates: { canonical: '/custom' } }
+const CUSTOM_TITLE = 'Custom 3D Prints | Cobraa 3D, Hoskote'
+const CUSTOM_DESCRIPTION = 'Have an idea for a custom 3D print? Tell Cobraa 3D, a studio in Hoskote, Bengaluru, on WhatsApp. Made to order and shipped across India.'
+export const metadata: Metadata = { title: CUSTOM_TITLE, description: CUSTOM_DESCRIPTION, alternates: { canonical: '/custom' }, ...pageSocial({ title: CUSTOM_TITLE, description: CUSTOM_DESCRIPTION, path: '/custom' }) }
 export default async function CustomPage() {
   const payload = await getPayload({ config })
   const settings = await payload.findGlobal({ slug: 'site-settings', depth: 2 })

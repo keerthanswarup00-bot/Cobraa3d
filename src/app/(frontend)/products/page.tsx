@@ -8,14 +8,18 @@ import { buildProductMessage, buildWhatsAppUrl, getVisibleCategories } from '@/l
 import { buildProductPreview } from '@/lib/productPreview'
 import { getSiteSettings } from '@/utilities/getSiteSettings'
 import { getServerSideURL } from '@/utilities/getURL'
+import { pageSocial } from '@/lib/siteMeta'
 import type { Product } from '@/payload-types'
 import { env } from '@/lib/env'
 import { normalizeSearch, parseCatalogFilters, slugifyFilterValue } from '@/lib/catalogFilters'
 
+const PRODUCTS_TITLE = '3D Printed Products | Cobraa 3D, Hoskote'
+const PRODUCTS_DESCRIPTION = 'Browse 3D printed products from Cobraa 3D, a studio in Hoskote, Bengaluru. Ask about products on WhatsApp; shipping is available across India.'
 export const metadata: Metadata = {
-  title: '3D Printed Products | Cobraa 3D, Hoskote',
-  description: 'Browse 3D printed products from Cobraa 3D, a studio in Hoskote, Bengaluru. Ask about products on WhatsApp; shipping is available across India.',
+  title: PRODUCTS_TITLE,
+  description: PRODUCTS_DESCRIPTION,
   alternates: { canonical: '/products' },
+  ...pageSocial({ title: PRODUCTS_TITLE, description: PRODUCTS_DESCRIPTION, path: '/products' }),
 }
 
 function visualFor(product: Product): ConnectProduct['visual'] {
