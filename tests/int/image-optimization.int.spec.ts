@@ -35,7 +35,7 @@ describe('configured media image optimization', () => {
       }],
     } satisfies Pick<Product, 'images' | 'title'>
 
-    expect(previewImages(product)).toEqual([{ url: 'https://cdn.example.test/media/lamp.webp', alt: 'Lamp' }])
+    expect(previewImages(product)).toEqual([{ url: 'https://cdn.example.test/media/lamp.webp', alt: 'Lamp', fallbackURL: undefined }])
   })
 
   it('uses Payload thumbnail variants for the detail-page thumbnail strip', () => {

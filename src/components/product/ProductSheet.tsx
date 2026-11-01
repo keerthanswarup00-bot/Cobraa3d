@@ -13,9 +13,9 @@ import {
 } from 'react'
 import { motion, useDragControls, useReducedMotion } from 'motion/react'
 import { ArrowRight, Share2, X } from 'lucide-react'
-import Image from 'next/image'
 import type { ProductPreviewData } from '@/lib/productPreview'
 import { shouldOptimizeImage } from '@/lib/imageOptimization'
+import { StorefrontImage } from './StorefrontImage'
 import './product-sheet.css'
 
 const FOCUSABLE = 'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])'
@@ -235,9 +235,10 @@ export function ProductSheet({
             <div className="ps-gallery" onScroll={handleGalleryScroll} aria-label="Product photos">
               {data.images.map((image, index) => (
                 <div className="ps-slide" key={`${image.url}-${index}`}>
-                  <Image
+                  <StorefrontImage
                     className="ps-img"
                     src={image.url}
+                    fallbackSrc={image.fallbackURL}
                     alt={image.alt || data.title}
                     fill
                     sizes="(max-width: 760px) 100vw, 600px"

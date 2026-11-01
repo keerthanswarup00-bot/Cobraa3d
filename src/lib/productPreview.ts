@@ -2,7 +2,7 @@ import type { Media, Product } from '@/payload-types'
 import { getDisplayPrice } from '@/lib/pricing'
 import { buildProductMessage, buildWhatsAppUrl } from '@/lib/shared'
 
-export type ProductPreviewImage = { url: string; alt?: string | null }
+export type ProductPreviewImage = { url: string; fallbackURL?: string; alt?: string | null }
 
 export function getProductThumbnailURL(media: Media | null | undefined): string {
   return media?.sizes?.thumbnail?.url || media?.url || ''
@@ -52,7 +52,8 @@ export function previewImages(product: Pick<Product, 'images' | 'title'>): Produ
   return (product.images || []).flatMap((row) => {
     const media = row.image && typeof row.image === 'object' ? row.image : null
     const url = media?.url
-    return url ? [{ url, alt: row.alt || media?.alt || product.title }] : []
+    const thumbnailURL = getProductThumbnailURL(media)
+    return url ? [{ url, fallbackURL: thumbnailURL !== url ? thumbnailURL : undefined, alt: row.alt || media?.alt || product.title }] : []
   })
 }
 

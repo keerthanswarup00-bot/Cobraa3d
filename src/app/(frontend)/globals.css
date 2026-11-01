@@ -827,6 +827,9 @@ main a:focus-visible, main button:focus-visible, footer a:focus-visible, footer 
 .related-products > div { gap: 24px 16px; }
 .related-products > div > a { color: #24231f; font-size: 13px; text-decoration: none; }
 .related-products img { width: 100%; aspect-ratio: 4 / 5; height: auto; margin-bottom: 10px; border-radius: 5px; background: #f4f2ed; object-fit: cover; transition: transform 240ms ease; }
+.storefront-image-fallback { display: block; min-height: 1px; background: #f4f2ed; }
+.storefront-image-fallback.is-fill { position: absolute; inset: 0; width: 100%; height: 100%; }
+.related-products .storefront-image-fallback:not(.is-fill) { width: 100%; aspect-ratio: 4 / 5; height: auto; margin-bottom: 10px; border-radius: 5px; }
 .related-products > div > a:hover img { transform: translateY(-3px); }
 .product-detail-extras, .product-policy-links { width: min(100% - 32px, 1120px); margin: 28px auto 0; color: #24231f; }
 .product-detail-extras h2 { margin: 0 0 14px; font: 400 24px/1.1 var(--font-instrument-serif); }

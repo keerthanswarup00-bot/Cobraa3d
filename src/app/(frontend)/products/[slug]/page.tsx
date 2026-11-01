@@ -87,8 +87,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const related = relatedProducts.map((item) => {
     const image = item.images?.[0]?.image
     const media = typeof image === 'object' && image ? image : undefined
-    const url = media?.url
-    return { slug: item.slug || '', title: item.title, image: url ? { url, alt: item.images?.[0]?.alt || item.title } : undefined }
+    const url = media ? getProductThumbnailURL(media) : ''
+    return { slug: item.slug || '', title: item.title, image: url ? { url, fallbackURL: media?.url !== url ? media?.url || undefined : undefined, alt: item.images?.[0]?.alt || item.title } : undefined }
   })
   const productData = {
     title: product.title, slug: product.slug || slug, shortDescription: product.shortDescription,
