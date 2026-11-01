@@ -41,6 +41,25 @@ test.describe('Custom order landing page', () => {
     await expect(page.getByRole('link', { name: 'Message us on WhatsApp' })).toBeVisible()
   })
 
+  test('both custom routes share the same default share image and their own title', async ({ page }) => {
+    // metadataBase is the configured site URL, which differs from the dev port.
+    // Compare the image path only, so this stays about the pageSocial wiring.
+    for (const { path, title } of [
+      { path: '/custom', title: 'Custom 3D Prints | Cobraa 3D, Hoskote' },
+      { path: '/custom/nameplate', title: 'Nameplate studio | Cobraa 3D, Hoskote' },
+    ]) {
+      await page.goto(path)
+
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', new RegExp(`${path}$`))
+      await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', title)
+      await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', new RegExp(`${path}$`))
+      const image = await page.locator('meta[property="og:image"]').first().getAttribute('content')
+      expect(new URL(image!).pathname).toBe('/share-home.jpg')
+      await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image')
+      await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute('content', /\/share-home\.jpg$/)
+    }
+  })
+
   test('the main nav and the home teaser link to /custom', async ({ page }) => {
     await page.goto('/')
 
