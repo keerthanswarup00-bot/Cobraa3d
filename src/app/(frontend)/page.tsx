@@ -195,7 +195,7 @@ export default async function HomePage() {
 
     <section className="home-how" aria-labelledby="home-how-title">
       <div><p className="home-eyebrow">A simple process</p><h2 id="home-how-title">How ordering works</h2></div>
-      <ol><li><b>01</b><span>Choose a product</span></li><li><b>02</b><span>Pay online or ask us on WhatsApp</span></li><li><b>03</b><span>We print and pack your order</span></li><li><b>04</b><span>We ship across India</span></li></ol>
+      <ol><li><b>01</b><span>Choose a product</span></li><li><b>02</b><span>Message us on WhatsApp to confirm details and payment</span></li><li><b>03</b><span>We print and pack your order</span></li><li><b>04</b><span>We ship across India</span></li></ol>
     </section>
 
     <ProductSection eyebrow="Selected for you" title="Featured products" description="A few pieces from the studio." products={featured} href="/products" viewMore="View all products" />

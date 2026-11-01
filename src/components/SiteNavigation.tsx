@@ -131,7 +131,7 @@ export function SiteNavigation({ brandName, whatsappURL }: { brandName: string; 
         ? 'custom'
         : ''
 
-  const hrefFor = (key: (typeof LINKS)[number]['key']) => key === 'home' ? '/' : key === 'products' ? '/products' : pathname === '/' ? '#custom' : '/#custom'
+  const hrefFor = (key: (typeof LINKS)[number]['key']) => key === 'home' ? '/' : key === 'products' ? '/products' : '/custom'
 
   const menu = open ? createPortal(
     <div

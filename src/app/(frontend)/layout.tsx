@@ -61,11 +61,12 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = settings.seoDefaults?.description?.trim() || settings.hero?.description?.trim() || DEFAULT_SITE_DESCRIPTION
   const image = defaultShareImage(brand)
   // Pages that set their own openGraph (home, products) replace this; every other page inherits a proper preview.
+  const base = getServerSideURL()
   return {
-    metadataBase: new URL(getServerSideURL()),
+    metadataBase: new URL(base),
     title: settings.brandName,
     description,
-    openGraph: { type: 'website', siteName: brand, title: settings.brandName, description, images: [image] },
+    openGraph: { type: 'website', siteName: brand, title: settings.brandName, description, url: base, images: [image] },
     twitter: { card: 'summary_large_image', title: settings.brandName, description, images: [image.url] },
   }
 }
