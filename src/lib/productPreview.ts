@@ -1,8 +1,12 @@
-import type { Product } from '@/payload-types'
+import type { Media, Product } from '@/payload-types'
 import { getDisplayPrice } from '@/lib/pricing'
 import { buildProductMessage, buildWhatsAppUrl } from '@/lib/shared'
 
 export type ProductPreviewImage = { url: string; alt?: string | null }
+
+export function getProductThumbnailURL(media: Media | null | undefined): string {
+  return media?.sizes?.thumbnail?.url || media?.url || ''
+}
 
 /**
  * The small payload the phone preview sheet needs. Listing pages build this on
@@ -47,8 +51,7 @@ export function previewDescription(
 export function previewImages(product: Pick<Product, 'images' | 'title'>): ProductPreviewImage[] {
   return (product.images || []).flatMap((row) => {
     const media = row.image && typeof row.image === 'object' ? row.image : null
-    // The card already loaded the 900px derivative, so the hero is usually a cache hit.
-    const url = media?.sizes?.medium?.url || media?.sizes?.large?.url || media?.url
+    const url = media?.url
     return url ? [{ url, alt: row.alt || media?.alt || product.title }] : []
   })
 }

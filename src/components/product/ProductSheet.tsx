@@ -13,7 +13,9 @@ import {
 } from 'react'
 import { motion, useDragControls, useReducedMotion } from 'motion/react'
 import { ArrowRight, Share2, X } from 'lucide-react'
+import Image from 'next/image'
 import type { ProductPreviewData } from '@/lib/productPreview'
+import { shouldOptimizeImage } from '@/lib/imageOptimization'
 import './product-sheet.css'
 
 const FOCUSABLE = 'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])'
@@ -232,16 +234,21 @@ export function ProductSheet({
           {data.images.length > 0 ? (
             <div className="ps-gallery" onScroll={handleGalleryScroll} aria-label="Product photos">
               {data.images.map((image, index) => (
-                <img
-                  key={`${image.url}-${index}`}
-                  className="ps-img"
-                  src={image.url}
-                  alt={image.alt || data.title}
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                  fetchPriority={index === 0 ? 'high' : 'auto'}
-                  decoding="async"
-                  draggable={false}
-                />
+                <div className="ps-slide" key={`${image.url}-${index}`}>
+                  <Image
+                    className="ps-img"
+                    src={image.url}
+                    alt={image.alt || data.title}
+                    fill
+                    sizes="(max-width: 760px) 100vw, 600px"
+                    quality={75}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    fetchPriority={index === 0 ? 'high' : 'auto'}
+                    decoding="async"
+                    draggable={false}
+                    unoptimized={!shouldOptimizeImage(image.url)}
+                  />
+                </div>
               ))}
             </div>
           ) : (

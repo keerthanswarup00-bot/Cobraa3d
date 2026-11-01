@@ -14,6 +14,7 @@ import { slugifyFilterValue } from '@/lib/catalogFilters'
 import { getDisplayPrice } from '@/lib/pricing'
 import { getServerSideURL } from '@/utilities/getURL'
 import { getSiteSettings } from '@/utilities/getSiteSettings'
+import { shouldOptimizeImage } from '@/lib/imageOptimization'
 import { DEFAULT_SHARE_IMAGE_PATH } from '@/lib/siteMeta'
 import type { Product } from '@/payload-types'
 
@@ -46,10 +47,7 @@ function visualFor(product: Product): ConnectProduct['visual'] {
 function asHomeProduct(product: Product, siteURL: string, productTemplate?: string | null, whatsappNumber?: string | null): ConnectProduct {
   const mediaRow = product.images?.find((row) => row.image && typeof row.image === 'object')
   const media = mediaRow?.image && typeof mediaRow.image === 'object' ? mediaRow.image : null
-  // Use the 900px derivative instead of the full-resolution upload. The card and
-  // hero never render wider than ~400px, and next/image re-encodes this smaller
-  // source to AVIF/WebP instead of pulling the multi-megabyte original.
-  const displayMedia = media?.sizes?.medium || media
+  const displayMedia = media
   const category = typeof product.category === 'object' && product.category ? product.category : null
   const displayPrice = getDisplayPrice({ id: product.id, price: product.price, salePrice: product.salePrice, priceMode: product.priceMode, currency: product.currency })
   const messagePrice = displayPrice.showOffer ? displayPrice.offerPrice ?? product.price : product.price
@@ -188,7 +186,7 @@ export default async function HomePage() {
         </div>
       </div>
       {heroProduct && <ProductLink className="home-hero-visual" href={`/products/${heroProduct.slug}`} preview={heroProduct.preview} aria-label={`Discover ${heroProduct.title}`}>
-        {heroProduct.image?.url ? <Image src={heroProduct.image.url} alt={`3D printed ${heroProduct.title}`} fill preload quality={75} fetchPriority="high" sizes="(max-width: 760px) 100vw, 48vw" unoptimized={!heroProduct.image.url.startsWith('/')} /> : <div className="home-hero-placeholder" aria-hidden="true"><Box size={68} strokeWidth={1} /></div>}
+        {heroProduct.image?.url ? <Image src={heroProduct.image.url} alt={`3D printed ${heroProduct.title}`} fill preload quality={75} fetchPriority="high" sizes="(max-width: 760px) 100vw, 48vw" unoptimized={!shouldOptimizeImage(heroProduct.image.url)} /> : <div className="home-hero-placeholder" aria-hidden="true"><Box size={68} strokeWidth={1} /></div>}
         <span>{heroProduct.title}<ArrowDownRight size={18} aria-hidden="true" /></span>
       </ProductLink>}
     </section>

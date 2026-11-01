@@ -42,7 +42,7 @@ pnpm build
 
 1. Create a Vercel project and connect this repository.
 2. Provision a Postgres database with Neon or Supabase. Set `DATABASE_URL` to its Postgres connection string; production automatically selects Payload's Postgres adapter, while local development stays on SQLite.
-3. Create an S3-compatible bucket (Cloudflare R2, AWS S3, or another compatible provider). Set `S3_BUCKET`, `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, and `S3_SECRET_ACCESS_KEY`. Without these settings, Payload stores uploads in `public/media` locally.
+3. Create an S3-compatible bucket (Cloudflare R2, AWS S3, or another compatible provider). Set `S3_BUCKET`, `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, and `S3_SECRET_ACCESS_KEY`. Set `S3_PUBLIC_BASE_URL` to the public media URL for that bucket so storefront images can be optimized and cached by Next.js. Without the S3 settings, Payload stores uploads in `public/media` locally.
 4. Set `PAYLOAD_SECRET`, `PREVIEW_SECRET`, `CRON_SECRET`, `NEXT_PUBLIC_SERVER_URL`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, and `NEXT_PUBLIC_RAZORPAY_KEY_ID` in Vercel. Use the production domain for `NEXT_PUBLIC_SERVER_URL` and do not include a trailing slash. Start with Razorpay Test Mode keys.
 5. Before first deploy, set `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` in a secure environment and run `pnpm admin:create` once. Then deploy and complete Site Settings before publishing products. Do not expose or commit the bootstrap password.
 6. Run the Payload migration with `pnpm migrate` before using checkout. In Site Settings → Shipping and Checkout, configure the flat shipping fee and optional free-shipping threshold in INR. Both default to 0.

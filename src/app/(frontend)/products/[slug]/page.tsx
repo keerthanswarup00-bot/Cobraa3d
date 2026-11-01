@@ -9,9 +9,10 @@ import { ConnectTerrain } from '@/components/home/ConnectTerrain'
 import { ProductRender, type ConnectProduct } from '@/components/home/ConnectProducts'
 import { getDisplayPrice } from '@/lib/pricing'
 import { TEMP_PRODUCTS } from '@/lib/tempProducts'
-import type { Product } from '@/payload-types'
+import type { Media, Product } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
 import { SHARE_IMAGE_HEIGHT, SHARE_IMAGE_WIDTH, getProductShareImageURL } from '@/lib/shareImage-constants'
+import { getProductThumbnailURL } from '@/lib/productPreview'
 
 export const revalidate = 60
 
@@ -31,15 +32,11 @@ function textFromLexical(value: unknown): string {
   return [item.text || '', ...(item.children || []).map(textFromLexical)].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
 }
 
-function urlForMedia(image: Product['images'] extends (infer _T)[] | null | undefined ? unknown : unknown) {
+function urlForMedia(image: number | Media | null | undefined) {
   if (!image || typeof image !== 'object') return undefined
-  const media = image as {
-    url?: string | null
-    alt?: string | null
-    sizes?: { medium?: { url?: string | null } | null; large?: { url?: string | null } | null }
-  }
-  const url = media.sizes?.medium?.url || media.url
-  return url ? { url, alt: media.alt || '' } : undefined
+  const media = image
+  const url = media.url
+  return url ? { url, thumbnailURL: getProductThumbnailURL(media), alt: media.alt || '' } : undefined
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -86,11 +83,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     relatedProducts = related.docs
   }
   const siteURL = getServerSideURL()
-  const photos = (product.images || []).map((row) => ({ ...urlForMedia(row.image), alt: row.alt || product.title })).filter((item): item is { url: string; alt: string } => Boolean(item.url))
+  const photos = (product.images || []).map((row) => ({ ...urlForMedia(row.image), alt: row.alt || product.title })).filter((item): item is { url: string; thumbnailURL: string; alt: string } => Boolean(item.url))
   const related = relatedProducts.map((item) => {
     const image = item.images?.[0]?.image
     const media = typeof image === 'object' && image ? image : undefined
-    const url = media?.sizes?.square?.url || media?.sizes?.thumbnail?.url || media?.url
+    const url = media?.url
     return { slug: item.slug || '', title: item.title, image: url ? { url, alt: item.images?.[0]?.alt || item.title } : undefined }
   })
   const productData = {

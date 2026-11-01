@@ -10,8 +10,11 @@ import { redirects } from './redirects'
 const NEXT_PUBLIC_SERVER_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
   : process.env.__NEXT_PRIVATE_ORIGIN || 'http://localhost:3000'
+const publicMediaURL = process.env.S3_PUBLIC_BASE_URL ? new URL(process.env.S3_PUBLIC_BASE_URL) : undefined
+const publicMediaPath = publicMediaURL?.pathname.replace(/\/+$/, '')
 
 const nextConfig: NextConfig = {
+  env: { NEXT_PUBLIC_MEDIA_BASE_URL: process.env.S3_PUBLIC_BASE_URL || '' },
   allowedDevOrigins: ['192.168.*.*'],
   experimental: { globalNotFound: true },
   serverExternalPackages: ['@payloadcms/db-sqlite', '@payloadcms/db-postgres', 'libsql', '@libsql/client', 'pg'],
@@ -37,6 +40,11 @@ const nextConfig: NextConfig = {
           protocol: url.protocol.replace(':', '') as 'http' | 'https',
         }
       }),
+      ...(publicMediaURL ? [{
+        hostname: publicMediaURL.hostname,
+        protocol: publicMediaURL.protocol.replace(':', '') as 'http' | 'https',
+        pathname: `${publicMediaPath || ''}/**`,
+      }] : []),
     ],
   },
   webpack: (webpackConfig) => {

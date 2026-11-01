@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { ProductLink } from '@/components/product/ProductLink'
+import { shouldOptimizeImage } from '@/lib/imageOptimization'
 import type { ProductPreviewData } from '@/lib/productPreview'
 
 export type ConnectProduct = {
@@ -90,7 +91,7 @@ export function ConnectProducts({ products, total, productsURL = '/products', va
   return <div className="studio-product-wrap">
     <div className="studio-product-grid" ref={cards}>{products.map((product, index) => <article className="studio-product-card" data-connect-card={product.id} key={`${product.id}-${product.slug}`} onPointerMove={variant === 'home' ? (event) => { const bounds = event.currentTarget.getBoundingClientRect(); event.currentTarget.style.setProperty('--mx', `${event.clientX - bounds.left}px`); event.currentTarget.style.setProperty('--my', `${event.clientY - bounds.top}px`) } : undefined} onPointerEnter={variant === 'home' ? () => { if (!window.matchMedia('(hover: none)').matches) animate(product.id) } : undefined}>
       <ProductLink className={`studio-product-photo${variant === 'catalog' && product.image?.width && product.image.height && product.image.width > product.image.height ? ' is-landscape' : ''}`} style={variant === 'catalog' && product.image?.width && product.image.height && product.image.width > product.image.height ? { aspectRatio: `${product.image.width} / ${product.image.height}` } : undefined} href={`/products/${product.slug}`} preview={product.preview} aria-label={`View ${product.title}`}>
-        {product.image?.url ? <Image src={product.image.url} alt={product.image.alt || product.title} width={product.image.width || 720} height={product.image.height || 640} sizes="(max-width: 720px) 84vw, (max-width: 1020px) 48vw, 30vw" loading="lazy" unoptimized={!product.image.url.startsWith('/')} /> : <ProductRender product={product} animate={Boolean(rebuild[product.id])} buildKey={rebuild[product.id] || 0} />}
+        {product.image?.url ? <Image src={product.image.url} alt={product.image.alt || product.title} width={product.image.width || 720} height={product.image.height || 640} sizes="(max-width: 720px) 84vw, (max-width: 1020px) 48vw, 30vw" loading="lazy" unoptimized={!shouldOptimizeImage(product.image.url)} /> : <ProductRender product={product} animate={Boolean(rebuild[product.id])} buildKey={rebuild[product.id] || 0} />}
         <small className="studio-product-tag">{product.tag}</small><small className="studio-product-number">{String(index + 1).padStart(2, '0')}</small>
       </ProductLink>
       <div className="studio-product-copy"><h3>{product.title}</h3>{variant !== 'catalog' && <p>{product.blurb}</p>}</div>

@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Box, MessageCircle } from 'lucide-react'
 import { ProductLink } from '@/components/product/ProductLink'
+import { shouldOptimizeImage } from '@/lib/imageOptimization'
 import type { ConnectProduct } from './ConnectProducts'
 
 export function HomeProductGrid({ products, productsURL, viewAllLabel, eagerFirstImage = false }: {
@@ -23,7 +24,7 @@ export function HomeProductGrid({ products, productsURL, viewAllLabel, eagerFirs
           aria-label={`View ${product.title}`}
         >
           {product.image?.url
-            ? <Image src={product.image.url} alt={product.image.alt || product.title} fill quality={75} sizes="(max-width: 760px) 74vw, (max-width: 1020px) 48vw, 390px" loading={eagerFirstImage && index === 0 ? 'eager' : 'lazy'} decoding="async" unoptimized={!product.image.url.startsWith('/')} />
+            ? <Image src={product.image.url} alt={product.image.alt || product.title} fill quality={75} sizes="(max-width: 760px) 74vw, (max-width: 1020px) 48vw, 390px" loading={eagerFirstImage && index === 0 ? 'eager' : 'lazy'} decoding="async" unoptimized={!shouldOptimizeImage(product.image.url)} />
             : <span className="home-product-placeholder" aria-hidden="true"><Box size={34} strokeWidth={1.2} /></span>}
           <small className="studio-product-tag">{product.tag}</small>
           <small className="studio-product-number">{String(index + 1).padStart(2, '0')}</small>
