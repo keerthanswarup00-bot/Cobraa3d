@@ -37,15 +37,10 @@ function getProductDescription(product: Product) {
   return product.seoDescription || product.meta?.description || product.shortBenefit || product.shortDescription || product.title
 }
 
-function urlForMedia(image: Product['images'] extends (infer _T)[] | null | undefined ? unknown : unknown) {
+function urlForMedia(image: NonNullable<Product['images']>[number]['image']) {
   if (!image || typeof image !== 'object') return undefined
-  const media = image as {
-    url?: string | null
-    alt?: string | null
-    sizes?: { medium?: { url?: string | null } | null; large?: { url?: string | null } | null }
-  }
-  const url = media.sizes?.medium?.url || media.url
-  return url ? { url, alt: media.alt || '' } : undefined
+  const url = image.sizes?.medium?.url || image.url
+  return url ? { url, originalUrl: image.url !== url ? image.url : undefined, alt: image.alt } : undefined
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -92,12 +87,15 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     relatedProducts = related.docs
   }
   const siteURL = getServerSideURL()
-  const photos = (product.images || []).map((row) => ({ ...urlForMedia(row.image), alt: row.alt || product.title })).filter((item): item is { url: string; alt: string } => Boolean(item.url))
+  const photos = (product.images || []).flatMap((row) => {
+    const photo = urlForMedia(row.image)
+    return photo ? [{ ...photo, alt: row.alt || photo.alt || product.title }] : []
+  })
   const related = relatedProducts.map((item) => {
     const image = item.images?.[0]?.image
     const media = typeof image === 'object' && image ? image : undefined
     const url = media?.sizes?.square?.url || media?.sizes?.thumbnail?.url || media?.url
-    return { slug: item.slug || '', title: item.title, image: url ? { url, alt: item.images?.[0]?.alt || item.title } : undefined }
+    return { slug: item.slug || '', title: item.title, image: url ? { url, originalUrl: media?.url !== url ? media?.url : undefined, alt: item.images?.[0]?.alt || item.title } : undefined }
   })
   const productData = {
     title: product.title, slug: product.slug || slug, shortDescription: product.shortDescription,

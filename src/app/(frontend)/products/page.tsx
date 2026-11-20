@@ -88,7 +88,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       if (!row.image || typeof row.image !== 'object' || !row.image.url) return []
       const medium = row.image.sizes?.medium
       const cardImage = !row.image.url.startsWith('/') && medium?.url ? medium : row.image
-      return [{ url: cardImage.url || row.image.url, alt: row.alt || row.image.alt || product.title, width: cardImage.width, height: cardImage.height }]
+      return [{ url: cardImage.url || row.image.url, originalUrl: cardImage.url !== row.image.url ? row.image.url : undefined, alt: row.alt || row.image.alt || product.title, width: cardImage.width, height: cardImage.height }]
     })
     const categoryDoc = typeof product.category === 'object' && product.category ? product.category : null
     const category = categoryDoc?.name || null

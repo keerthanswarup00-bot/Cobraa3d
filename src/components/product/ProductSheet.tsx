@@ -15,6 +15,7 @@ import {
 } from 'react'
 import { motion, useDragControls, useReducedMotion } from 'motion/react'
 import { ArrowRight, Share2, X } from 'lucide-react'
+import { recoverProductPhoto } from './recover-product-photo'
 import type { ProductPreviewData } from '@/lib/productPreview'
 import { clearPreviewPhotoTransition, getPreviewPhotoOrigin, type ProductPhotoOrigin } from './product-motion'
 import { prepareProductArrival } from './product-arrival'
@@ -264,6 +265,10 @@ export function ProductSheet({
                   alt={image.alt || data.title}
                   loading={index === (origin?.index ?? 0) ? 'eager' : 'lazy'}
                   fetchPriority={index === (origin?.index ?? 0) ? 'high' : 'auto'}
+                  onError={(event) => {
+                    const backup = data.images[index === 0 ? 1 : 0]
+                    recoverProductPhoto(event, image.originalUrl, backup?.url, backup?.originalUrl)
+                  }}
                   decoding="async"
                   draggable={false}
                 />

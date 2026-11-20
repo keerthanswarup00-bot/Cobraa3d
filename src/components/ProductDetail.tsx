@@ -5,11 +5,12 @@ import Link from 'next/link'
 import { MessageCircle, Share2, Truck } from 'lucide-react'
 import { useMemo, useState, type MouseEvent } from 'react'
 import { ProductLink } from '@/components/product/ProductLink'
+import { recoverProductPhoto } from '@/components/product/recover-product-photo'
 import { returnToCatalog } from '@/components/product/catalog-position'
 import { getDisplayPrice } from '@/lib/pricing'
 import { buildProductMessage, buildWhatsAppUrl } from '@/lib/shared'
 
-type Photo = { url: string; alt: string }
+type Photo = { url: string; originalUrl?: string | null; alt: string }
 type ProductData = {
   title: string; slug: string; shortDescription?: string | null; descriptionText?: string; price?: number | null; salePrice?: number | null; originalPrice?: number | null
   currency?: string; priceMode?: 'show' | 'ask' | null; availability?: string | null; images: Photo[]; includedItems?: string[]
@@ -27,6 +28,8 @@ export function ProductDetail({ product, brandName, deliveryLine, whatsappNumber
   related?: Related[]; siteURL: string; ctaLabel: string
 }) {
   const [photoIndex, setPhotoIndex] = useState(0)
+  const selectedPhoto = product.images[photoIndex]
+  const backupPhoto = product.images[photoIndex === 0 ? 1 : 0]
   const [quantity, setQuantity] = useState(1)
   const [colour, setColour] = useState('')
   const [kind, setKind] = useState<'product' | 'custom'>('product')
@@ -73,10 +76,10 @@ export function ProductDetail({ product, brandName, deliveryLine, whatsappNumber
     <article className="product-detail">
       <div className="detail-gallery">
         <div className="detail-main-image" data-initial-photo={photoIndex === 0 && product.images[0] ? '' : undefined}>
-          {product.images[photoIndex]?.url ? <Image src={product.images[photoIndex].url} alt={product.images[photoIndex].alt || product.title} fill sizes="(max-width: 760px) 100vw, 55vw" quality={75} preload={photoIndex === 0} fetchPriority={photoIndex === 0 ? 'high' : 'auto'} unoptimized={!product.images[photoIndex].url.startsWith('/')} /> : <div className="detail-image-empty">{product.title}</div>}
+          {selectedPhoto?.url ? <Image key={photoIndex} src={selectedPhoto.url} alt={selectedPhoto.alt || product.title} fill sizes="(max-width: 760px) 100vw, 55vw" quality={75} preload={photoIndex === 0} fetchPriority={photoIndex === 0 ? 'high' : 'auto'} unoptimized={!selectedPhoto.url.startsWith('/')} onError={(event) => recoverProductPhoto(event, selectedPhoto.originalUrl, backupPhoto?.url, backupPhoto?.originalUrl)} /> : <div className="detail-image-empty">{product.title}</div>}
           {product.images.length > 1 && <><button className="gallery-arrow gallery-prev" aria-label="Previous image" onClick={() => setPhotoIndex((photoIndex + product.images.length - 1) % product.images.length)}>‹</button><button className="gallery-arrow gallery-next" aria-label="Next image" onClick={() => setPhotoIndex((photoIndex + 1) % product.images.length)}>›</button></>}
         </div>
-        {product.images.length > 1 && <div className="detail-thumbnails" aria-label="Product photos">{product.images.map((photo, i) => <button key={`${photo.url}-${i}`} aria-label={`Show image ${i + 1}`} aria-pressed={i === photoIndex} onClick={() => setPhotoIndex(i)}>{photo.url && <Image src={photo.url} alt="" fill sizes="70px" quality={75} loading={i === 0 ? 'eager' : 'lazy'} unoptimized={!photo.url.startsWith('/')} />}</button>)}</div>}
+        {product.images.length > 1 && <div className="detail-thumbnails" aria-label="Product photos">{product.images.map((photo, i) => <button key={`${photo.url}-${i}`} aria-label={`Show image ${i + 1}`} aria-pressed={i === photoIndex} onClick={() => setPhotoIndex(i)}>{photo.url && <Image src={photo.url} alt="" fill sizes="70px" quality={75} loading={i === 0 ? 'eager' : 'lazy'} unoptimized={!photo.url.startsWith('/')} onError={(event) => recoverProductPhoto(event, photo.originalUrl)} />}</button>)}</div>}
         {product.images.length > 1 && <div className="gallery-dots" aria-label={`Image ${photoIndex + 1} of ${product.images.length}`}>{product.images.map((_, i) => <button key={i} aria-label={`Image ${i + 1}`} aria-pressed={i === photoIndex} onClick={() => setPhotoIndex(i)} />)}</div>}
       </div>
       <div className="detail-copy">
@@ -110,7 +113,7 @@ export function ProductDetail({ product, brandName, deliveryLine, whatsappNumber
         {included.length > 0 && <div className="product-fact"><h2>What’s included</h2><ul>{included.map((item) => <li key={item}>{item}</li>)}</ul></div>}
       </section>
     )}
-    {!!related.length && <section className="related-products"><h2>You may also like</h2><div>{related.map((item) => <ProductLink href={`/products/${item.slug}`} key={item.slug}>{item.image?.url && <Image src={item.image.url} alt={item.image.alt} width={180} height={225} quality={75} loading="lazy" unoptimized={!item.image.url.startsWith('/')} />}<span>{item.title}</span></ProductLink>)}</div></section>}
+    {!!related.length && <section className="related-products"><h2>You may also like</h2><div>{related.map((item) => <ProductLink href={`/products/${item.slug}`} key={item.slug}>{item.image?.url && <Image src={item.image.url} alt={item.image.alt} width={180} height={225} quality={75} loading="lazy" unoptimized={!item.image.url.startsWith('/')} onError={(event) => recoverProductPhoto(event, item.image?.originalUrl)} />}<span>{item.title}</span></ProductLink>)}</div></section>}
     <div className="detail-mobile-cta">{waURL ? <a href={waURL} target="_blank" rel="noopener noreferrer">{!product.isDemo && !askAvailability && product.priceMode === 'show' && product.price != null ? `${enquiryLabel} · ${priceLabel}` : enquiryLabel}</a> : null}</div>
   </main>
 }
