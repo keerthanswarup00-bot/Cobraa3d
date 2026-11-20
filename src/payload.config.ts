@@ -34,8 +34,9 @@ import { env, getConnectionString, isPostgres } from './lib/env'
  * e2e suite run on 127.0.0.1 with their own port, so those origins have to be
  * allowed before the admin session cookie is accepted.
  */
-const localOrigins = [
-  process.env.NEXT_PUBLIC_SITE_URL,
+const trustedOrigins = [
+  env.NEXT_PUBLIC_SITE_URL ? new URL(env.NEXT_PUBLIC_SITE_URL).origin : null,
+  process.env.VERCEL_ENV === 'production' ? 'https://www.cobraa3d.com' : null,
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   process.env.PLAYWRIGHT_PORT ? `http://127.0.0.1:${process.env.PLAYWRIGHT_PORT}` : null,
@@ -125,8 +126,8 @@ export default buildConfig({
     { ...Users, admin: { ...Users.admin, group: 'Team' } },
     WhatsappClicks,
   ],
-  cors: localOrigins,
-  csrf: localOrigins,
+  cors: trustedOrigins,
+  csrf: trustedOrigins,
   globals: [
     { ...SiteSettings, admin: { ...SiteSettings.admin, group: 'Website' } },
     { ...LegalPages, admin: { ...LegalPages.admin, group: 'Website' } },
