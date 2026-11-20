@@ -555,8 +555,8 @@ export function ProductsCatalog({ products, categories, copy, calmMode, initialF
                   >
                     {product.images[0] ? (
                       <>
-                        <Image className="a" src={product.images[0].url} alt={product.images[0].alt} fill sizes="(max-width: 860px) 50vw, (max-width: 1320px) 25vw, 300px" loading={index < 4 ? 'eager' : 'lazy'} unoptimized={!product.images[0].url.startsWith('/')} onError={(event) => recoverProductPhoto(event, product.images[0]?.originalUrl, product.images[1]?.url, product.images[1]?.originalUrl)} />
-                        {product.images[1] && <Image className="b" src={product.images[1].url} alt="" aria-hidden fill sizes="(max-width: 860px) 50vw, (max-width: 1320px) 25vw, 300px" loading="lazy" unoptimized={!product.images[1].url.startsWith('/')} onError={(event) => recoverProductPhoto(event, product.images[1]?.originalUrl, product.images[0]?.url, product.images[0]?.originalUrl)} />}
+                        <Image className="a" src={product.images[0].url} alt={product.images[0].alt} fill sizes="(max-width: 860px) 50vw, (max-width: 1320px) 25vw, 300px" loading={index < 4 ? 'eager' : 'lazy'} unoptimized={!product.images[0].url.startsWith('/')} onError={(event) => recoverProductPhoto(event, product.images[0]?.url, product.images[0]?.originalUrl, product.images[1]?.url, product.images[1]?.originalUrl)} />
+                        {product.images[1] && <Image className="b" src={product.images[1].url} alt="" aria-hidden fill sizes="(max-width: 860px) 50vw, (max-width: 1320px) 25vw, 300px" loading="lazy" unoptimized={!product.images[1].url.startsWith('/')} onError={(event) => recoverProductPhoto(event, product.images[1]?.url, product.images[1]?.originalUrl, product.images[0]?.url, product.images[0]?.originalUrl)} />}
                       </>
                     ) : (
                       <span className="pc-fallback"><ProductRender product={product.render} animate={false} buildKey={0} /></span>

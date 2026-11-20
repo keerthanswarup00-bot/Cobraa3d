@@ -267,7 +267,7 @@ export function ProductSheet({
                   fetchPriority={index === (origin?.index ?? 0) ? 'high' : 'auto'}
                   onError={(event) => {
                     const backup = data.images[index === 0 ? 1 : 0]
-                    recoverProductPhoto(event, image.originalUrl, backup?.url, backup?.originalUrl)
+                    recoverProductPhoto(event, image.url, image.originalUrl, backup?.url, backup?.originalUrl)
                   }}
                   decoding="async"
                   draggable={false}
