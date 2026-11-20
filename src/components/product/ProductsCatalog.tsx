@@ -1,11 +1,12 @@
 'use client'
 
 import Image from 'next/image'
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type TouchEvent as ReactTouchEvent } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type TouchEvent as ReactTouchEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { ProductRender, type ConnectProduct } from '@/components/home/ConnectProducts'
 import { ProductLink } from '@/components/product/ProductLink'
+import { restoreCatalogPosition } from './catalog-position'
 import type { ProductPreviewData } from '@/lib/productPreview'
 import {
   buildCatalogFacets,
@@ -316,6 +317,7 @@ export function ProductsCatalog({ products, categories, copy, calmMode, initialF
   }, [search, filters.q])
 
   useEffect(() => {
+    if (location.pathname !== '/products') return
     try {
       const query = catalogFiltersToSearchParams({ ...filters, page: safePage }).toString()
       history.replaceState(history.state, '', `${location.pathname}${query ? `?${query}` : ''}${location.hash}`)
@@ -323,6 +325,29 @@ export function ProductsCatalog({ products, categories, copy, calmMode, initialF
       // history can be unavailable in restricted contexts
     }
   }, [filters, safePage])
+
+  useLayoutEffect(() => {
+    let frame = 0
+    const restore = (returning: boolean) => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(() => restoreCatalogPosition(returning))
+      })
+    }
+    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined
+    const fromHistory = navigation?.type === 'back_forward'
+    restoreCatalogPosition(fromHistory)
+    restore(fromHistory)
+    const restoreAfterPageShow = (event: PageTransitionEvent) => restore(event.persisted || fromHistory)
+    const restoreAfterBack = () => restore(true)
+    window.addEventListener('pageshow', restoreAfterPageShow)
+    window.addEventListener('popstate', restoreAfterBack)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('pageshow', restoreAfterPageShow)
+      window.removeEventListener('popstate', restoreAfterBack)
+    }
+  }, [])
 
   useEffect(() => {
     if (!filtersOpen) return

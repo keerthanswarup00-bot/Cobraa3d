@@ -92,7 +92,7 @@ test.describe('Frontend', () => {
     }
   })
 
-  test('product cards navigate directly on desktop and open the preview sheet on phones', async ({ page, browser }) => {
+  test('product cards navigate directly on desktop and open the preview on phones', async ({ page, browser }) => {
     const payload = await getPayload({ config })
     const slug = 'preview-sheet-regression-product'
     const title = 'Preview Sheet Regression Product'
@@ -147,14 +147,27 @@ test.describe('Frontend', () => {
       })
       productId = product.id
 
-      // Desktop clicks skip the intercepted sheet and load the product page directly.
+      await page.addInitScript(() => {
+        window.addEventListener('pagereveal', (event) => {
+          const transition = (event as Event & { viewTransition?: ViewTransition }).viewTransition
+          void transition?.ready.then(() => {
+            const moved = document.getAnimations().some(
+              (animation) => (animation.effect as KeyframeEffect | null)?.pseudoElement === '::view-transition-group(product-photo)',
+            )
+            if (moved) document.documentElement.dataset.testSawPhotoGrow = 'true'
+          }, () => {})
+        })
+      })
       await page.goto('/products')
       const desktopCard = page.locator(`.pc-card a.pc-media[href="${href}"]`)
       await expect(desktopCard).toBeVisible()
+      await desktopCard.locator('img.a').evaluate((image: HTMLImageElement) => image.decode())
       await desktopCard.click()
       await expect(page).toHaveURL(new RegExp(`${href}$`))
       await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible()
       await expect(page.getByRole('dialog')).toHaveCount(0)
+      await expect(page.locator('.detail-main-image')).toHaveCSS('background-image', /^url\(/)
+      await expect(page.locator('html')).toHaveAttribute('data-test-saw-photo-grow', 'true')
 
       const baseURL = test.info().project.use.baseURL || 'http://127.0.0.1:3100'
       const mobileContext = await browser.newContext({
@@ -165,16 +178,13 @@ test.describe('Frontend', () => {
         isMobile: true,
       })
       await mobileContext.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: baseURL })
-      await mobileContext.addInitScript(() => {
-        const calls: Array<{ title?: string; text?: string; url?: string }> = []
-        ;(window as unknown as { __shareCalls: typeof calls }).__shareCalls = calls
+      await mobileContext.addInitScript(`
+        window.__shareCalls = [];
         Object.defineProperty(navigator, 'share', {
           configurable: true,
-          value: async (data: { title?: string; text?: string; url?: string }) => {
-            calls.push(data)
-          },
-        })
-      })
+          value: async (data) => { window.__shareCalls.push(data); },
+        });
+      `)
 
       try {
         const mobilePage = await mobileContext.newPage()
@@ -300,10 +310,18 @@ test.describe('Frontend', () => {
         }, href)
         const reopened = mobilePage.getByRole('dialog')
         await expect(reopened).toBeVisible()
+        await reopened.locator('.ps-img').first().evaluate((image: HTMLImageElement) => image.decode())
         await reopened.getByRole('link', { name: 'Know more' }).click()
         await expect(mobilePage).toHaveURL(new RegExp(`${href}$`))
         await expect(mobilePage.getByRole('heading', { level: 1, name: title })).toBeVisible()
         await expect(mobilePage.getByRole('dialog')).toHaveCount(0)
+        await expect(mobilePage.locator('.detail-main-image')).toHaveCSS('background-image', /^url\(/)
+
+        // The full page replaces the intercepted entry, so Back lands on the listing.
+        await mobilePage.goBack()
+        await expect(mobilePage).toHaveURL(/\/products$/)
+        await expect(mobilePage.getByRole('dialog')).toHaveCount(0)
+        await expect.poll(() => mobilePage.evaluate(() => window.scrollY)).toBe(scrollBefore)
 
         // A direct mobile visit or refresh always renders the full product page.
         await mobilePage.goto(href)

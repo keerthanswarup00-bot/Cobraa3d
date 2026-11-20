@@ -1542,7 +1542,7 @@ export interface SiteSetting {
   brandName: string;
   tagline?: string | null;
   /**
-   * Delivery promise shown in the home page trust strip.
+   * Delivery timing shown on product pages. State when the delivery window starts.
    */
   deliveryLine?: string | null;
   hero?: {

@@ -1,19 +1,23 @@
 'use client'
 
-// The one phone preview sheet. It is mounted by ProductPreviewHost in the
+// The preview is mounted by ProductPreviewHost in the
 // @modal layout, so the shell exists before any route data arrives.
 import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
+  type MouseEvent,
   type PointerEvent,
   type UIEvent,
 } from 'react'
 import { motion, useDragControls, useReducedMotion } from 'motion/react'
 import { ArrowRight, Share2, X } from 'lucide-react'
 import type { ProductPreviewData } from '@/lib/productPreview'
+import { clearPreviewPhotoTransition, getPreviewPhotoOrigin, type ProductPhotoOrigin } from './product-motion'
+import { prepareProductArrival } from './product-arrival'
 import './product-sheet.css'
 
 const FOCUSABLE = 'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])'
@@ -60,20 +64,41 @@ function copyText(text: string): Promise<boolean> {
  */
 export function ProductSheet({
   data,
+  origin,
+  native,
   onRequestClose,
 }: {
   data: ProductPreviewData
+  origin?: ProductPhotoOrigin
+  native: boolean
   onRequestClose: () => void
 }) {
-  const reduce = useReducedMotion()
+  const reduce = useReducedMotion() === true
   const controls = useDragControls()
   const sheetRef = useRef<HTMLDivElement>(null)
+  const galleryRef = useRef<HTMLDivElement>(null)
   const noticeTimer = useRef<number | null>(null)
   const titleId = useId()
-  const [slide, setSlide] = useState(0)
+  const [slide, setSlide] = useState(origin?.index ?? 0)
   const [notice, setNotice] = useState('')
   const productHref = `/products/${encodeURIComponent(data.slug)}`
   const hasMultipleImages = data.images.length > 1
+
+  useLayoutEffect(() => {
+    const gallery = galleryRef.current
+    if (gallery && origin?.index) gallery.scrollLeft = origin.index * gallery.clientWidth
+  }, [origin])
+
+  function openDetails(event: MouseEvent<HTMLAnchorElement>) {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    clearPreviewPhotoTransition()
+    const gallery = galleryRef.current
+    prepareProductArrival(productHref, gallery?.querySelector('img'), origin?.index === 0 ? origin.url : undefined, slide === 0 ? getPreviewPhotoOrigin(gallery, 0) : undefined)
+    if (location.pathname !== productHref) return
+    event.preventDefault()
+    // Replace the preview history entry so browser Back returns to the listing.
+    location.replace(productHref)
+  }
 
   const showNotice = useCallback((message: string) => {
     if (noticeTimer.current) window.clearTimeout(noticeTimer.current)
@@ -118,7 +143,7 @@ export function ProductSheet({
   // Lock the page once while the sheet is mounted and put the listing back at
   // the exact scroll offset on close. position:fixed is what stops iOS Safari
   // from scrolling the page behind the sheet.
-  useEffect(() => {
+  useLayoutEffect(() => {
     const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null
     const { body, documentElement } = document
     const scrollY = window.scrollY
@@ -175,12 +200,8 @@ export function ProductSheet({
     }
   }, [onRequestClose])
 
-  const sheetTransition = reduce
-    ? { duration: 0.01 }
-    : { duration: 0.28, ease: 'easeOut' as const }
-  const backdropTransition = reduce
-    ? { duration: 0.01 }
-    : { duration: 0.15, ease: 'easeOut' as const }
+  const sheetTransition = { duration: reduce || native ? 0 : 0.19, ease: 'easeOut' as const }
+  const backdropTransition = { duration: reduce || native ? 0 : 0.17, ease: 'easeOut' as const }
 
   return (
     <>
@@ -188,7 +209,7 @@ export function ProductSheet({
         key="backdrop"
         className="ps-backdrop"
         onClick={onRequestClose}
-        initial={{ opacity: 0 }}
+        initial={native ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={backdropTransition}
@@ -210,9 +231,13 @@ export function ProductSheet({
         onDragEnd={(_, info) => {
           if (info.offset.y > 120 || info.velocity.y > 600) onRequestClose()
         }}
-        initial={{ y: '100%' }}
-        animate={{ y: 0 }}
-        exit={{ y: '100%' }}
+        initial={reduce || native ? false : { y: 18, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{
+          y: reduce ? 0 : 18,
+          opacity: 0,
+          transition: { duration: reduce ? 0 : 0.24, ease: 'easeOut' },
+        }}
         transition={sheetTransition}
       >
         <div className="ps-media">
@@ -230,15 +255,15 @@ export function ProductSheet({
           </div>
 
           {data.images.length > 0 ? (
-            <div className="ps-gallery" onScroll={handleGalleryScroll} aria-label="Product photos">
+            <div ref={galleryRef} className="ps-gallery" onScroll={handleGalleryScroll} aria-label="Product photos">
               {data.images.map((image, index) => (
                 <img
                   key={`${image.url}-${index}`}
                   className="ps-img"
                   src={image.url}
                   alt={image.alt || data.title}
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                  fetchPriority={index === 0 ? 'high' : 'auto'}
+                  loading={index === (origin?.index ?? 0) ? 'eager' : 'lazy'}
+                  fetchPriority={index === (origin?.index ?? 0) ? 'high' : 'auto'}
                   decoding="async"
                   draggable={false}
                 />
@@ -272,7 +297,7 @@ export function ProductSheet({
         )}
 
         <div className="ps-cta">
-          <a className="ps-know" href={productHref}>
+          <a className="ps-know" href={productHref} onClick={openDetails}>
             <span>Know more</span>
             <ArrowRight size={16} strokeWidth={2} aria-hidden="true" />
           </a>

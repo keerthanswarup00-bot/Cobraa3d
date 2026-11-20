@@ -26,5 +26,15 @@ export const redirects: NextConfig['redirects'] = async () => {
       destination: '/products',
       permanent: true,
     },
+    {
+      source: '/products/kawaii-monster-charm-collection',
+      destination: '/products/six-cartoon-monsters-craft-set',
+      permanent: true,
+    },
+    {
+      source: '/products/kawaii-halloween-character-set',
+      destination: '/products/halloween-colouring-kit',
+      permanent: true,
+    },
   ]
 }

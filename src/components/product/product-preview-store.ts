@@ -1,16 +1,18 @@
 'use client'
 
 import type { ProductPreviewData } from '@/lib/productPreview'
+import type { ProductPhotoOrigin } from './product-motion'
 
 /**
  * One tiny external store for the single product preview sheet. Product links
- * write the listing data here on tap; the stable host in the @modal layout
+ * write the listing data here on tap; the stable host in the frontend layout
  * renders the sheet. Nothing in the route decides whether the shell exists.
  */
 type ProductPreviewState = {
   open: boolean
   data: ProductPreviewData | null
   lastClosedSlug: string | null
+  origin?: ProductPhotoOrigin
 }
 
 const CLOSED: ProductPreviewState = { open: false, data: null, lastClosedSlug: null }
@@ -22,14 +24,14 @@ function emit() {
   for (const listener of listeners) listener()
 }
 
-export function openProductPreview(data: ProductPreviewData) {
-  state = { open: true, data, lastClosedSlug: null }
+export function openProductPreview(data: ProductPreviewData, origin?: ProductPhotoOrigin) {
+  state = { open: true, data, lastClosedSlug: null, origin }
   emit()
 }
 
 export function closeProductPreview() {
   if (!state.open) return
-  state = { ...state, open: false, lastClosedSlug: state.data?.slug ?? null }
+  state = { ...state, open: false, origin: undefined, lastClosedSlug: state.data?.slug ?? null }
   emit()
 }
 

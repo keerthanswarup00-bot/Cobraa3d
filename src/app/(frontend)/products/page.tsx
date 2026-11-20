@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { unstable_cache } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { ProductsCatalog, type CatalogCopy, type CatalogProduct, type CatalogSpec } from '@/components/product/ProductsCatalog'
@@ -63,15 +64,21 @@ function byRecency(a: Product, b: Product): number {
   return b.id - a.id
 }
 
-export default async function ProductsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const params = await searchParams
-  const initialFilters = parseCatalogFilters(params)
+const getCatalog = unstable_cache(async () => {
   const payload = await getPayload({ config })
-  const [result, categoryResult, settings] = await Promise.all([
+  return Promise.all([
     payload.find({ collection: 'products', where: { and: [{ status: { equals: 'published' } }, { _status: { equals: 'published' } }, { isDemo: { not_equals: true } }] }, depth: 1, pagination: false }),
     payload.find({ collection: 'categories', where: { visible: { equals: true } }, sort: 'sortOrder', depth: 0, pagination: false }),
+  ])
+}, ['public-product-catalog'], { tags: ['site-content'], revalidate: 60 })
+
+export default async function ProductsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const [params, [result, categoryResult], settings] = await Promise.all([
+    searchParams,
+    getCatalog(),
     getSiteSettings(0),
   ])
+  const initialFilters = parseCatalogFilters(params)
 
   const siteURL = getServerSideURL()
   const products: CatalogProduct[] = [...(result.docs as Product[])].sort(byRecency).map((product) => {
@@ -79,7 +86,9 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     const slug = product.slug || slugify(product.title)
     const images = (product.images || []).flatMap((row) => {
       if (!row.image || typeof row.image !== 'object' || !row.image.url) return []
-      return [{ url: row.image.url, alt: row.alt || row.image.alt || product.title, width: row.image.width, height: row.image.height }]
+      const medium = row.image.sizes?.medium
+      const cardImage = !row.image.url.startsWith('/') && medium?.url ? medium : row.image
+      return [{ url: cardImage.url || row.image.url, alt: row.alt || row.image.alt || product.title, width: cardImage.width, height: cardImage.height }]
     })
     const categoryDoc = typeof product.category === 'object' && product.category ? product.category : null
     const category = categoryDoc?.name || null

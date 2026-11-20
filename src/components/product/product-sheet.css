@@ -1,4 +1,4 @@
-/* The single phone product preview sheet (intercepted /products/[slug]). */
+/* The product preview for intercepted /products/[slug] routes. */
 .ps-backdrop {
   position: fixed;
   inset: 0;
@@ -326,5 +326,11 @@
   .ps-know,
   .ps-order {
     transition: none;
+  }
+
+  .ps-icon-btn:active,
+  .ps-know:active,
+  .ps-order:active {
+    transform: none;
   }
 }

@@ -8,6 +8,9 @@ import localFont from 'next/font/local'
 import { cn } from '@/utilities/ui'
 import { getServerSideURL } from '@/utilities/getURL'
 import { SiteNavigation } from '@/components/SiteNavigation'
+import { ProductPreviewHost } from '@/components/product/ProductPreviewHost'
+import { productArrivalScript } from '@/components/product/product-arrival'
+import { catalogRestoreScript } from '@/components/product/catalog-position'
 import { buildGeneralMessage, buildWhatsAppUrl } from '@/lib/shared'
 import { DEFAULT_SITE_DESCRIPTION, defaultShareImage } from '@/lib/siteMeta'
 import './globals.css'
@@ -40,6 +43,8 @@ export default async function RootLayout({ children, modal }: { children: React.
   const whatsappURL = buildWhatsAppUrl({ number: settings.whatsappNumber, message: buildGeneralMessage(settings.brandName) })
   return <html className={cn(geistSans.variable, geistMono.variable, instrumentSerif.variable, bricolage.variable, dmSans.variable, dmMono.variable, dmSerif.variable)} lang="en" suppressHydrationWarning>
     <head>
+      <script dangerouslySetInnerHTML={{ __html: productArrivalScript }} />
+      <script dangerouslySetInnerHTML={{ __html: catalogRestoreScript }} />
       <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
       <link href="/apple-touch-icon.png" rel="apple-touch-icon" />
     </head>
@@ -49,6 +54,7 @@ export default async function RootLayout({ children, modal }: { children: React.
       <SiteNavigation brandName={settings.brandName || 'Cobraa 3D'} whatsappURL={whatsappURL} />
       {children}
       {modal}
+      <ProductPreviewHost />
       <TrackClicks />
     </body>
   </html>

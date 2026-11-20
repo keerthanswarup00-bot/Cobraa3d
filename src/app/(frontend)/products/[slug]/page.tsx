@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
@@ -12,23 +13,28 @@ import { TEMP_PRODUCTS } from '@/lib/tempProducts'
 import type { Product } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
 import { SHARE_IMAGE_HEIGHT, SHARE_IMAGE_WIDTH, getProductShareImageURL } from '@/lib/shareImage-constants'
+import { getSiteSettings } from '@/utilities/getSiteSettings'
 
 export const revalidate = 60
 
-async function loadProduct(slug: string) {
+const loadProduct = cache(async (slug: string) => {
   const payload = await getPayload({ config })
   const [result, settings] = await Promise.all([
     payload.find({ collection: 'products', where: { and: [{ slug: { equals: slug } }, { status: { equals: 'published' } }, { _status: { equals: 'published' } }, { isDemo: { not_equals: true } }] }, limit: 1, depth: 1 }),
-    payload.findGlobal({ slug: 'site-settings', depth: 0 }),
+    getSiteSettings(0),
   ])
   const product = result.docs[0]
   return { product, settings }
-}
+})
 
 function textFromLexical(value: unknown): string {
   if (!value || typeof value !== 'object') return ''
   const item = value as { text?: string; children?: unknown[] }
   return [item.text || '', ...(item.children || []).map(textFromLexical)].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
+}
+
+function getProductDescription(product: Product) {
+  return product.seoDescription || product.meta?.description || product.shortBenefit || product.shortDescription || product.title
 }
 
 function urlForMedia(image: Product['images'] extends (infer _T)[] | null | undefined ? unknown : unknown) {
@@ -52,7 +58,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const canonical = `/products/${product.slug}`
   const brandName = settings.brandName || 'Cobraa 3D'
   const title = product.seoTitle || product.meta?.title || `${product.title} | ${brandName}, Hoskote`
-  const description = product.seoDescription || product.meta?.description || product.shortBenefit || product.shortDescription || `${product.title} is 3D printed in PLA and hand finished in Hoskote, Bengaluru. Custom colours available. Order on WhatsApp with delivery across India.`
+  const description = getProductDescription(product)
   // 1200x630 share card built from the product photo (see share.jpg/route.ts); falls back to the site default image.
   const shareImage = {
     url: getProductShareImageURL(getServerSideURL(), product.slug || slug, product.updatedAt),
@@ -97,17 +103,32 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     title: product.title, slug: product.slug || slug, shortDescription: product.shortDescription,
     descriptionText: textFromLexical(product.description?.root), price: product.price, salePrice: product.salePrice, originalPrice: product.originalPrice,
     currency: product.currency, priceMode: product.priceMode, availability: product.availability, images: photos,
-    includedItems: product.includedItems?.map((item) => item.item), colourOptions: product.colourOptions?.map(({ name, hex }) => ({ name, hex })),
+    includedItems: product.includedItems?.map((item) => item.item.trim()).filter(Boolean), shortIncludes: product.shortIncludes,
+    colourOptions: product.colourOptions?.map(({ name, hex }) => ({ name, hex })),
+    powerAndBulb: product.powerAndBulb,
     dimensions: product.dimensions, material: product.material, ageGroup: product.ageGroup, personalisable: product.personalisable,
     personalisationNotes: product.personalisationNotes, careNotes: product.careNotes, productionNote: product.productionNote,
     badges: product.badges, whatsappMessageOverride: product.whatsappMessageOverride, isDemo: product.isDemo,
   }
   const displayPrice = getDisplayPrice({ id: product.id, price: product.price, salePrice: product.salePrice, priceMode: product.priceMode, currency: product.currency })
-  const hasStructuredOffer = product.priceMode === 'show' && typeof product.price === 'number' && product.availability && !product.isDemo && displayPrice.showOffer
+  const availabilityByStatus: Partial<Record<NonNullable<Product['availability']>, string>> = {
+    in_stock: 'https://schema.org/InStock',
+    out_of_stock: 'https://schema.org/OutOfStock',
+  }
+  const availability = product.availability ? availabilityByStatus[product.availability] : undefined
+  const offerPrice = displayPrice.showOffer ? displayPrice.offerPrice : displayPrice.regularPrice
   const schema = product.isDemo ? null : {
-    '@context': 'https://schema.org', '@type': 'Product', name: product.title, description: product.seoDescription || product.shortBenefit || product.shortDescription || `${product.title}, 3D printed in PLA and hand finished in Hoskote, Bengaluru.`,
-    image: photos.map((photo) => photo.url), sku: undefined,
-    ...(hasStructuredOffer ? { offers: { '@type': 'Offer', priceCurrency: product.currency || 'INR', price: displayPrice.offerPrice ?? product.price, availability: product.availability === 'in_stock' ? 'https://schema.org/InStock' : product.availability === 'out_of_stock' ? 'https://schema.org/OutOfStock' : 'https://schema.org/PreOrder', url: `${siteURL}/products/${product.slug}` } } : product.priceMode === 'show' && typeof product.price === 'number' ? { offers: { '@type': 'Offer', priceCurrency: product.currency || 'INR', price: product.price, availability: product.availability === 'in_stock' ? 'https://schema.org/InStock' : product.availability === 'out_of_stock' ? 'https://schema.org/OutOfStock' : 'https://schema.org/PreOrder', url: `${siteURL}/products/${product.slug}` } } : {}),
+    '@context': 'https://schema.org', '@type': 'Product', name: product.title, description: getProductDescription(product),
+    image: photos.map((photo) => new URL(photo.url, siteURL).href),
+    ...(product.priceMode === 'show' && offerPrice != null ? {
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: product.currency || 'INR',
+        price: offerPrice,
+        url: `${siteURL}/products/${product.slug}`,
+        ...(availability ? { availability } : {}),
+      },
+    } : {}),
   }
   const breadcrumb = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: siteURL }, { '@type': 'ListItem', position: 2, name: 'Products', item: `${siteURL}/products` },
@@ -116,9 +137,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   return <>
     {schema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, '\\u003c') }} />}
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb).replace(/</g, '\\u003c') }} />
-    <ProductDetail product={productData} brandName={settings.brandName} whatsappNumber={settings.whatsappNumber} productTemplate={settings.messageTemplates?.product} siteURL={siteURL} ctaLabel={settings.productEnquiryCtaLabel || 'Ask on WhatsApp'} related={related} />
+    <ProductDetail product={productData} brandName={settings.brandName} deliveryLine={settings.deliveryLine?.trim()} whatsappNumber={settings.whatsappNumber} productTemplate={settings.messageTemplates?.product} siteURL={siteURL} ctaLabel={settings.productEnquiryCtaLabel || 'Ask on WhatsApp'} related={related} />
     {product.faq?.length ? <section className="product-detail-extras" aria-labelledby="product-faq-title"><h2 id="product-faq-title">Frequently asked questions</h2>{product.faq.map((entry, index) => entry.question?.trim() && entry.answer?.trim() ? <details key={`${entry.question}-${index}`}><summary>{entry.question}</summary><p>{entry.answer}</p></details> : null)}</section> : null}
-    <nav className="product-policy-links" aria-label="Product information"><Link href="/product-safety-and-care">Product safety and care</Link><Link href="/shipping-and-delivery-policy">Shipping and delivery</Link><Link href="/refund-and-cancellation-policy">Refunds and cancellations</Link></nav>
 
   </>
 }
