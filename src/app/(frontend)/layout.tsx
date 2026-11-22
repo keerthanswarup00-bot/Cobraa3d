@@ -40,6 +40,7 @@ export default async function RootLayout({ children, modal }: { children: React.
   const whatsappURL = buildWhatsAppUrl({ number: settings.whatsappNumber, message: buildGeneralMessage(settings.brandName) })
   return <html className={cn(geistSans.variable, geistMono.variable, instrumentSerif.variable, bricolage.variable, dmSans.variable, dmMono.variable, dmSerif.variable)} lang="en" suppressHydrationWarning>
     <head>
+      <meta name="p:domain_verify" content="76c477e5614bc8a06d314344c1269ca0" />
       <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
       <link href="/apple-touch-icon.png" rel="apple-touch-icon" />
     </head>
