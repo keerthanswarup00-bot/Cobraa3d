@@ -18,6 +18,7 @@ import { MetaTitleComponent as MetaTitleComponent_a8a977ebc872c5d5ea7ee689724c08
 import { MetaDescriptionComponent as MetaDescriptionComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { MetaImageComponent as MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { PreviewComponent as PreviewComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
+import { ExportProductsLink as ExportProductsLink_246348efd44fcb7e6603248726bfc89a } from '../../../components/admin/ExportProductsLink'
 import { OfferStatusSummary as OfferStatusSummary_c959c901491657fdc38e1e11feb31a20 } from '@/components/OfferStatusSummary'
 import { AnnouncementPreview as AnnouncementPreview_6d370bdd91b16883d32c1fb7fa985082 } from '@/components/AnnouncementPreview'
 import { EnquiryReplyLink as EnquiryReplyLink_7dd7b12eeafc59af6ac9756c7ba1a864 } from '@/components/EnquiryReplyLink'
@@ -71,6 +72,7 @@ export const importMap = {
   "@payloadcms/plugin-seo/client#MetaDescriptionComponent": MetaDescriptionComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "@payloadcms/plugin-seo/client#MetaImageComponent": MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "@payloadcms/plugin-seo/client#PreviewComponent": PreviewComponent_a8a977ebc872c5d5ea7ee689724c0860,
+  "/components/admin/ExportProductsLink#ExportProductsLink": ExportProductsLink_246348efd44fcb7e6603248726bfc89a,
   "@/components/OfferStatusSummary#OfferStatusSummary": OfferStatusSummary_c959c901491657fdc38e1e11feb31a20,
   "@/components/AnnouncementPreview#AnnouncementPreview": AnnouncementPreview_6d370bdd91b16883d32c1fb7fa985082,
   "@/components/EnquiryReplyLink#EnquiryReplyLink": EnquiryReplyLink_7dd7b12eeafc59af6ac9756c7ba1a864,

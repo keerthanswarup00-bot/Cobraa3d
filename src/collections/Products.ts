@@ -3,11 +3,13 @@ import { slugField } from 'payload'
 import { editorAccess } from '../access/roles'
 import { revalidateDeletedSiteContent, revalidateSite } from '../hooks/revalidateSite'
 import { warmProductShareImage } from '../hooks/warmProductShareImage'
+import { exportProductsCSV } from '../endpoints/exportProductsCSV'
 import { generatePreviewPath } from '../utilities/generatePreviewPath'
 
 export const Products: CollectionConfig = {
   slug: 'products',
   defaultSort: '-updatedAt',
+  endpoints: [{ path: '/export-csv', method: 'get', handler: exportProductsCSV }],
   access: {
     create: editorAccess,
     delete: editorAccess,
@@ -18,6 +20,7 @@ export const Products: CollectionConfig = {
     update: editorAccess,
   },
   admin: {
+    components: { beforeListTable: ['/components/admin/ExportProductsLink#ExportProductsLink'] },
     useAsTitle: 'title',
     defaultColumns: ['images', 'title', 'category', 'price', 'salePrice', 'status', 'updatedAt'],
     listSearchableFields: ['title', 'shortDescription', 'material', 'slug'],

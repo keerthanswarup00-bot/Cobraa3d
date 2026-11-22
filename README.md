@@ -54,6 +54,8 @@ Payload's official Website Template supplied the App Router admin shell, draft v
 
 Products, categories, offers, announcements, enquiries, Print Bed posts, media, and user roles are managed in Payload. Site-wide business details, contact links, copy, experience toggles, vCard fields, and nameplate options are managed in the Site Settings global. Public category access is restricted to visible categories that have at least one published product.
 
+Admins and editors can open **Products** in `/admin` and choose **Export all products (CSV)**. The UTF-8 download includes one row per product with its latest saved content, including drafts and unpublished products, regardless of list filters. It includes stored pricing, specifications, SEO fields, and timestamps. Parse arrays, populated relationships, media metadata, and Lexical rich text as JSON within their CSV cells. Download media separately using the exported URLs where available. Resolve relative URLs against the source site. Text that could be interpreted as a spreadsheet formula is prefixed with an apostrophe.
+
 The local seed is sample content only. Before launch, the owner must supply the real WhatsApp number, studio contact details and links, address/map URL, approved product/category copy and imagery, vCard fields, and any verified prices or product specifications. Never publish unverified prices, claims, ratings, availability, or stock. No production Vercel/Neon/storage/Razorpay project credentials are included in the repository; configure those in the deployment environment.
 
 ## Local catalogue demo records
