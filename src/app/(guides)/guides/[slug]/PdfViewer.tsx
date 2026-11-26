@@ -292,7 +292,7 @@ function PdfPage({
     const element = canvas.current
     if (!near || !element) return
     // Cap canvas area and dimensions for mobile Safari and oversized PDF sheets.
-    const density = Math.min(window.devicePixelRatio || 1, 2)
+    const density = window.devicePixelRatio || 1
     const scale = Math.min(
       (displayWidth / width) * density,
       4096 / Math.max(width, height),
