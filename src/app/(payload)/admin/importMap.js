@@ -1,3 +1,5 @@
+import { default as default_48d987055dab65f9708ad416350f2b4e } from '@/app/(payload)/admin/guides/GuidesNavLink'
+import { default as default_0174ac8c73c5f737d1419e7ff06e2f9f } from '@/app/(payload)/admin/guides/GuidesView'
 import { EditableCategoryCell as EditableCategoryCell_0fd0ca44d0f377a5f814fdc9475b5a0c } from '../../../components/admin/EditableCategoryCell'
 import { EditablePriceCell as EditablePriceCell_081ad8e8adea907e5e9423bb68755107 } from '../../../components/admin/EditablePriceCell'
 import { SlugField as SlugField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
@@ -52,6 +54,8 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "@/app/(payload)/admin/guides/GuidesNavLink#default": default_48d987055dab65f9708ad416350f2b4e,
+  "@/app/(payload)/admin/guides/GuidesView#default": default_0174ac8c73c5f737d1419e7ff06e2f9f,
   "/components/admin/EditableCategoryCell#EditableCategoryCell": EditableCategoryCell_0fd0ca44d0f377a5f814fdc9475b5a0c,
   "/components/admin/EditablePriceCell#EditablePriceCell": EditablePriceCell_081ad8e8adea907e5e9423bb68755107,
   "@payloadcms/next/client#SlugField": SlugField_2b8867833a34864a02ddf429b0728a40,

@@ -65,3 +65,9 @@ ALLOW_DEMO_SEED=true pnpm seed
 ```
 
 Use a local SQLite database (`DATABASE_URL=file:./cobraa3d.db`) for the seed. Records carry `isDemo: true`; they have no price or confirmed availability and use distinct temporary SVG illustrations. The listing/detail UI marks them as temporary, and public production reads exclude them. The seed refuses to overwrite a non-demo product whose slug matches one of these demos. Replace or delete only records with `isDemo` checked before launch. The seed also removes the six exact `SAMPLE Product NN — replace before launch` and `SAMPLE Category NN — replace before launch` records made by the previous local sample script; it does not touch other products or categories.
+
+## Assembly guides
+
+Run `supabase/migrations/20261127000000_assembly_guides.sql` in the target project's Supabase SQL Editor. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to that project's API URL and anon key. Set `SUPABASE_SERVICE_ROLE_KEY` in the server environment only. Use these settings in both local development and Vercel for environments that need Guides. Set `NEXT_PUBLIC_SITE_URL` to the same origin as the Payload admin so its existing CSRF allowlist accepts guide actions. Use a separate Supabase project for testing if you need to keep test uploads separate from live guides.
+
+In Payload, open **Guides** as an admin and upload a PDF up to 25 MB. Copy the resulting URL or share it on WhatsApp. Replacement keeps the existing share URL. Deleting a guide takes down its public page. Guides are public by link, and the storage bucket and guide metadata are publicly readable.

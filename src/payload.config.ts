@@ -98,6 +98,14 @@ export default buildConfig({
   admin: {
     components: {
       beforeDashboard: ['@/components/BeforeDashboard'],
+      afterNavLinks: ['@/app/(payload)/admin/guides/GuidesNavLink'],
+      views: {
+        guides: {
+          Component: '@/app/(payload)/admin/guides/GuidesView',
+          path: '/guides',
+          meta: { title: 'Guides' },
+        },
+      },
     },
     importMap: { baseDir: path.resolve(dirname) },
     user: Users.slug,

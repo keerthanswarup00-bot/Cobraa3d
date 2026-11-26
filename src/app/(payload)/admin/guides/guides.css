@@ -1,0 +1,67 @@
+.guides-manager {
+  max-width: 56rem;
+  padding-bottom: 2rem;
+}
+.guides-manager fieldset,
+.guides-manager section {
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 6px;
+  padding: 1rem;
+}
+.guides-manager label {
+  display: block;
+  margin-bottom: 1rem;
+}
+.guides-manager input {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.65rem;
+  color: inherit;
+  background: var(--theme-elevation-50);
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 4px;
+}
+.guides-manager ul {
+  list-style: none;
+  padding: 0;
+}
+.guides-manager li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--theme-elevation-200);
+  overflow-wrap: anywhere;
+}
+.guides-manager__details {
+  color: var(--theme-elevation-650);
+}
+.guides-manager__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.guides-manager section .guides-manager__actions {
+  margin-top: 0.75rem;
+}
+.guides-manager__actions > * {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--theme-elevation-300);
+  border-radius: 4px;
+  color: inherit;
+  background: var(--theme-elevation-50);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.guides-manager__actions > :disabled {
+  opacity: 0.55;
+  cursor: default;
+}
