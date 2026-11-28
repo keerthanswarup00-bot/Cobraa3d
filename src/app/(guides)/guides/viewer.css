@@ -89,6 +89,33 @@
   height: 3px;
   accent-color: var(--guide-accent);
 }
+.guide-loading {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: 1rem;
+}
+.guide-loading--overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  min-height: 0;
+  background: #1a1a1a;
+}
+.guide-loading__card {
+  width: min(100%, 16rem);
+  text-align: center;
+}
+.guide-loading__card p {
+  margin: 0 0 1rem;
+}
+.guide-loading__card a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+}
 .guide-scroll {
   flex: 1;
   min-height: 0;

@@ -2,9 +2,10 @@
 
 import { Download, Minus, Plus, Share2 } from 'lucide-react'
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs'
-import type { PDFPageProxy, RenderTask } from 'pdfjs-dist'
+import type { PDFDocumentProxy, PDFPageProxy, RenderTask } from 'pdfjs-dist'
 import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState, type RefObject } from 'react'
 import { copyGuideLink } from '@/lib/guides'
+import GuideLoading from './GuideLoading'
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
@@ -13,7 +14,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 
 const ZOOMS = [1, 1.25, 1.5, 2, 3]
 
-type Props = {
+export type PdfViewerProps = {
   url: string
   downloadURL: string
   title: string
@@ -22,8 +23,10 @@ type Props = {
 
 type Page = { page: PDFPageProxy; width: number; height: number }
 
-export default function PdfViewer({ url, downloadURL, title, whatsappURL }: Props) {
+export default function PdfViewer({ url, downloadURL, title, whatsappURL }: PdfViewerProps) {
   const [pages, setPages] = useState<Page[]>([])
+  const [pdf, setPdf] = useState<PDFDocumentProxy>()
+  const [firstPageReady, setFirstPageReady] = useState(false)
   const [failed, setFailed] = useState(false)
   const [progress, setProgress] = useState<number>()
   const [current, setCurrent] = useState(1)
@@ -44,14 +47,11 @@ export default function PdfViewer({ url, downloadURL, title, whatsappURL }: Prop
     async function load() {
       try {
         const doc = await task.promise
-        const dimensions = await Promise.all(
-          Array.from({ length: doc.numPages }, async (_, index) => {
-            const page = await doc.getPage(index + 1)
-            const { width, height } = page.getViewport({ scale: 1 })
-            return { page, width, height }
-          }),
-        )
-        if (active) setPages(dimensions)
+        const firstPage = await readPage(doc, 1)
+        if (active) {
+          setPages([firstPage])
+          setPdf(doc)
+        }
       } catch {
         if (active) setFailed(true)
       }
@@ -62,6 +62,27 @@ export default function PdfViewer({ url, downloadURL, title, whatsappURL }: Prop
       void task.destroy().catch(() => {})
     }
   }, [url])
+
+  useEffect(() => {
+    if (!pdf || !firstPageReady || pdf.numPages < 2) return
+    let active = true
+
+    async function loadRemainingPages(doc: PDFDocumentProxy) {
+      try {
+        const remaining = await Promise.all(
+          Array.from({ length: doc.numPages - 1 }, (_, index) => readPage(doc, index + 2)),
+        )
+        if (active) setPages(([first]) => [first, ...remaining])
+      } catch {
+        if (active) setFailed(true)
+      }
+    }
+
+    void loadRemainingPages(pdf)
+    return () => {
+      active = false
+    }
+  }, [pdf, firstPageReady])
 
   useEffect(() => {
     const viewport = scroll.current!
@@ -167,6 +188,7 @@ export default function PdfViewer({ url, downloadURL, title, whatsappURL }: Prop
     }
   }
 
+  const loading = !failed && !firstPageReady
   const pageWidth = Math.floor(Math.min(width, 920) * ZOOMS[zoom])
   return (
     <main className="guide-viewer">
@@ -176,9 +198,9 @@ export default function PdfViewer({ url, downloadURL, title, whatsappURL }: Prop
         </span>
         <h1 title={title}>{title}</h1>
         <div className="guide-tools">
-          {pages.length > 0 && !failed && (
-            <span className="guide-count" aria-label={`Page ${current} of ${pages.length}`}>
-              {current} / {pages.length}
+          {pdf && !failed && (
+            <span className="guide-count" aria-label={`Page ${current} of ${pdf.numPages}`}>
+              {current} / {pdf.numPages}
             </span>
           )}
           <button
@@ -192,7 +214,7 @@ export default function PdfViewer({ url, downloadURL, title, whatsappURL }: Prop
           <button
             aria-label="Zoom in"
             title="Zoom in"
-            disabled={failed || !pages.length || zoom === ZOOMS.length - 1}
+            disabled={failed || !firstPageReady || zoom === ZOOMS.length - 1}
             onClick={() => changeZoom(1)}
           >
             <Plus />
@@ -205,9 +227,6 @@ export default function PdfViewer({ url, downloadURL, title, whatsappURL }: Prop
           </button>
         </div>
       </header>
-      {!failed && !pages.length && (
-        <progress className="guide-progress" aria-label="Loading PDF" value={progress} max={1} />
-      )}
       <span className="guide-sr-only" role="status">
         {shareStatus}
       </span>
@@ -226,7 +245,9 @@ export default function PdfViewer({ url, downloadURL, title, whatsappURL }: Prop
         onScroll={updatePage}
         tabIndex={0}
         aria-label="Guide pages"
+        aria-busy={loading}
       >
+        {loading && <GuideLoading progress={progress} downloadURL={downloadURL} overlay />}
         {failed ? (
           <div className="guide-message" role="alert">
             <p>We couldn’t display this guide here.</p>
@@ -245,6 +266,7 @@ export default function PdfViewer({ url, downloadURL, title, whatsappURL }: Prop
                   displayWidth={pageWidth}
                   scroll={scroll}
                   onError={setFailed}
+                  onReady={page.page.pageNumber === 1 ? setFirstPageReady : undefined}
                 />
               ))}
           </div>
@@ -262,6 +284,12 @@ export default function PdfViewer({ url, downloadURL, title, whatsappURL }: Prop
   )
 }
 
+async function readPage(pdf: PDFDocumentProxy, number: number): Promise<Page> {
+  const page = await pdf.getPage(number)
+  const { width, height } = page.getViewport({ scale: 1 })
+  return { page, width, height }
+}
+
 function PdfPage({
   page,
   width,
@@ -269,10 +297,12 @@ function PdfPage({
   displayWidth,
   scroll,
   onError,
+  onReady,
 }: Page & {
   displayWidth: number
   scroll: RefObject<HTMLDivElement | null>
   onError: (failed: boolean) => void
+  onReady?: (ready: boolean) => void
 }) {
   const wrapper = useRef<HTMLDivElement>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
@@ -307,7 +337,10 @@ function PdfPage({
       task = page.render({ canvas: element, viewport })
       void task.promise
         .then(() => {
-          if (active) setRenderedWidth(displayWidth)
+          if (active) {
+            setRenderedWidth(displayWidth)
+            onReady?.(true)
+          }
         })
         .catch(() => {
           if (active) onError(true)
@@ -321,7 +354,7 @@ function PdfPage({
       element.width = 0
       element.height = 0
     }
-  }, [near, displayWidth, width, height, page, onError])
+  }, [near, displayWidth, width, height, page, onError, onReady])
 
   return (
     <div className="guide-page" ref={wrapper} style={{ aspectRatio: `${width} / ${height}` }}>
